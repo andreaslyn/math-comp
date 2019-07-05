@@ -150,7 +150,7 @@ End Exports.
 End Equality.
 Export Equality.Exports.
 
-Definition eq_op T := Equality.op (Equality.class T).
+Definition eq_op@{i} (T : eqType@{i}) : rel@{i} T := Equality.op (Equality.class@{i i} T).
 
 (* eqE is a generic lemma that can be used to fold back recursive comparisons *)
 (* after using partial evaluation to simplify comparisons on concrete         *)
@@ -170,17 +170,18 @@ Lemma eqP T : Equality.axiom (@eq_op T).
 Proof. by case: T => ? []. Qed.
 Arguments eqP {T x y}.
 
+Declare Scope eq_scope.
 Delimit Scope eq_scope with EQ.
 Open Scope eq_scope.
 
 Notation "x == y" := (eq_op x y)
-  (at level 70, no associativity) : bool_scope.
+  (at level 70, no associativity) : type_scope.
 Notation "x == y :> T" := ((x : T) == (y : T))
-  (at level 70, y at next level) : bool_scope.
+  (at level 70, y at next level) : type_scope.
 Notation "x != y" := (~~ (x == y))
-  (at level 70, no associativity) : bool_scope.
+  (at level 70, no associativity) : type_scope.
 Notation "x != y :> T" := (~~ (x == y :> T))
-  (at level 70, y at next level) : bool_scope.
+  (at level 70, y at next level) : type_scope.
 Notation "x =P y" := (eqP : reflect (x = y) (x == y))
   (at level 70, no associativity) : eq_scope.
 Notation "x =P y :> T" := (eqP : reflect (x = y :> T) (x == y :> T))
@@ -293,28 +294,34 @@ Proof. by move=> eq_x_x; apply: eq_irrelevance. Qed.
 (* We use the module system to circumvent a silly limitation that  *)
 (* forbids using the same constant to coerce to different targets. *)
 Module Type EqTypePredSig.
-Parameter sort : eqType -> predArgType.
+
+Parameter sort : eqType@{i} -> predArgType@{i}.
+
 End EqTypePredSig.
+
 Module MakeEqTypePred (eqmod : EqTypePredSig).
+
 Coercion eqmod.sort : eqType >-> predArgType.
+
 End MakeEqTypePred.
+
 Module Export EqTypePred := MakeEqTypePred Equality.
 
 Lemma unit_eqP : Equality.axiom (fun _ _ : unit => true).
 Proof. by do 2!case; left. Qed.
 
 Definition unit_eqMixin := EqMixin unit_eqP.
-Canonical unit_eqType := Eval hnf in EqType unit unit_eqMixin.
+Canonical unit_eqType := EqType unit unit_eqMixin.
 
 (* Comparison for booleans. *)
 
 (* This is extensionally equal, but not convertible to Bool.eqb. *)
-Definition eqb b := addb (~~ b).
+Monomorphic Definition eqb b := addb (~~ b).
 
 Lemma eqbP : Equality.axiom eqb.
 Proof. by do 2!case; constructor. Qed.
 
-Canonical bool_eqMixin := EqMixin eqbP.
+Definition bool_eqMixin := EqMixin eqbP.
 Canonical bool_eqType := Eval hnf in EqType bool bool_eqMixin.
 
 Lemma eqbE : eqb = eq_op. Proof. by []. Qed.
@@ -473,11 +480,13 @@ End FunWith.
 
 Prenex Implicits fwith.
 
+Declare Scope fun_delta_scope.
+Delimit Scope fun_delta_scope with FUN_DELTA.
+
 Notation "x |-> y" := (FunDelta x y)
   (at level 190, no associativity,
    format "'[hv' x '/ '  |->  y ']'") : fun_delta_scope.
 
-Delimit Scope fun_delta_scope with FUN_DELTA.
 Arguments app_fdelta {aT rT%type} df%FUN_DELTA f z.
 
 Notation "[ 'fun' z : T => F 'with' d1 , .. , dn ]" :=
@@ -552,7 +561,7 @@ Local Notation Sub x Px := (@Sub sT x Px).
 Variant Sub_spec : sT -> Type := SubSpec x Px : Sub_spec (Sub x Px).
 
 Lemma SubP u : Sub_spec u.
-Proof. by case: sT Sub_spec SubSpec u => /= U _ mkU rec _. Qed.
+Proof. case: sT Sub_spec SubSpec u => /= U _ mkU rec _. apply: rec. Qed.
 
 Lemma SubK x Px : val (Sub x Px) = x. Proof. by case: sT. Qed.
 
@@ -612,7 +621,7 @@ Definition insub_eq x := insub_eq_aux (erefl (P x)).
 Lemma insub_eqE : insub_eq =1 insub.
 Proof.
 rewrite /insub_eq => x; set b := P x; rewrite [in LHS]/b in (Db := erefl b) *.
-by case: b in Db *; [rewrite insubT | rewrite insubF].
+by case: b in Db *; [rewrite (insubT Db) | rewrite (insubF Db)].
 Qed.
 
 End Theory.
@@ -640,14 +649,23 @@ Local Notation inlined_sub_rect :=
 Local Notation inlined_new_rect :=
   (fun K K_S u => let (x) as u return K u := u in K_S x).
 
-Notation "[ 'subType' 'for' v ]" := (SubType _ v _ inlined_sub_rect vrefl_rect)
+Notation "[ 'subType' 'for' pr , ctor ]" := (SubType _ pr ctor inlined_sub_rect vrefl_rect)
  (at level 0, only parsing) : form_scope.
 
-Notation "[ 'sub' 'Type' 'for' v ]" := (SubType _ v _ _ vrefl_rect)
- (at level 0, format "[ 'sub' 'Type'  'for'  v ]") : form_scope.
+Notation "[ 'subType' 'for' pr ]" := [subType for pr , _]
+ (at level 0, only parsing) : form_scope.
 
-Notation "[ 'subType' 'for' v 'by' rec ]" := (SubType _ v _ rec vrefl)
- (at level 0, format "[ 'subType'  'for'  v  'by'  rec ]") : form_scope.
+Notation "[ 'sub' 'Type' 'for' pr , ctor ]" := (SubType _ pr ctor _ vrefl_rect)
+ (at level 0, format "[ 'sub' 'Type'  'for'  pr , ctor ]") : form_scope.
+
+Notation "[ 'sub' 'Type' 'for' pr ]" := [sub Type for pr , _]
+ (at level 0, format "[ 'sub' 'Type'  'for'  pr ]") : form_scope.
+
+Notation "[ 'subType' 'for' pr , ctor 'by' rec ]" := (SubType _ pr ctor rec vrefl)
+ (at level 0, format "[ 'subType'  'for'  pr , ctor  'by'  rec ]") : form_scope.
+
+Notation "[ 'subType' 'for' pr 'by' rec ]" := [subType for pr , _ by rec]
+ (at level 0, format "[ 'subType'  'for'  pr  'by'  rec ]") : form_scope.
 
 Notation "[ 'subType' 'of' U 'for' v ]" := (clone_subType U v id idfun)
  (at level 0, format "[ 'subType'  'of'  U  'for'  v ]") : form_scope.
@@ -660,13 +678,22 @@ Definition NewType T U v c Urec :=
   SubType U v (fun x _ => c x) Urec'.
 Arguments NewType [T U].
 
-Notation "[ 'newType' 'for' v ]" := (NewType v _ inlined_new_rect vrefl_rect)
+Notation "[ 'newType' 'for' v , u ]" := (NewType v u inlined_new_rect vrefl_rect)
  (at level 0, only parsing) : form_scope.
 
-Notation "[ 'new' 'Type' 'for' v ]" := (NewType v _ _ vrefl_rect)
+Notation "[ 'newType' 'for' v ]" := [newType for v , _]
+ (at level 0, only parsing) : form_scope.
+
+Notation "[ 'new' 'Type' 'for' v , u ]" := (NewType v u _ vrefl_rect)
+ (at level 0, format "[ 'new' 'Type'  'for'  v , u ]") : form_scope.
+
+Notation "[ 'new' 'Type' 'for' v ]" := [new Type for v , _]
  (at level 0, format "[ 'new' 'Type'  'for'  v ]") : form_scope.
 
-Notation "[ 'newType' 'for' v 'by' rec ]" := (NewType v _ rec vrefl)
+Notation "[ 'newType' 'for' v , u 'by' rec ]" := (NewType v u rec vrefl)
+ (at level 0, format "[ 'newType'  'for'  v , u  'by'  rec ]") : form_scope.
+
+Notation "[ 'newType' 'for' v 'by' rec ]" := [newType for v , _ by rec]
  (at level 0, format "[ 'newType'  'for'  v  'by'  rec ]") : form_scope.
 
 Definition innew T nT x := @Sub T predT nT x (erefl true).
@@ -674,10 +701,6 @@ Arguments innew {T nT}.
 
 Lemma innew_val T nT : cancel val (@innew T nT).
 Proof. by move=> u; apply: val_inj; apply: SubK. Qed.
-
-(* Prenex Implicits and renaming. *)
-Notation sval := (@proj1_sig _ _).
-Notation "@ 'sval'" := (@proj1_sig) (at level 10, format "@ 'sval'").
 
 Section SigProj.
 
@@ -695,8 +718,7 @@ End SigProj.
 
 Prenex Implicits svalP s2val s2valP s2valP'.
 
-Canonical sig_subType T (P : pred T) : subType [eta P] :=
-  Eval hnf in [subType for @sval T [eta [eta P]]].
+Canonical sig_subType T (P : pred T) : subType [eta P] := [subType for sval, exist P].
 
 (* Shorthand for sigma types over collective predicates. *)
 Notation "{ x 'in' A }" := {x | x \in A}
@@ -764,15 +786,6 @@ Arguments val_eqP {T P sT x y}.
 
 Notation "[ 'eqMixin' 'of' T 'by' <: ]" := (SubEqMixin _ : Equality.class_of T)
   (at level 0, format "[ 'eqMixin'  'of'  T  'by'  <: ]") : form_scope.
-
-Section SigEqType.
-
-Variables (T : eqType) (P : pred T).
-
-Definition sig_eqMixin := Eval hnf in [eqMixin of {x | P x} by <:].
-Canonical sig_eqType := Eval hnf in EqType {x | P x} sig_eqMixin.
-
-End SigEqType.
 
 Section ProdEqType.
 

@@ -34,12 +34,12 @@ elim: n => [|n IHn] //; first by rewrite big_nil.
 by apply sym_equal; rewrite factS IHn // !big_add1 big_nat_recr //= mulnC.
 Qed.
 
-Lemma logn_fact p n : prime p -> logn p n`! = \sum_(1 <= k < n.+1) n %/ p ^ k.
+Lemma logn_fact p n : prime p -> logn p n`! = \sum_(1 <= k < n.+1) n %/ p ** k.
 Proof.
 move=> p_prime; transitivity (\sum_(1 <= i < n.+1) logn p i).
   rewrite big_add1; elim: n => /= [|n IHn]; first by rewrite logn1 big_geq.
   by rewrite big_nat_recr // -IHn /= factS mulnC lognM ?fact_gt0.
-transitivity (\sum_(1 <= i < n.+1) \sum_(1 <= k < n.+1) (p ^ k %| i)).
+transitivity (\sum_(1 <= i < n.+1) \sum_(1 <= k < n.+1) (p ** k %| i)).
   apply: eq_big_nat => i /andP[i_gt0 le_i_n]; rewrite logn_count_dvd //.
   rewrite -!big_mkcond (big_nat_widen _ _ n.+1) 1?ltnW //; apply: eq_bigl => k.
   by apply: andb_idr => /dvdn_leq/(leq_trans (ltn_expl _ (prime_gt1 _)))->.
@@ -97,11 +97,11 @@ have vFpId i: (vFp i == i :> nat) = xpred2 Fp1 Fpn1 i.
   rewrite -addnS addKn -addnBA // mulnDl -{2}(addn1 i) -subn_sqr.
   rewrite addnBA ?leq_sqr // mulnS -addnA -mulnn -mulnDl.
   rewrite -(subnK (le_pmFp (vFp i) i)) mulnDl addnCA.
-  rewrite -[1 ^ 2]/(Fp1 : nat) -addnBA // dvdn_addl.
+  rewrite -[1 ** 2]/(Fp1 : nat) -addnBA // dvdn_addl.
     by rewrite Euclid_dvdM // -eqFp eq_sym orbC /dvdn Fp_mod eqn0Ngt lt0i.
   by rewrite -eqn_mod_dvd // Fp_mod modnDl -(vFpV _ ni0) eqxx.
 suffices [mod_fact]: toFp (p.-1)`! = Fpn1.
-  by rewrite /dvdn -addn1 -modnDml mod_fact addn1 prednK // modnn.
+  by move=> _; rewrite /dvdn -addn1 -modnDml mod_fact addn1 prednK // modnn.
 rewrite dFact //; rewrite ((big_morph toFp) Fp1 mFpM) //; first last.
 - by apply: val_inj; rewrite /= modn_small.
 - by move=> i j; apply: val_inj; rewrite /= modnMm.
@@ -123,9 +123,9 @@ Qed.
 
 (** The falling factorial *)
 
-Fixpoint ffact_rec n m := if m is m'.+1 then n * ffact_rec n.-1 m' else 1.
+Monomorphic Fixpoint ffact_rec n m := if m is m'.+1 then n * ffact_rec n.-1 m' else 1.
 
-Definition falling_factorial := nosimpl ffact_rec.
+Monomorphic Definition falling_factorial := nosimpl ffact_rec.
 
 Notation "n ^_ m" := (falling_factorial n m)
   (at level 30, right associativity) : nat_scope.
@@ -167,14 +167,14 @@ Proof. by move/ffact_fact <-; rewrite mulnK ?fact_gt0. Qed.
 
 (** Binomial coefficients *)
 
-Fixpoint binomial_rec n m :=
+Monomorphic Fixpoint binomial_rec n m :=
   match n, m with
   | n'.+1, m'.+1 => binomial_rec n' m + binomial_rec n' m'
   | _, 0 => 1
   | 0, _.+1 => 0
   end.
 
-Definition binomial := nosimpl binomial_rec.
+Monomorphic Definition binomial := nosimpl binomial_rec.
 
 Notation "''C' ( n , m )" := (binomial n m)
   (at level 8, format "''C' ( n ,  m )") : nat_scope.
@@ -283,7 +283,7 @@ by case: n => [|n] [i le_i_n] //=; rewrite subSS subnK.
 Qed.
 
 Theorem Pascal a b n :
-  (a + b) ^ n = \sum_(i < n.+1) 'C(n, i) * (a ^ (n - i) * b ^ i).
+  (a + b) ** n = \sum_(i < n.+1) 'C(n, i) * (a ** (n - i) * b ** i).
 Proof.
 elim: n => [|n IHn]; rewrite big_ord_recl muln1 ?big_ord0 //.
 rewrite expnS {}IHn /= mulnDl !big_distrr /= big_ord_recl muln1 subn0.
@@ -308,7 +308,7 @@ by apply: eq_bigr => j _; rewrite -mulnDl.
 Qed.
 
 Lemma subn_exp m n k :
-  m ^ k - n ^ k = (m - n) * (\sum_(i < k) m ^ (k.-1 -i) * n ^ i).
+  m ** k - n ** k = (m - n) * (\sum_(i < k) m ** (k.-1 -i) * n ** i).
 Proof.
 case: k => [|k]; first by rewrite big_ord0 muln0.
 rewrite mulnBl !big_distrr big_ord_recl big_ord_recr /= subn0 muln1.
@@ -317,14 +317,14 @@ congr (_ + _); apply: eq_bigr => i _.
 by rewrite (mulnCA n) -expnS mulnA -expnS subnSK /=.
 Qed.
 
-Lemma predn_exp m k : (m ^ k).-1 = m.-1 * (\sum_(i < k) m ^ i).
+Lemma predn_exp m k : (m ** k).-1 = m.-1 * (\sum_(i < k) m ** i).
 Proof.
 rewrite -!subn1 -{1}(exp1n k) subn_exp; congr (_ * _).
 symmetry; rewrite (reindex_inj rev_ord_inj); apply: eq_bigr => i _ /=.
 by rewrite -subn1 -subnDA exp1n muln1.
 Qed.
 
-Lemma dvdn_pred_predX n e : (n.-1 %| (n ^ e).-1)%N.
+Lemma dvdn_pred_predX n e : (n.-1 %| (n ** e).-1)%N.
 Proof. by rewrite predn_exp dvdn_mulr. Qed.
 
 Lemma modn_summ I r (P : pred I) F d :
@@ -365,7 +365,8 @@ have bijFF: {on (_ : pred _), bijective (@Finfun D T)}.
   by exists fgraph => x _; [apply: FinfunK | apply: fgraphK].
 rewrite -(on_card_preimset (bijFF _)); apply: eq_card => /= t.
 rewrite !inE -(big_andE predT) -big_filter big_all -all_map.
-by rewrite -[injectiveb _]/(uniq _) [map _ _]codom_ffun FinfunK.
+rewrite -[injectiveb _]/(uniq _) ![map _ _]codom_ffun.
+exact (transport (fun x : _.-tuple T => all R x && uniq x = _) (FinfunK t)^ idpath).
 Qed.
 
 Lemma card_inj_ffuns D T :

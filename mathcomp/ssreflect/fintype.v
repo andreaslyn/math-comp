@@ -252,13 +252,13 @@ Notation "[ 'finType' 'of' T ]" := (@clone T _ _ id)
 End Exports.
 
 Module Type EnumSig.
-Parameter enum : forall cT : type, seq cT.
-Axiom enumDef : enum = fun cT => mixin_enum (class cT).
+Monomorphic Parameter enum : forall cT : type, seq cT.
+Monomorphic Axiom enumDef : enum = fun cT => mixin_enum (class cT).
 End EnumSig.
 
 Module EnumDef : EnumSig.
-Definition enum cT := mixin_enum (class cT).
-Definition enumDef := erefl enum.
+Monomorphic Definition enum cT := mixin_enum (class cT).
+Monomorphic Definition enumDef := erefl enum.
 End EnumDef.
 
 Notation enum := EnumDef.enum.
@@ -315,10 +315,12 @@ Notation "[ 'pick' x : T 'in' A | P & Q ]" := [pick x : T in A | P && Q]
 Local Notation card_type := (forall T : finType, mem_pred T -> nat).
 Local Notation card_def := (fun T mA => size (enum_mem mA)).
 Module Type CardDefSig.
-Parameter card : card_type. Axiom cardEdef : card = card_def.
+Monomorphic Parameter card : card_type.
+Monomorphic Axiom cardEdef : card = card_def.
 End CardDefSig.
 Module CardDef : CardDefSig.
-Definition card : card_type := card_def. Definition cardEdef := erefl card.
+Monomorphic Definition card : card_type := card_def.
+Monomorphic Definition cardEdef := erefl card.
 End CardDef.
 (* Should be Include, but for a silly restriction: can't Include at toplevel! *)
 Export CardDef.
@@ -335,11 +337,12 @@ Module FiniteQuant.
 
 Variant quantified := Quantified of bool.
 
+Declare Scope fin_quant_scope.
 Delimit Scope fin_quant_scope with Q. (* Bogus, only used to declare scope. *)
 Bind Scope fin_quant_scope with quantified.
 
-Notation "F ^*" := (Quantified F) (at level 2).
-Notation "F ^~" := (~~ F) (at level 2).
+Notation "F ^*" := (Quantified F) (at level 2, left associativity).
+Notation "F ^~" := (~~ F) (at level 2, left associativity).
 
 Section Definitions.
 
@@ -441,12 +444,15 @@ Notation "[ 'disjoint' A & B ]" := (disjoint (mem A) (mem B))
 Local Notation subset_type := (forall (T : finType) (A B : mem_pred T), bool).
 Local Notation subset_def := (fun T A B => pred0b (predD A B)).
 Module Type SubsetDefSig.
-Parameter subset : subset_type. Axiom subsetEdef : subset = subset_def.
+Monomorphic Parameter subset : subset_type.
+Monomorphic Axiom subsetEdef : subset = subset_def.
 End SubsetDefSig.
+
 Module Export SubsetDef : SubsetDefSig.
-Definition subset : subset_type := subset_def.
-Definition subsetEdef := erefl subset.
+Monomorphic Definition subset : subset_type := subset_def.
+Monomorphic Definition subsetEdef := erefl subset.
 End SubsetDef.
+
 Canonical subset_unlock := Unlockable subsetEdef.
 Notation "A \subset B" := (subset (mem A) (mem B))
   (at level 70, no associativity) : bool_scope.
@@ -588,7 +594,7 @@ by apply: (iffP IHs) => [<-| [<-]].
 Qed.
 
 Lemma card0_eq A : #|A| = 0 -> A =i pred0.
-Proof. by move=> A0 x; apply/idP => Ax; rewrite (cardD1 x) Ax in A0. Qed.
+Proof. move=> A0 x; apply/idP; move=> Ax. by rewrite (cardD1 x) Ax in A0. Qed.
 
 Lemma pred0P P : reflect (P =1 pred0) (pred0b P).
 Proof. by apply: (iffP eqP); [apply: card0_eq | apply: eq_card0]. Qed.
@@ -1489,19 +1495,6 @@ Print myb_finm.
 Print myb_cntm.
 *)
 
-Section CardSig.
-
-Variables (T : finType) (P : pred T).
-
-Definition sig_finMixin := [finMixin of {x | P x} by <:].
-Canonical sig_finType := Eval hnf in FinType {x | P x} sig_finMixin.
-Canonical sig_subFinType := Eval hnf in [subFinType of {x | P x}].
-
-Lemma card_sig : #|{: {x | P x}}| = #|[pred x | P x]|.
-Proof. exact: card_sub. Qed.
-
-End CardSig.
-
 (* Subtype for an explicit enumeration. *)
 Section SeqSubType.
 
@@ -1509,7 +1502,7 @@ Variables (T : eqType) (s : seq T).
 
 Record seq_sub : Type := SeqSub {ssval : T; ssvalP : in_mem ssval (@mem T _ s)}.
 
-Canonical seq_sub_subType := Eval hnf in [subType for ssval].
+Canonical seq_sub_subType := Eval hnf in [subType for ssval, SeqSub].
 Definition seq_sub_eqMixin := Eval hnf in [eqMixin of seq_sub by <:].
 Canonical seq_sub_eqType := Eval hnf in EqType seq_sub seq_sub_eqMixin.
 
@@ -1886,7 +1879,7 @@ Lemma unlift_subproof n (h : 'I_n) (u : {j | j != h}) : unbump h (val u) < n.-1.
 Proof.
 case: n h u => [|n h] [] //= j ne_jh.
 rewrite -(leq_bump2 h.+1) bumpS unbumpK // /bump.
-case: (ltngtP n h) => [|_|eq_nh]; rewrite ?(leqNgt _ h) ?ltn_ord //.
+case: (ltngtP n h) => [| _ |eq_nh]; rewrite ?(leqNgt _ h) ?ltn_ord //.
 by rewrite ltn_neqAle [j <= _](valP j) {2}eq_nh andbT.
 Qed.
 
@@ -1900,7 +1893,8 @@ Variant unlift_spec n h i : option 'I_n.-1 -> Type :=
 Lemma unliftP n (h i : 'I_n) : unlift_spec h i (unlift h i).
 Proof.
 rewrite /unlift; case: insubP => [u nhi | ] def_i /=; constructor.
-  by apply: val_inj; rewrite /= def_i unbumpK.
+  apply: val_inj; rewrite /=.
+  by have: sval u = val u by [] => ->; rewrite def_i unbumpK.
 by rewrite negbK in def_i; apply/eqP.
 Qed.
 

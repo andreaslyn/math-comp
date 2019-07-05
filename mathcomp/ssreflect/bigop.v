@@ -513,6 +513,7 @@ Print myp_add.
 Print Canonical Projections.
 *)
 
+Declare Scope big_scope.
 Delimit Scope big_scope with BIG.
 Open Scope big_scope.
 
@@ -531,13 +532,13 @@ Definition reducebig R I idx r (body : I -> bigbody R I) :=
   foldr (applybig \o body) idx r.
 
 Module Type BigOpSig.
-Parameter bigop : forall R I, R -> seq I -> (I -> bigbody R I) -> R.
-Axiom bigopE : bigop = reducebig.
+Monomorphic Parameter bigop : forall R I, R -> seq I -> (I -> bigbody R I) -> R.
+Monomorphic Axiom bigopE : bigop = reducebig.
 End BigOpSig.
 
 Module BigOp : BigOpSig.
-Definition bigop := reducebig.
-Lemma bigopE : bigop = reducebig. Proof. by []. Qed.
+Monomorphic Definition bigop := reducebig.
+Monomorphic Lemma bigopE : bigop = reducebig. Proof. by []. Qed.
 End BigOp.
 
 Notation bigop := BigOp.bigop (only parsing).
@@ -1549,8 +1550,8 @@ Arguments reindex [R idx op I J] h [P F].
 Arguments reindex_inj [R idx op I h P F].
 Arguments pair_big_dep [R idx op I J].
 Arguments pair_big [R idx op I J].
-Arguments big_allpairs_dep [R idx op I1 I2 J h r1 r2 F].
-Arguments big_allpairs [R idx op I1 I2 r1 r2 F].
+Arguments big_allpairs_dep [R idx op I1 I2 J h r1 r2].
+Arguments big_allpairs [R idx op I1 I2 r1 r2].
 Arguments exchange_big_dep [R idx op I J rI rJ P Q] xQ [F].
 Arguments exchange_big_dep_nat [R idx op m1 n1 m2 n2 P Q] xQ [F].
 Arguments big_ord_recl [R idx op].
@@ -1714,13 +1715,13 @@ Proof. by rewrite big_const_seq iter_addn_0 mul1n. Qed.
 Lemma sum1_size J (r : seq J) : \sum_(j <- r) 1 = size r.
 Proof. by rewrite sum1_count count_predT. Qed.
 
-Lemma prod_nat_const n : \prod_(i in A) n = n ^ #|A|.
+Lemma prod_nat_const n : \prod_(i in A) n = n ** #|A|.
 Proof. by rewrite big_const -Monoid.iteropE. Qed.
 
 Lemma sum_nat_const_nat n1 n2 n : \sum_(n1 <= i < n2) n = (n2 - n1) * n.
 Proof. by rewrite big_const_nat; elim: (_ - _) => //= ? ->. Qed.
 
-Lemma prod_nat_const_nat n1 n2 n : \prod_(n1 <= i < n2) n = n ^ (n2 - n1).
+Lemma prod_nat_const_nat n1 n2 n : \prod_(n1 <= i < n2) n = n ** (n2 - n1).
 Proof. by rewrite big_const_nat -Monoid.iteropE. Qed.
 
 End NatConst.
@@ -1793,7 +1794,7 @@ Lemma eq_bigmax (I : finType) F : #|I| > 0 -> {i0 : I | \max_i F i = F i0}.
 Proof. by case/(eq_bigmax_cond F) => x _ ->; exists x. Qed.
 
 Lemma expn_sum m I r (P : pred I) F :
-  (m ^ (\sum_(i <- r | P i) F i) = \prod_(i <- r | P i) m ^ F i)%N.
+  (m ** (\sum_(i <- r | P i) F i) = \prod_(i <- r | P i) m ** F i)%N.
 Proof. exact: (big_morph _ (expnD m)). Qed.
 
 Lemma dvdn_biglcmP (I : finType) (P : pred I) F m :

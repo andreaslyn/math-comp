@@ -67,9 +67,9 @@ Module CodeSeq.
 (*            <----->         <----->   <----->                               *)
 (*             nk 0s           n2 0s     n1 0s                                *)
 
-Definition code := foldr (fun n m => 2 ^ n * m.*2.+1) 0.
+Monomorphic Definition code := foldr (fun n m => 2 ** n * m.*2.+1) 0.
 
-Fixpoint decode_rec (v q r : nat) {struct q} :=
+Monomorphic Fixpoint decode_rec (v q r : nat) {struct q} :=
   match q, r with
   | 0, _         => [:: v]
   | q'.+1, 0     => v :: [rec 0, q', q']
@@ -77,7 +77,7 @@ Fixpoint decode_rec (v q r : nat) {struct q} :=
   | q'.+1, r'.+2 => [rec v, q', r']
   end where "[ 'rec' v , q , r ]" := (decode_rec v q r).
 
-Definition decode n := if n is 0 then [::] else [rec 0, n.-1, n.-1].
+Monomorphic Definition decode n := if n is 0 then [::] else [rec 0, n.-1, n.-1].
 
 Lemma decodeK : cancel decode code.
 Proof.
@@ -342,13 +342,10 @@ by rewrite eqn_leq minQn ?minPm.
 Qed.
 
 Lemma sigW P : (exists x, P x) -> {x | P x}.
-Proof. by move=> exP; exists (xchoose exP); apply: xchooseP. Qed.
+Proof. exact idfun. Qed.
 
 Lemma sig2W P Q : (exists2 x, P x & Q x) -> {x | P x & Q x}.
-Proof.
-move=> exPQ; have [|x /andP[]] := @sigW (predI P Q); last by exists x.
-by have [x Px Qx] := exPQ; exists x; apply/andP.
-Qed.
+Proof. exact idfun. Qed.
 
 Lemma sig_eqW (vT : eqType) (lhs rhs : T -> vT) :
   (exists x, lhs x = rhs x) -> {x | lhs x = rhs x}.
@@ -370,16 +367,19 @@ Definition choose P x0 :=
   else x0.
 
 Lemma chooseP P x0 : P x0 -> P (choose P x0).
-Proof. by move=> Px0; rewrite /choose insubT xchooseP. Qed.
+Proof. by move=> Px0; rewrite /choose (insubT _ Px0) xchooseP. Qed.
 
 Lemma choose_id P x0 y0 : P x0 -> P y0 -> choose P x0 = choose P y0.
-Proof. by move=> Px0 Py0; rewrite /choose !insubT /=; apply: eq_xchoose. Qed.
+Proof.
+move=> Px0 Py0; rewrite /choose (insubT _ Px0) (insubT _ Py0) /=.
+by apply: eq_xchoose.
+Qed.
 
 Lemma eq_choose P Q : P =1 Q -> choose P =1 choose Q.
 Proof.
 rewrite /choose => eqPQ x0.
 do [case: insubP; rewrite eqPQ] => [[x Px] Qx0 _| ?]; last by rewrite insubN.
-by rewrite insubT; apply: eq_xchoose.
+by rewrite (insubT _ Qx0); apply: eq_xchoose.
 Qed.
 
 Section CanChoice.
@@ -392,7 +392,7 @@ move=> fK; pose liftP sP := [pred x | oapp sP false (f' x)].
 pose sf sP := [fun n => obind f' (find (liftP sP) n)].
 exists sf => [sP n x | sP [y sPy] | sP sQ eqPQ n] /=.
 - by case Df: (find _ n) => //= [?] Dx; have:= correct Df; rewrite /= Dx.
-- have [|n Pn] := @complete T (liftP sP); first by exists (f y); rewrite /= fK.
+- have [n Pn|] := @complete T (liftP sP); last by exists (f y); rewrite /= fK.
   exists n; case Df: (find _ n) Pn => //= [x] _.
   by have:= correct Df => /=; case: (f' x).
 by congr (obind _ _); apply: extensional => x /=; case: (f' x) => /=.
@@ -484,10 +484,12 @@ Definition option_choiceMixin T := CanChoiceMixin (@seq_of_optK T).
 Canonical option_choiceType T :=
   Eval hnf in ChoiceType (option T) (option_choiceMixin T).
 
+(*
 Definition sig_choiceMixin T (P : pred T) : choiceMixin {x | P x} :=
    sub_choiceMixin _.
 Canonical sig_choiceType T (P : pred T) :=
  Eval hnf in ChoiceType {x | P x} (sig_choiceMixin P).
+*)
 
 Definition prod_choiceMixin T1 T2 := CanChoiceMixin (@tag_of_pairK T1 T2).
 Canonical prod_choiceType T1 T2 :=
@@ -678,11 +680,13 @@ Definition option_countMixin T := CanCountMixin (@seq_of_optK T).
 Canonical option_countType T :=
   Eval hnf in CountType (option T) (option_countMixin T).
 
+(*
 Definition sig_countMixin T (P : pred T) := [countMixin of {x | P x} by <:].
 Canonical sig_countType T (P : pred T) :=
   Eval hnf in CountType {x | P x} (sig_countMixin P).
 Canonical sig_subCountType T (P : pred T) :=
   Eval hnf in [subCountType of {x | P x}].
+*)
 
 Definition prod_countMixin T1 T2 := CanCountMixin (@tag_of_pairK T1 T2).
 Canonical prod_countType T1 T2 :=

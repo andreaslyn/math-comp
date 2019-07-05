@@ -186,6 +186,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Declare Scope seq_scope.
 Delimit Scope seq_scope with SEQ.
 Open Scope seq_scope.
 
@@ -418,10 +419,13 @@ Lemma set_set_nth s n1 y1 n2 y2 (s2 := set_nth s n2 y2) :
 Proof.
 have [-> | ne_n12] := altP eqP.
   apply: eq_from_nth => [|i _]; first by rewrite !size_set_nth maxnA maxnn.
-  by do 2!rewrite !nth_set_nth /=; case: eqP.
+  do 2!rewrite !nth_set_nth /=. by do 3?case: eqP.
 apply: eq_from_nth => [|i _]; first by rewrite !size_set_nth maxnCA.
-do 2!rewrite !nth_set_nth /=; case: eqP => // ->.
-by rewrite eq_sym -if_neg ne_n12.
+do 2!rewrite !nth_set_nth /=. case: eqP => //.
+move=> ->.
+rewrite eq_sym -if_neg ne_n12.
+by case: eqP.
+by do 3?case: eqP.
 Qed.
 
 (* find, count, has, all. *)
@@ -908,18 +912,20 @@ Arguments rcons_injr {T} s [x1 x2] eq_rcons : rename.
 
 Section EqSeq.
 
-Variables (n0 : nat) (T : eqType) (x0 : T).
-Local Notation nth := (nth x0).
-Implicit Types (x y z : T) (s : seq T).
+Universe i.
 
-Fixpoint eqseq s1 s2 {struct s2} :=
+Variables (n0 : nat) (T : eqType@{i}) (x0 : T).
+Local Notation nth := (nth x0).
+Implicit Types (x y z : T) (s : seq@{i} T).
+
+Fixpoint eqseq@{} (s1 : seq@{i} T) (s2 : seq@{i} T) {struct s2} : Bool :=
   match s1, s2 with
   | [::], [::] => true
   | x1 :: s1', x2 :: s2' => (x1 == x2) && eqseq s1' s2'
   | _, _ => false
   end.
 
-Lemma eqseqP : Equality.axiom eqseq.
+Lemma eqseqP@{i} : Equality.axiom@{i} eqseq.
 Proof.
 move; elim=> [|x1 s1 IHs] [|x2 s2]; do [by constructor | simpl].
 case: (x1 =P x2) => [<-|neqx]; last by right; case.
@@ -976,7 +982,7 @@ Lemma mem_seq1 x y : (x \in [:: y]) = (x == y).
 Proof. by rewrite in_cons orbF. Qed.
 
  (* to be repeated after the Section discharge. *)
-Let inE := (mem_seq1, in_cons, inE).
+Local Notation inE := (mem_seq1, in_cons, inE).
 
 Lemma mem_seq2 x y z : (x \in [:: y; z]) = xpred2 y z x.
 Proof. by rewrite !inE. Qed.
@@ -1281,7 +1287,7 @@ Proof.
 apply: (iffP idP) => [|[i [j [ltij ltjs]]]]; last first.
   by apply: contra_eqN => Us; rewrite nth_uniq ?ltn_eqF // (ltn_trans ltij).
 elim: s => // x s IHs /nandP[/negbNE | /IHs[i [j]]]; last by exists i.+1, j.+1.
-by exists 0, (index x s).+1; rewrite !ltnS index_mem /= nth_index.
+by exists 0, (index x s).+1; repeat rewrite ltnS; rewrite index_mem /= nth_index.
 Qed.
 
 Lemma uniqP s : reflect {in gtn (size s) &, injective (nth s)} (uniq s).
@@ -1449,7 +1455,7 @@ Qed.
 
 Lemma permPr s1 s2 : reflect (perm_eqr s1 s2) (perm_eq s1 s2).
 Proof.
-by apply/(iffP idP) => [/permPl eq12 s3| <- //]; rewrite !(perm_sym s3) eq12.
+by apply: (iffP idP) => [/permPl eq12 s3| <- //]; rewrite !(perm_sym s3) eq12.
 Qed.
 
 Lemma perm_catC s1 s2 : perm_eql (s1 ++ s2) (s2 ++ s1).
@@ -2288,7 +2294,8 @@ Qed.
 
 Lemma perm_pmap s t : perm_eq s t -> perm_eq (pmap f s) (pmap f t).
 Proof.
-move=> eq_st; apply/(perm_map_inj Some_inj); rewrite !pmapS_filter.
+move=> eq_st; apply/(perm_map_inj (@Some_inj (notProp rT))).
+rewrite !pmapS_filter.
 exact/perm_map/perm_filter.
 Qed.
 
@@ -2780,9 +2787,10 @@ Variables S T : eqType.
 Lemma flattenP (A : seq (seq T)) x :
   reflect (exists2 s, s \in A & x \in s) (x \in flatten A).
 Proof.
-elim: A => /= [|s A /iffP IH_A]; [by right; case | rewrite mem_cat].
+elim: A => /= [|s A IH_A]; [by right; case | rewrite mem_cat].
 have [s_x|s'x] := @idP (x \in s); first by left; exists s; rewrite ?mem_head.
-by apply: IH_A => [[t] | [t /predU1P[->|]]]; exists t; rewrite // mem_behead.
+set (IH := fun Q => @iffP _ Q _ IH_A).
+by apply: IH => [[t] | [t /predU1P[->|]]]; exists t; rewrite // mem_behead.
 Qed.
 Arguments flattenP {A x}.
 
@@ -2922,7 +2930,7 @@ Qed.
 
 Lemma allpairs_uniq_dep f s t (st := [seq Tagged T y | x <- s, y <- t x]) :
   let g (p : {x : S & T x}) : R := f (tag p) (tagged p) in
-    uniq s -> {in s, forall x, uniq (t x)} -> {in st &, injective g} ->
+  uniq s -> {in s, forall x, uniq (t x)} -> {in st &, injective g} ->
   uniq [seq f x y | x <- s, y <- t x].
 Proof.
 move=> g Us Ut; rewrite -(map_allpairs g (existT T)) => /map_inj_in_uniq->{f g}.
@@ -3033,7 +3041,8 @@ Qed.
 Lemma tallyK s : perm_eq (tally_seq (tally s)) s.
 Proof.
 rewrite -[s in perm_eq _ s]cats0 -[nil]/(tseq [::]) /tally.
-elim: s [::] => //= x s IHs bs; rewrite {IHs}(permPl (IHs _)).
+generalize dependent (@nil (prod (Equality.sort T) nat)).
+elim: s => //= x s IHs bs; rewrite {IHs}(permPl (IHs _)).
 rewrite perm_sym -cat1s perm_catCA {s}perm_cat2l.
 elim: bs => //= b bs IHbs; case: eqP => [-> | _] //=.
 by rewrite -cat1s perm_catCA perm_cat2l.

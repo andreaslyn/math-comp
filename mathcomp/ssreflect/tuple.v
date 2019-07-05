@@ -315,12 +315,14 @@ Canonical tuple_countType n (T : countType) :=
 Canonical tuple_subCountType n (T : countType) :=
   Eval hnf in [subCountType of n.-tuple T].
 
+Unset Universe Polymorphism.
+
 Module Type FinTupleSig.
 Section FinTupleSig.
 Variables (n : nat) (T : finType).
 Parameter enum : seq (n.-tuple T).
 Axiom enumP : Finite.axiom enum.
-Axiom size_enum : size enum = #|T| ^ n.
+Axiom size_enum : size enum = #|T| ** n.
 End FinTupleSig.
 End FinTupleSig.
 
@@ -344,7 +346,7 @@ rewrite count_cat count_map inE /preim /= {1}/eq_op /= eq_sym => /IHe->.
 by case: eqP => [->|_]; rewrite ?(ney, count_pred0, IHm).
 Qed.
 
-Lemma size_enum : size enum = #|T| ^ n.
+Lemma size_enum : size enum = #|T| ** n.
 Proof.
 rewrite /= cardE size_pmap_sub; elim: n => //= m IHm.
 rewrite expnS /codom /image_mem; elim: {2 3}(fintype.enum T) => //= x e IHe.
@@ -353,6 +355,8 @@ Qed.
 
 End FinTuple.
 End FinTuple.
+
+Set Universe Polymorphism.
 
 Section UseFinTuple.
 
@@ -367,7 +371,7 @@ Definition tuple_finMixin := Eval hnf in FinMixin (@FinTuple.enumP n T).
 Canonical tuple_finType := Eval hnf in FinType (n.-tuple T) tuple_finMixin.
 Canonical tuple_subFinType := Eval hnf in [subFinType of n.-tuple T].
 
-Lemma card_tuple : #|{:n.-tuple T}| = #|T| ^ n.
+Lemma card_tuple : #|{:n.-tuple T}| = #|T| ** n.
 Proof. by rewrite [#|_|]cardT enumT unlock FinTuple.size_enum. Qed.
 
 Lemma enum_tupleP (A : {pred T}) : size (enum A) == #|A|.

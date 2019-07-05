@@ -1,10 +1,11 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
+(*
 Require Import BinNat.
 Require BinPos Ndec.
 Require Export Ring.
-
+*)
 (******************************************************************************)
 (* A version of arithmetic on nat (natural numbers) that is better suited to  *)
 (* small scale reflection than the Coq Arith library. It contains an          *)
@@ -42,8 +43,8 @@ Require Export Ring.
 (*         iterop n op x x0 == op x (... op x x) (n x's) or x0 if n = 0       *)
 (*                                                                            *)
 (*   exponentiation, factorial                                                *)
-(*        m ^ n, n`!                                                          *)
-(*        m ^ 1 is convertible to m, and m ^ 2 to m * m                       *)
+(*        m ** n, n`!                                                          *)
+(*        m ** 1 is convertible to m, and m ** 2 to m * m                       *)
 (*                                                                            *)
 (*   comparison                                                               *)
 (*      m <= n, m < n, m >= n, m > n, m == n, m <= n <= p, etc.,              *)
@@ -81,7 +82,7 @@ Require Export Ring.
 (*      ltn_neqAle : (m < n) = (m != n) && (m <= n).                          *)
 (*   B -- subtraction, as in subBn : (m - n) - p = m - (n + p).               *)
 (*   D -- addition, as in mulnDl : (m + n) * p = m * p + n * p.               *)
-(*   M -- multiplication, as in expnMn : (m * n) ^ p = m ^ p * n ^ p.         *)
+(*   M -- multiplication, as in expnMn : (m * n) ** p = m ** p * n ** p.         *)
 (*   p (prefix) -- positive, as in                                            *)
 (*      eqn_pmul2l : m > 0 -> (m * n1 == m * n2) = (n1 == n2).                *)
 (*   P  -- greater than 1, as in                                              *)
@@ -89,16 +90,16 @@ Require Export Ring.
 (*   S -- successor, as in addSn : n.+1 + m = (n + m).+1.                     *)
 (*   V (infix) -- disjunction, as in                                          *)
 (*      leq_eqVlt : (m <= n) = (m == n) || (m < n).                           *)
-(*   X - exponentiation, as in lognX : logn p (m ^ n) = logn p m * n in       *)
+(*   X - exponentiation, as in lognX : logn p (m ** n) = logn p m * n in       *)
 (*         file prime.v (the suffix is not used in ths file).                 *)
 (* Suffixes that abbreviate operations (D, B, M and X) are used to abbreviate *)
 (* second-rank operations in equational lemma names that describe left-hand   *)
 (* sides (e.g., mulnDl); they are not used to abbreviate the main operation   *)
 (* of relational lemmas (e.g., leq_add2l).                                    *)
-(*   For the asymmetrical exponentiation operator expn (m ^ n) a right suffix *)
-(* indicates an operation on the exponent, e.g., expnM : m ^ (n1 * n2) = ...; *)
+(*   For the asymmetrical exponentiation operator expn (m ** n) a right suffix *)
+(* indicates an operation on the exponent, e.g., expnM : m ** (n1 * n2) = ...; *)
 (* a trailing "n" is used to indicate the left operand, e.g.,                 *)
-(* expnMn : (m1 * m2) ^ n = ... The operands of other operators are selected  *)
+(* expnMn : (m1 * m2) ** n = ... The operands of other operators are selected  *)
 (* using the l/r suffixes.                                                    *)
 (******************************************************************************)
 
@@ -112,6 +113,7 @@ Remove Hints plus_n_O plus_n_Sm mult_n_O mult_n_Sm : core.
 
 (* Declare legacy Arith operators in new scope. *)
 
+Declare Scope coq_nat_scope.
 Delimit Scope coq_nat_scope with coq_nat.
 
 Notation "m + n" := (plus m n) : coq_nat_scope.
@@ -125,10 +127,18 @@ Notation "m > n" := (gt m n) : coq_nat_scope.
 (* Rebind scope delimiters, reserving a scope for the "recursive",     *)
 (* i.e., unprotected version of operators.                             *)
 
+Declare Scope N_scope.
 Delimit Scope N_scope with num.
+
+Declare Scope nat_scope.
 Delimit Scope nat_scope with N.
+
+Declare Scope nat_rec_scope.
 Delimit Scope nat_rec_scope with Nrec.
 
+Open Scope N.
+
+Open Scope nat.
 (* Postfix notation for the successor and predecessor functions.  *)
 (* SSreflect uses "pred" for the generic predicate type, and S as *)
 (* a local bound variable.                                        *)
@@ -160,7 +170,7 @@ Reserved Notation "n ./2" (at level 2, format "n ./2").
 
 (* Canonical comparison and eqType for nat.                                *)
 
-Fixpoint eqn m n {struct m} :=
+Monomorphic Fixpoint eqn m n {struct m} :=
   match m, n with
   | 0, 0 => true
   | m'.+1, n'.+1 => eqn m' n'
@@ -188,10 +198,10 @@ Proof. exact: eq_irrelevance. Qed.
 
 (* Protected addition, with a more systematic set of lemmas.                *)
 
-Definition addn_rec := plus.
+Monomorphic Definition addn_rec := plus.
 Notation "m + n" := (addn_rec m n) : nat_rec_scope.
 
-Definition addn := nosimpl addn_rec.
+Monomorphic Definition addn := nosimpl addn_rec.
 Notation "m + n" := (addn m n) : nat_scope.
 
 Lemma addnE : addn = addn_rec. Proof. by []. Qed.
@@ -250,10 +260,10 @@ Lemma add4n m : 4 + m = m.+4. Proof. by []. Qed.
 (* Protected, structurally decreasing subtraction, and basic lemmas.  *)
 (* Further properties depend on ordering conditions.                  *)
 
-Definition subn_rec := minus.
+Monomorphic Definition subn_rec := minus.
 Notation "m - n" := (subn_rec m n) : nat_rec_scope.
 
-Definition subn := nosimpl subn_rec.
+Monomorphic Definition subn := nosimpl subn_rec.
 Notation "m - n" := (subn m n) : nat_scope.
 
 Lemma subnE : subn = subn_rec. Proof. by []. Qed.
@@ -296,7 +306,7 @@ Proof. by rewrite -subnS. Qed.
 
 (* Integer ordering, and its interaction with the other operations.       *)
 
-Definition leq m n := m - n == 0.
+Monomorphic Definition leq m n := m - n == 0.
 
 Notation "m <= n" := (leq m n) : nat_scope.
 Notation "m < n"  := (m.+1 <= n) : nat_scope.
@@ -304,9 +314,9 @@ Notation "m >= n" := (n <= m) (only parsing) : nat_scope.
 Notation "m > n"  := (n < m) (only parsing)  : nat_scope.
 
 (* For sorting, etc. *)
-Definition geq := [rel m n | m >= n].
-Definition ltn := [rel m n | m < n].
-Definition gtn := [rel m n | m > n].
+Monomorphic Definition geq := [rel m n | m >= n].
+Monomorphic Definition ltn := [rel m n | m < n].
+Monomorphic Definition gtn := [rel m n | m > n].
 
 Notation "m <= n <= p" := ((m <= n) && (n <= p)) : nat_scope.
 Notation "m < n <= p" := ((m < n) && (n <= p)) : nat_scope.
@@ -458,11 +468,11 @@ Variant compare_nat m n :
 Lemma ltngtP m n : compare_nat m n (m <= n) (n <= m) (m < n)
                                    (n < m) (n == m) (m == n).
 Proof.
-rewrite !ltn_neqAle [_ == m]eq_sym; case: ltnP => [mn|].
-  by rewrite ltnW // gtn_eqF //; constructor.
+rewrite !ltn_neqAle. repeat rewrite [_ == m]eq_sym. case: ltnP => [mn|].
+  rewrite ltnW //. by repeat rewrite gtn_eqF //; constructor.
 rewrite leq_eqVlt; case: ltnP; rewrite ?(orbT, orbF) => //= lt_nm eq_mn.
-  by rewrite ltn_eqF //; constructor.
-by rewrite eq_mn; constructor; apply/eqP.
+  by repeat rewrite ltn_eqF //; constructor.
+by repeat rewrite eq_mn; constructor; apply/eqP.
 Qed.
 
 (* Monotonicity lemmas *)
@@ -573,9 +583,9 @@ Qed.
 
 (* Max and min. *)
 
-Definition maxn m n := if m < n then n else m.
+Monomorphic Definition maxn m n := if m < n then n else m.
 
-Definition minn m n := if m < n then m else n.
+Monomorphic Definition minn m n := if m < n then m else n.
 
 Lemma max0n : left_id 0 maxn.  Proof. by case. Qed.
 Lemma maxn0 : right_id 0 maxn. Proof. by []. Qed.
@@ -848,10 +858,10 @@ Proof. by elim: n m => /= [|n IHn] m; rewrite ?subn0 // IHn subnS. Qed.
 
 (* Multiplication. *)
 
-Definition muln_rec := mult.
+Monomorphic Definition muln_rec := mult.
 Notation "m * n" := (muln_rec m n) : nat_rec_scope.
 
-Definition muln := nosimpl muln_rec.
+Monomorphic Definition muln := nosimpl muln_rec.
 Notation "m * n" := (muln m n) : nat_scope.
 
 Lemma multE : mult = muln.     Proof. by []. Qed.
@@ -1000,59 +1010,59 @@ Proof. by move=> m1 m2 n; rewrite -!(mulnC n) minn_mulr. Qed.
 
 (* Exponentiation. *)
 
-Definition expn_rec m n := iterop n muln m 1.
-Notation "m ^ n" := (expn_rec m n) : nat_rec_scope.
-Definition expn := nosimpl expn_rec.
-Notation "m ^ n" := (expn m n) : nat_scope.
+Monomorphic Definition expn_rec m n := iterop n muln m 1.
+Notation "m ** n" := (expn_rec m n) : nat_rec_scope.
+Monomorphic Definition expn := nosimpl expn_rec.
+Notation "m ** n" := (expn m n) : nat_scope.
 
 Lemma expnE : expn = expn_rec. Proof. by []. Qed.
 
-Lemma expn0 m : m ^ 0 = 1. Proof. by []. Qed.
-Lemma expn1 m : m ^ 1 = m. Proof. by []. Qed.
-Lemma expnS m n : m ^ n.+1 = m * m ^ n. Proof. by case: n; rewrite ?muln1. Qed.
-Lemma expnSr m n : m ^ n.+1 = m ^ n * m. Proof. by rewrite mulnC expnS. Qed.
+Lemma expn0 m : m ** 0 = 1. Proof. by []. Qed.
+Lemma expn1 m : m ** 1 = m. Proof. by []. Qed.
+Lemma expnS m n : m ** n.+1 = m * m ** n. Proof. by case: n; rewrite ?muln1. Qed.
+Lemma expnSr m n : m ** n.+1 = m ** n * m. Proof. by rewrite mulnC expnS. Qed.
 
-Lemma iter_muln m n p : iter n (muln m) p = m ^ n * p.
+Lemma iter_muln m n p : iter n (muln m) p = m ** n * p.
 Proof. by elim: n => /= [|n ->]; rewrite ?mul1n // expnS mulnA. Qed.
 
-Lemma iter_muln_1 m n : iter n (muln m) 1 = m ^ n.
+Lemma iter_muln_1 m n : iter n (muln m) 1 = m ** n.
 Proof. by rewrite iter_muln muln1. Qed.
 
-Lemma exp0n n : 0 < n -> 0 ^ n = 0. Proof. by case: n => [|[]]. Qed.
+Lemma exp0n n : 0 < n -> 0 ** n = 0. Proof. by case: n => [|[]]. Qed.
 
-Lemma exp1n n : 1 ^ n = 1.
+Lemma exp1n n : 1 ** n = 1.
 Proof. by elim: n => // n; rewrite expnS mul1n. Qed.
 
-Lemma expnD m n1 n2 : m ^ (n1 + n2) = m ^ n1 * m ^ n2.
+Lemma expnD m n1 n2 : m ** (n1 + n2) = m ** n1 * m ** n2.
 Proof. by elim: n1 => [|n1 IHn]; rewrite !(mul1n, expnS) // IHn mulnA. Qed.
 
-Lemma expnMn m1 m2 n : (m1 * m2) ^ n = m1 ^ n * m2 ^ n.
+Lemma expnMn m1 m2 n : (m1 * m2) ** n = m1 ** n * m2 ** n.
 Proof. by elim: n => // n IHn; rewrite !expnS IHn -!mulnA (mulnCA m2). Qed.
 
-Lemma expnM m n1 n2 : m ^ (n1 * n2) = (m ^ n1) ^ n2.
+Lemma expnM m n1 n2 : m ** (n1 * n2) = (m ** n1) ** n2.
 Proof.
 elim: n1 => [|n1 IHn]; first by rewrite exp1n.
 by rewrite expnD expnS expnMn IHn.
 Qed.
 
-Lemma expnAC m n1 n2 : (m ^ n1) ^ n2 = (m ^ n2) ^ n1.
-Proof. by rewrite -!expnM mulnC. Qed.
+Lemma expnAC m n1 n2 : (m ** n1) ** n2 = (m ** n2) ** n1.
+Proof. repeat rewrite -expnM. by rewrite mulnC. Qed.
 
-Lemma expn_gt0 m n : (0 < m ^ n) = (0 < m) || (n == 0).
+Lemma expn_gt0 m n : (0 < m ** n) = (0 < m) || (n == 0).
 Proof.
 by case: m => [|m]; elim: n => //= n IHn; rewrite expnS // addn_gt0 IHn.
 Qed.
 
-Lemma expn_eq0 m e : (m ^ e == 0) = (m == 0) && (e > 0).
+Lemma expn_eq0 m e : (m ** e == 0) = (m == 0) && (e > 0).
 Proof. by rewrite !eqn0Ngt expn_gt0 negb_or -lt0n. Qed.
 
-Lemma ltn_expl m n : 1 < m -> n < m ^ n.
+Lemma ltn_expl m n : 1 < m -> n < m ** n.
 Proof.
 move=> m_gt1; elim: n => //= n; rewrite -(leq_pmul2l (ltnW m_gt1)) expnS.
 by apply: leq_trans; apply: ltn_Pmull.
 Qed.
 
-Lemma leq_exp2l m n1 n2 : 1 < m -> (m ^ n1 <= m ^ n2) = (n1 <= n2).
+Lemma leq_exp2l m n1 n2 : 1 < m -> (m ** n1 <= m ** n2) = (n1 <= n2).
 Proof.
 move=> m_gt1; elim: n1 n2 => [|n1 IHn] [|n2] //; last 1 first.
 - by rewrite !expnS leq_pmul2l ?IHn // ltnW.
@@ -1060,22 +1070,22 @@ move=> m_gt1; elim: n1 n2 => [|n1 IHn] [|n2] //; last 1 first.
 by rewrite leqNgt (leq_trans m_gt1) // expnS leq_pmulr // expn_gt0 ltnW.
 Qed.
 
-Lemma ltn_exp2l m n1 n2 : 1 < m -> (m ^ n1 < m ^ n2) = (n1 < n2).
+Lemma ltn_exp2l m n1 n2 : 1 < m -> (m ** n1 < m ** n2) = (n1 < n2).
 Proof. by move=> m_gt1; rewrite !ltnNge leq_exp2l. Qed.
 
-Lemma eqn_exp2l m n1 n2 : 1 < m -> (m ^ n1 == m ^ n2) = (n1 == n2).
+Lemma eqn_exp2l m n1 n2 : 1 < m -> (m ** n1 == m ** n2) = (n1 == n2).
 Proof. by move=> m_gt1; rewrite !eqn_leq !leq_exp2l. Qed.
 
 Lemma expnI m : 1 < m -> injective (expn m).
 Proof. by move=> m_gt1 e1 e2 /eqP; rewrite eqn_exp2l // => /eqP. Qed.
 
-Lemma leq_pexp2l m n1 n2 : 0 < m -> n1 <= n2 -> m ^ n1 <= m ^ n2.
+Lemma leq_pexp2l m n1 n2 : 0 < m -> n1 <= n2 -> m ** n1 <= m ** n2.
 Proof. by case: m => [|[|m]] // _; [rewrite !exp1n | rewrite leq_exp2l]. Qed.
 
-Lemma ltn_pexp2l m n1 n2 : 0 < m -> m ^ n1 < m ^ n2 -> n1 < n2.
+Lemma ltn_pexp2l m n1 n2 : 0 < m -> m ** n1 < m ** n2 -> n1 < n2.
 Proof. by case: m => [|[|m]] // _; [rewrite !exp1n | rewrite ltn_exp2l]. Qed.
 
-Lemma ltn_exp2r m n e : e > 0 -> (m ^ e < n ^ e) = (m < n).
+Lemma ltn_exp2r m n e : e > 0 -> (m ** e < n ** e) = (m < n).
 Proof.
 move=> e_gt0; apply/idP/idP=> [|ltmn].
   rewrite !ltnNge; apply: contra => lemn.
@@ -1083,10 +1093,10 @@ move=> e_gt0; apply/idP/idP=> [|ltmn].
 by elim: e e_gt0 => // [[|e] IHe] _; rewrite ?expn1 // ltn_mul // IHe.
 Qed.
 
-Lemma leq_exp2r m n e : e > 0 -> (m ^ e <= n ^ e) = (m <= n).
+Lemma leq_exp2r m n e : e > 0 -> (m ** e <= n ** e) = (m <= n).
 Proof. by move=> e_gt0; rewrite leqNgt ltn_exp2r // -leqNgt. Qed.
 
-Lemma eqn_exp2r m n e : e > 0 -> (m ^ e == n ^ e) = (m == n).
+Lemma eqn_exp2r m n e : e > 0 -> (m ** e == n ** e) = (m == n).
 Proof. by move=> e_gt0; rewrite !eqn_leq !leq_exp2r. Qed.
 
 Lemma expIn e : e > 0 -> injective (expn^~ e).
@@ -1094,9 +1104,9 @@ Proof. by move=> e_gt1 m n /eqP; rewrite eqn_exp2r // => /eqP. Qed.
 
 (* Factorial. *)
 
-Fixpoint fact_rec n := if n is n'.+1 then n * fact_rec n' else 1.
+Monomorphic Fixpoint fact_rec n := if n is n'.+1 then n * fact_rec n' else 1.
 
-Definition factorial := nosimpl fact_rec.
+Monomorphic Definition factorial := nosimpl fact_rec.
 
 Notation "n `!" := (factorial n) (at level 2, format "n `!") : nat_scope.
 
@@ -1134,7 +1144,7 @@ Proof. by case: b; rewrite ?mul1n. Qed.
 Lemma mulnbr (b : bool) n : n * b = (if b then n else 0).
 Proof. by rewrite mulnC mulnbl. Qed.
 
-Fixpoint odd n := if n is n'.+1 then ~~ odd n' else false.
+Monomorphic Fixpoint odd n := if n is n'.+1 then ~~ odd n' else false.
 
 Lemma oddb (b : bool) : odd b = b. Proof. by case: b. Qed.
 
@@ -1152,15 +1162,15 @@ Proof. by move=> oddm le_im; rewrite (odd_sub (le_im)) oddm. Qed.
 Lemma odd_mul m n : odd (m * n) = odd m && odd n.
 Proof. by elim: m => //= m IHm; rewrite odd_add -addTb andb_addl -IHm. Qed.
 
-Lemma odd_exp m n : odd (m ^ n) = (n == 0) || odd m.
+Lemma odd_exp m n : odd (m ** n) = (n == 0) || odd m.
 Proof. by elim: n => // n IHn; rewrite expnS odd_mul {}IHn orbC; case odd. Qed.
 
 (* Doubling. *)
 
-Fixpoint double_rec n := if n is n'.+1 then n'.*2%Nrec.+2 else 0
+Monomorphic Fixpoint double_rec n := if n is n'.+1 then n'.*2%Nrec.+2 else 0
 where "n .*2" := (double_rec n) : nat_rec_scope.
 
-Definition double := nosimpl double_rec.
+Monomorphic Definition double := nosimpl double_rec.
 Notation "n .*2" := (double n) : nat_scope.
 
 Lemma doubleE : double = double_rec. Proof. by []. Qed.
@@ -1213,7 +1223,7 @@ Proof. by rewrite -!muln2 mulnA. Qed.
 
 (* Halving. *)
 
-Fixpoint half (n : nat) : nat := if n is n'.+1 then uphalf n' else n
+Monomorphic Fixpoint half (n : nat) : nat := if n is n'.+1 then uphalf n' else n
 with   uphalf (n : nat) : nat := if n is n'.+1 then n'./2.+1 else n
 where "n ./2" := (half n) : nat_scope.
 
@@ -1265,40 +1275,40 @@ Proof. by move=> odd_n n_gt1; rewrite odd_geq. Qed.
 
 (* Squares and square identities. *)
 
-Lemma mulnn m : m * m = m ^ 2.
+Lemma mulnn m : m * m = m ** 2.
 Proof. by rewrite !expnS muln1. Qed.
 
-Lemma sqrnD m n : (m + n) ^ 2 = m ^ 2 + n ^ 2 + 2 * (m * n).
+Lemma sqrnD m n : (m + n) ** 2 = m ** 2 + n ** 2 + 2 * (m * n).
 Proof.
 rewrite -!mulnn mul2n mulnDr !mulnDl (mulnC n) -!addnA.
 by congr (_ + _); rewrite addnA addnn addnC.
 Qed.
 
-Lemma sqrn_sub m n : n <= m -> (m - n) ^ 2 = m ^ 2 + n ^ 2 - 2 * (m * n).
+Lemma sqrn_sub m n : n <= m -> (m - n) ** 2 = m ** 2 + n ** 2 - 2 * (m * n).
 Proof.
 move/subnK=> def_m; rewrite -{2}def_m sqrnD -addnA addnAC.
 by rewrite -2!addnA addnn -mul2n -mulnDr -mulnDl def_m addnK.
 Qed.
 
-Lemma sqrnD_sub m n : n <= m -> (m + n) ^ 2 - 4 * (m * n) = (m - n) ^ 2.
+Lemma sqrnD_sub m n : n <= m -> (m + n) ** 2 - 4 * (m * n) = (m - n) ** 2.
 Proof.
 move=> le_nm; rewrite -[4]/(2 * 2) -mulnA mul2n -addnn subnDA.
 by rewrite sqrnD addnK sqrn_sub.
 Qed.
 
-Lemma subn_sqr m n : m ^ 2 - n ^ 2 = (m - n) * (m + n).
+Lemma subn_sqr m n : m ** 2 - n ** 2 = (m - n) * (m + n).
 Proof. by rewrite mulnBl !mulnDr addnC (mulnC m) subnDl !mulnn. Qed.
 
-Lemma ltn_sqr m n : (m ^ 2 < n ^ 2) = (m < n).
+Lemma ltn_sqr m n : (m ** 2 < n ** 2) = (m < n).
 Proof. by rewrite ltn_exp2r. Qed.
 
-Lemma leq_sqr m n : (m ^ 2 <= n ^ 2) = (m <= n).
+Lemma leq_sqr m n : (m ** 2 <= n ** 2) = (m <= n).
 Proof. by rewrite leq_exp2r. Qed.
 
-Lemma sqrn_gt0 n : (0 < n ^ 2) = (0 < n).
+Lemma sqrn_gt0 n : (0 < n ** 2) = (0 < n).
 Proof. exact: (ltn_sqr 0). Qed.
 
-Lemma eqn_sqr m n : (m ^ 2 == n ^ 2) = (m == n).
+Lemma eqn_sqr m n : (m ** 2 == n ** 2) = (m == n).
 Proof. by rewrite eqn_exp2r. Qed.
 
 Lemma sqrn_inj : injective (expn ^~ 2).
@@ -1314,7 +1324,7 @@ Proof. exact: expIn. Qed.
 (* lemma); in addition, the conditional equality also coerces to a       *)
 (* non-strict one.                                                       *)
 
-Definition leqif m n C := ((m <= n) * ((m == n) = C))%type.
+Monomorphic Definition leqif m n C := ((m <= n) * ((m == n) = C))%type.
 
 Notation "m <= n ?= 'iff' C" := (leqif m n C) : nat_scope.
 
@@ -1358,7 +1368,8 @@ Lemma leqif_add m1 n1 C1 m2 n2 C2 :
     m1 <= n1 ?= iff C1 -> m2 <= n2 ?= iff C2 ->
   m1 + m2 <= n1 + n2 ?= iff C1 && C2.
 Proof.
-rewrite -(mono_leqif (leq_add2r m2)) -(mono_leqif (leq_add2l n1) m2).
+refine (transport (fun x => x -> _) (mono_leqif (leq_add2r m2) m1 n1 C1) _).
+refine (transport (fun x => _ -> x -> _) (mono_leqif (leq_add2l n1) m2 n2 C2) _).
 exact: leqif_trans.
 Qed.
 
@@ -1368,11 +1379,15 @@ Lemma leqif_mul m1 n1 C1 m2 n2 C2 :
 Proof.
 case: n1 => [|n1] le1; first by case: m1 le1 => [|m1] [_ <-] //.
 case: n2 m2 => [|n2] [|m2] /=; try by case=> // _ <-; rewrite !muln0 ?andbF.
-have /leq_pmul2l-/mono_leqif<-: 0 < n1.+1 by [].
-by apply: leqif_trans; have /leq_pmul2r-/mono_leqif->: 0 < m2.+1.
+have /leq_pmul2l-/mono_leqif: 0 < n1.+1 by [].
+move=> H1.
+refine (transport (fun x => x -> _) (H1 _ _ _) _).
+apply: leqif_trans; have /leq_pmul2r-/mono_leqif: 0 < m2.+1 by [].
+move=> H2.
+by refine (transport (fun x => x) (inverse (H2 _ _ _)) _).
 Qed.
 
-Lemma nat_Cauchy m n : 2 * (m * n) <= m ^ 2 + n ^ 2 ?= iff (m == n).
+Lemma nat_Cauchy m n : 2 * (m * n) <= m ** 2 + n ** 2 ?= iff (m == n).
 Proof.
 without loss le_nm: m n / n <= m.
   by case: (leqP m n); auto; rewrite eq_sym addnC (mulnC m); auto.
@@ -1380,10 +1395,10 @@ apply/leqifP; case: ifP => [/eqP-> | ne_mn]; first by rewrite mulnn addnn mul2n.
 by rewrite -subn_gt0 -sqrn_sub // sqrn_gt0 subn_gt0 ltn_neqAle eq_sym ne_mn.
 Qed.
 
-Lemma nat_AGM2 m n : 4 * (m * n) <= (m + n) ^ 2 ?= iff (m == n).
+Lemma nat_AGM2 m n : 4 * (m * n) <= (m + n) ** 2 ?= iff (m == n).
 Proof.
 rewrite -[4]/(2 * 2) -mulnA mul2n -addnn sqrnD; apply/leqifP.
-by rewrite ltn_add2r eqn_add2r ltn_neqAle !nat_Cauchy; case: ifP => ->.
+rewrite ltn_add2r eqn_add2r ltn_neqAle. by repeat rewrite nat_Cauchy; case: ifP => ->.
 Qed.
 
 Section Monotonicity.
@@ -1475,21 +1490,21 @@ Variables (D D' : {pred nat}).
 
 Lemma ltnW_homo_in : {in D & D', {homo f : m n / m < n}} ->
   {in D & D', {homo f : m n / m <= n}}.
-Proof. exact: homoW_in. Qed.
+Proof. exact: (homoW_in _ _ _ ltn_neqAle). Qed.
 
 Lemma ltnW_nhomo_in : {in D & D', {homo f : m n /~ m < n}} ->
                  {in D & D', {homo f : m n /~ m <= n}}.
-Proof. exact: homoW_in. Qed.
+Proof. exact: (homoW_in _ _ _ ltn_neqAle). Qed.
 
 Lemma homo_inj_lt_in : {in D & D', injective f} ->
                         {in D & D', {homo f : m n / m <= n}} ->
   {in D & D', {homo f : m n / m < n}}.
-Proof. exact: inj_homo_in. Qed.
+Proof. exact: (inj_homo_in _ ltn_neqAle). Qed.
 
 Lemma nhomo_inj_lt_in : {in D & D', injective f} ->
                         {in D & D', {homo f : m n /~ m <= n}} ->
   {in D & D', {homo f : m n /~ m < n}}.
-Proof. exact: inj_homo_in. Qed.
+Proof. exact: (inj_homo_in _ ltn_neqAle). Qed.
 
 Lemma incrn_inj_in : {in D &, {mono f : m n / m <= n}} ->
   {in D &, injective f}.
@@ -1534,26 +1549,26 @@ Module NatTrec.
 (*     rewrite !trecE.                                  *)
 (*        in the correctness proof, restores operators  *)
 
-Fixpoint add m n := if m is m'.+1 then m' + n.+1 else n
+Monomorphic Fixpoint add m n := if m is m'.+1 then m' + n.+1 else n
 where "n + m" := (add n m) : nat_scope.
 
-Fixpoint add_mul m n s := if m is m'.+1 then add_mul m' n (n + s) else s.
+Monomorphic Fixpoint add_mul m n s := if m is m'.+1 then add_mul m' n (n + s) else s.
 
-Definition mul m n := if m is m'.+1 then add_mul m' n n else 0.
+Monomorphic Definition mul m n := if m is m'.+1 then add_mul m' n n else 0.
 
 Notation "n * m" := (mul n m) : nat_scope.
 
-Fixpoint mul_exp m n p := if n is n'.+1 then mul_exp m n' (m * p) else p.
+Monomorphic Fixpoint mul_exp m n p := if n is n'.+1 then mul_exp m n' (m * p) else p.
 
-Definition exp m n := if n is n'.+1 then mul_exp m n' m else 1.
+Monomorphic Definition exp m n := if n is n'.+1 then mul_exp m n' m else 1.
 
-Notation "n ^ m" := (exp n m) : nat_scope.
+Notation "n ** m" := (exp n m) : nat_scope.
 
 Local Notation oddn := odd.
-Fixpoint odd n := if n is n'.+2 then odd n' else eqn n 1.
+Monomorphic Fixpoint odd n := if n is n'.+2 then odd n' else eqn n 1.
 
 Local Notation doublen := double.
-Definition double n := if n is n'.+1 then n' + n.+1 else 0.
+Monomorphic Definition double n := if n is n'.+1 then n' + n.+1 else 0.
 Notation "n .*2" := (double n) : nat_scope.
 
 Lemma addE : add =2 addn.
@@ -1587,6 +1602,21 @@ Definition trecE := (addE, (doubleE, oddE), (mulE, add_mulE, (expE, mul_expE))).
 End NatTrec.
 
 Notation natTrecE := NatTrec.trecE.
+
+Ltac nat_congr := first
+ [ apply: (congr1 succn _)
+ | apply: (congr1 predn _)
+ | apply: (congr1 (addn _) _)
+ | apply: (congr1 (subn _) _)
+ | apply: (congr1 (addn^~ _) _)
+ | match goal with |- (?X1 + ?X2 = ?X3) =>
+     symmetry;
+     rewrite -1?(addnC X1) -?(addnCA X1);
+     apply: (congr1 (addn X1) _);
+     symmetry
+   end ].
+
+(* The rest of the file is commented out. It depends on bin nats and ring stuff.
 
 Lemma eq_binP : Equality.axiom N.eqb.
 Proof.
@@ -1666,12 +1696,13 @@ Proof. by case: b1 b2 => [|p] [|q]; rewrite ?addn0 //= nat_of_add_pos. Qed.
 Lemma nat_of_mul_bin b1 b2 : (b1 * b2)%num = b1 * b2 :> nat.
 Proof. by case: b1 b2 => [|p] [|q]; rewrite ?muln0 //= nat_of_mul_pos. Qed.
 
-Lemma nat_of_exp_bin n (b : N) : n ^ b = pow_N 1 muln n b.
+Lemma nat_of_exp_bin n (b : N) : n ** b = pow_N 1 muln n b.
 Proof.
 by case: b; last (elim=> //= p <-; rewrite natTrecE mulnn -expnM muln2 ?expnS).
 Qed.
 
 End NumberInterpretation.
+
 
 (* Big(ger) nat IO; usage:                              *)
 (*     Num 1 072 399                                    *)
@@ -1741,15 +1772,4 @@ Add Ring nat_ring_ssr : nat_semi_ring (morphism nat_semi_morph,
 Ltac nat_norm :=
   succn_to_add; rewrite ?add0n ?addn0 -?addnA ?(addSn, addnS, add0n, addn0).
 
-Ltac nat_congr := first
- [ apply: (congr1 succn _)
- | apply: (congr1 predn _)
- | apply: (congr1 (addn _) _)
- | apply: (congr1 (subn _) _)
- | apply: (congr1 (addn^~ _) _)
- | match goal with |- (?X1 + ?X2 = ?X3) =>
-     symmetry;
-     rewrite -1?(addnC X1) -?(addnCA X1);
-     apply: (congr1 (addn X1) _);
-     symmetry
-   end ].
+*)

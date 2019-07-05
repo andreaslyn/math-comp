@@ -30,10 +30,10 @@ Unset Printing Implicit Defensive.
 
 (** Euclidean division *)
 
-Definition edivn_rec d :=
+Monomorphic Definition edivn_rec d : nat -> nat -> nat * nat :=
   fix loop m q := if m - d is m'.+1 then loop m' q.+1 else (q, m).
 
-Definition edivn m d := if d > 0 then edivn_rec d.-1 m 0 else (0, m).
+Monomorphic Definition edivn m d := if d > 0 then edivn_rec d.-1 m 0 else (0, m).
 
 Variant edivn_spec m d : nat * nat -> Type :=
   EdivnSpec q r of m = q * d + r & (d > 0) ==> (r < d) : edivn_spec m d (q, r).
@@ -51,21 +51,22 @@ Lemma edivn_eq d q r : r < d -> edivn (q * d + r) d = (q, r).
 Proof.
 move=> lt_rd; have d_gt0: 0 < d by apply: leq_trans lt_rd.
 case: edivnP lt_rd => q' r'; rewrite d_gt0 /=.
-wlog: q q' r r' / q <= q' by case/orP: (leq_total q q'); last symmetry; eauto.
+wlog: q q' r r' / q <= q'.
+by case/orP: (leq_total q q') => ? h ???; last symmetry; apply h.
 rewrite leq_eqVlt; case/predU1P => [-> /addnI-> |] //=.
 rewrite -(leq_pmul2r d_gt0) => /leq_add lt_qr eq_qr _ /lt_qr {lt_qr}.
 by rewrite addnS ltnNge mulSn -addnA eq_qr addnCA addnA leq_addr.
 Qed.
 
-Definition divn m d := (edivn m d).1.
+Monomorphic Definition divn m d := (edivn m d).1.
 
 Notation "m %/ d" := (divn m d) : nat_scope.
 
 (* We redefine modn so that it is structurally decreasing. *)
 
-Definition modn_rec d := fix loop m := if m - d is m'.+1 then loop m' else m.
+Monomorphic Definition modn_rec d := fix loop m := if m - d is m'.+1 then loop m' else m.
 
-Definition modn m d := if d > 0 then modn_rec d.-1 m else m.
+Monomorphic Definition modn m d := if d > 0 then modn_rec d.-1 m else m.
 
 Notation "m %% d" := (modn m d) : nat_scope.
 Notation "m = n %[mod d ]" := (m %% d = n %% d) : nat_scope.
@@ -107,7 +108,7 @@ Proof. by move=> d_gt0; rewrite -[m * d]addn0 divnMDl // div0n addn0. Qed.
 Lemma mulKn m d : 0 < d -> d * m %/ d = m.
 Proof. by move=> d_gt0; rewrite mulnC mulnK. Qed.
 
-Lemma expnB p m n : p > 0 -> m >= n -> p ^ (m - n) = p ^ m %/ p ^ n.
+Lemma expnB p m n : p > 0 -> m >= n -> p ** (m - n) = p ** m %/ p ** n.
 Proof.
 by move=> p_gt0 /subnK{2}<-; rewrite expnD mulnK // expn_gt0 p_gt0.
 Qed.
@@ -284,14 +285,14 @@ Proof.
 by move=> d_even; rewrite {2}(divn_eq m d) odd_add odd_mul d_even andbF.
 Qed.
 
-Lemma modnXm m n a : (a %% n) ^ m = a ^ m %[mod n].
+Lemma modnXm m n a : (a %% n) ** m = a ** m %[mod n].
 Proof.
 by elim: m => // m IHm; rewrite !expnS -modnMmr IHm modnMml modnMmr.
 Qed.
 
 (** Divisibility **)
 
-Definition dvdn d m := m %% d == 0.
+Monomorphic Definition dvdn d m := m %% d == 0.
 
 Notation "m %| d" := (dvdn m d) : nat_scope.
 
@@ -416,16 +417,16 @@ Qed.
 Lemma dvdn_div d m : d %| m -> m %/ d %| m.
 Proof. by move/divnK=> {2}<-; apply: dvdn_mulr. Qed.
 
-Lemma dvdn_exp2l p m n : m <= n -> p ^ m %| p ^ n.
+Lemma dvdn_exp2l p m n : m <= n -> p ** m %| p ** n.
 Proof. by move/subnK <-; rewrite expnD dvdn_mull. Qed.
 
-Lemma dvdn_Pexp2l p m n : p > 1 -> (p ^ m %| p ^ n) = (m <= n).
+Lemma dvdn_Pexp2l p m n : p > 1 -> (p ** m %| p ** n) = (m <= n).
 Proof.
 move=> p_gt1; case: leqP => [|gt_n_m]; first exact: dvdn_exp2l.
 by rewrite gtnNdvd ?ltn_exp2l ?expn_gt0 // ltnW.
 Qed.
 
-Lemma dvdn_exp2r m n k : m %| n -> m ^ k %| n ^ k.
+Lemma dvdn_exp2r m n k : m %| n -> m ** k %| n ** k.
 Proof. by case/dvdnP=> q ->; rewrite expnMn dvdn_mull. Qed.
 
 Lemma dvdn_addr m d n : d %| m -> (d %| m + n) = (d %| n).
@@ -451,7 +452,7 @@ Proof.
 by case: (leqP n m) => [le_nm /dvdn_subr <- // | /ltnW/eqnP ->]; rewrite dvdn0.
 Qed.
 
-Lemma dvdn_exp k d m : 0 < k -> d %| m -> d %| (m ^ k).
+Lemma dvdn_exp k d m : 0 < k -> d %| m -> d %| (m ** k).
 Proof. by case: k => // k _ d_dv_m; rewrite expnS dvdn_mulr. Qed.
 
 Lemma dvdn_fact m n : 0 < m <= n -> m %| n`!.
@@ -477,11 +478,11 @@ Proof. by move=> dv_n; rewrite addnC divnDl // addnC. Qed.
 (*   A function that computes the gcd of 2 numbers                     *)
 (***********************************************************************)
 
-Fixpoint gcdn_rec m n :=
+Monomorphic Fixpoint gcdn_rec m n :=
   let n' := n %% m in if n' is 0 then m else
   if m - n'.-1 is m'.+1 then gcdn_rec (m' %% n') n' else n'.
 
-Definition gcdn := nosimpl gcdn_rec.
+Monomorphic Definition gcdn := nosimpl gcdn_rec.
 
 Lemma gcdnE m n : gcdn m n = if m == 0 then n else gcdn (n %% m) m.
 Proof.
@@ -551,7 +552,7 @@ Qed.
 Lemma gcdn_idPr {m n} : reflect (gcdn m n = n) (n %| m).
 Proof. by rewrite gcdnC; apply: gcdn_idPl. Qed.
 
-Lemma expn_min e m n : e ^ minn m n = gcdn (e ^ m) (e ^ n).
+Lemma expn_min e m n : e ** minn m n = gcdn (e ** m) (e ** n).
 Proof.
 rewrite /minn; case: leqP; [rewrite gcdnC | move/ltnW];
   by move/(dvdn_exp2l e)/gcdn_idPl.
@@ -565,18 +566,18 @@ Proof. by rewrite !(gcdnC _ n) gcdn_modr. Qed.
 
 (* Extended gcd, which computes Bezout coefficients. *)
 
-Fixpoint Bezout_rec km kn qs :=
+Monomorphic Fixpoint Bezout_rec km kn qs :=
   if qs is q :: qs' then Bezout_rec kn (NatTrec.add_mul q kn km) qs'
   else (km, kn).
 
-Fixpoint egcdn_rec m n s qs :=
+Monomorphic Fixpoint egcdn_rec m n s qs :=
   if s is s'.+1 then
     let: (q, r) := edivn m n in
     if r > 0 then egcdn_rec n r s' (q :: qs) else
     if odd (size qs) then qs else q.-1 :: qs
   else [::0].
 
-Definition egcdn m n := Bezout_rec 0 1 (egcdn_rec m n n [::]).
+Monomorphic Definition egcdn m n := Bezout_rec 0 1 (egcdn_rec m n n [::]).
 
 Variant egcdn_spec m n : nat * nat -> Type :=
   EgcdnSpec km kn of km * m = kn * n + gcdn m n & kn * gcdn m n < m :
@@ -668,7 +669,9 @@ Proof.
 move=> p m n; case: (posnP p) => [-> //| p_gt0].
 elim: {m}m.+1 {-2}m n (ltnSn m) => // s IHs m n; rewrite ltnS => le_ms.
 rewrite gcdnE [rhs in _ = rhs]gcdnE muln_eq0 (gtn_eqF p_gt0) -muln_modr //=.
-by case: posnP => // m_gt0; apply: IHs; apply: leq_trans le_ms; apply: ltn_pmod.
+case: posnP => [->//| m_gt0].
+move: m_gt0. case eqP => [->//|??].
+by apply: IHs; apply: leq_trans le_ms; apply: ltn_pmod.
 Qed.
 
 Lemma muln_gcdl : left_distributive muln gcdn.
@@ -687,7 +690,7 @@ Proof. by rewrite muln_divCA ?dvdn_gcdl ?dvdn_gcdr. Qed.
 
 (* We derive the lcm directly. *)
 
-Definition lcmn m n := m * n %/ gcdn m n.
+Monomorphic Definition lcmn m n := m * n %/ gcdn m n.
 
 Lemma lcmnC : commutative lcmn.
 Proof. by move=> m n; rewrite /lcmn mulnC gcdnC. Qed.
@@ -759,7 +762,7 @@ Qed.
 Lemma lcmn_idPl {m n} : reflect (lcmn m n = m) (n %| m).
 Proof. by rewrite lcmnC; apply: lcmn_idPr. Qed.
 
-Lemma expn_max e m n : e ^ maxn m n = lcmn (e ^ m) (e ^ n).
+Lemma expn_max e m n : e ** maxn m n = lcmn (e ** m) (e ** n).
 Proof.
 rewrite /maxn; case: leqP; [rewrite lcmnC | move/ltnW];
  by move/(dvdn_exp2l e)/lcmn_idPr.
@@ -767,7 +770,7 @@ Qed.
 
 (* Coprime factors *)
 
-Definition coprime m n := gcdn m n == 1.
+Monomorphic Definition coprime m n := gcdn m n == 1.
 
 Lemma coprime1n n : coprime 1 n.
 Proof. by rewrite /coprime gcd1n. Qed.
@@ -858,19 +861,19 @@ Qed.
 Lemma coprime_mull p m n : coprime (m * n) p = coprime m p && coprime n p.
 Proof. by rewrite -!(coprime_sym p) coprime_mulr. Qed.
 
-Lemma coprime_pexpl k m n : 0 < k -> coprime (m ^ k) n = coprime m n.
+Lemma coprime_pexpl k m n : 0 < k -> coprime (m ** k) n = coprime m n.
 Proof.
 case: k => // k _; elim: k => [|k IHk]; first by rewrite expn1.
 by rewrite expnS coprime_mull -IHk; case coprime.
 Qed.
 
-Lemma coprime_pexpr k m n : 0 < k -> coprime m (n ^ k) = coprime m n.
+Lemma coprime_pexpr k m n : 0 < k -> coprime m (n ** k) = coprime m n.
 Proof. by move=> k_gt0; rewrite !(coprime_sym m) coprime_pexpl. Qed.
 
-Lemma coprime_expl k m n : coprime m n -> coprime (m ^ k) n.
+Lemma coprime_expl k m n : coprime m n -> coprime (m ** k) n.
 Proof. by case: k => [|k] co_pm; rewrite ?coprime1n // coprime_pexpl. Qed.
 
-Lemma coprime_expr k m n : coprime m n -> coprime m (n ^ k).
+Lemma coprime_expr k m n : coprime m n -> coprime m (n ** k).
 Proof. by rewrite !(coprime_sym m); apply: coprime_expl. Qed.
 
 Lemma coprime_dvdl m n p : m %| n -> coprime n p -> coprime m p.
@@ -888,7 +891,7 @@ rewrite eqn_pmul2r ?gcdn_gt0 ?n_gt0 //; case: kn => // kn /eqP def_knu _.
 by apply/coprimeP=> //; exists (u, v); rewrite mulnC def_knu mulnC addnK.
 Qed.
 
-Lemma dvdn_pexp2r m n k : k > 0 -> (m ^ k %| n ^ k) = (m %| n).
+Lemma dvdn_pexp2r m n k : k > 0 -> (m ** k %| n ** k) = (m %| n).
 Proof.
 move=> k_gt0; apply/idP/idP=> [dv_mn_k|]; last exact: dvdn_exp2r.
 case: (posnP n) => [-> | n_gt0]; first by rewrite dvdn0.
@@ -896,12 +899,14 @@ have [n' def_n] := dvdnP (dvdn_gcdr m n); set d := gcdn m n in def_n.
 have [m' def_m] := dvdnP (dvdn_gcdl m n); rewrite -/d in def_m.
 have d_gt0: d > 0 by rewrite gcdn_gt0 n_gt0 orbT.
 rewrite def_m def_n !expnMn dvdn_pmul2r ?expn_gt0 ?d_gt0 // in dv_mn_k.
-have: coprime (m' ^ k) (n' ^ k).
+have: coprime (m' ** k) (n' ** k).
   rewrite coprime_pexpl // coprime_pexpr // /coprime -(eqn_pmul2r d_gt0) mul1n.
   by rewrite muln_gcdl -def_m -def_n.
 rewrite /coprime -gcdn_modr (eqnP dv_mn_k) gcdn0 -(exp1n k).
 by rewrite (inj_eq (expIn k_gt0)) def_m; move/eqP->; rewrite mul1n dvdn_gcdr.
 Qed.
+
+Unset Universe Polymorphism.
 
 Section Chinese.
 
@@ -951,3 +956,5 @@ by rewrite chinese_modl chinese_modr !modn_mod !eqxx.
 Qed.
 
 End Chinese.
+
+Set Universe Polymorphism.

@@ -133,6 +133,7 @@ Canonical set_subFinType := Eval hnf in [subFinType of set_type].
 
 End SetType.
 
+Declare Scope set_scope.
 Delimit Scope set_scope with SET.
 Bind Scope set_scope with set_type.
 Bind Scope set_scope with set_of.
@@ -163,21 +164,21 @@ Local Notation finset_def := (fun T P => @FinSet T (finfun P)).
 Local Notation pred_of_set_def := (fun T (A : set_type T) => val A : _ -> _).
 
 Module Type SetDefSig.
-Parameter finset : forall T : finType, pred T -> {set T}.
-Parameter pred_of_set : forall T, set_type T -> fin_pred_sort (predPredType T).
+Monomorphic Parameter finset : forall T : finType, pred T -> {set T}.
+Monomorphic Parameter pred_of_set : forall T, set_type T -> fin_pred_sort (predPredType T).
 (* The weird type of pred_of_set is imposed by the syntactic restrictions on  *)
 (* coercion declarations; it is unfortunately not possible to use a functor   *)
 (* to retype the declaration, because this triggers an ugly bug in the Coq    *)
 (* coercion chaining code.                                                    *)
-Axiom finsetE : finset = finset_def.
-Axiom pred_of_setE : pred_of_set = pred_of_set_def.
+Monomorphic Axiom finsetE : finset = finset_def.
+Monomorphic Axiom pred_of_setE : pred_of_set = pred_of_set_def.
 End SetDefSig.
 
 Module SetDef : SetDefSig.
-Definition finset := finset_def.
-Definition pred_of_set := pred_of_set_def.
-Lemma finsetE : finset = finset_def. Proof. by []. Qed.
-Lemma pred_of_setE : pred_of_set = pred_of_set_def. Proof. by []. Qed.
+Monomorphic Definition finset := finset_def.
+Monomorphic Definition pred_of_set := pred_of_set_def.
+Monomorphic Lemma finsetE : finset = finset_def. Proof. by []. Qed.
+Monomorphic Lemma pred_of_setE : pred_of_set = pred_of_set_def. Proof. by []. Qed.
 End SetDef.
 
 Notation finset := SetDef.finset.
@@ -1037,19 +1038,19 @@ Local Notation imset2_def :=
                            (mem [pred u | D1 u.1 & D2 u.1 u.2])]).
 
 Module Type ImsetSig.
-Parameter imset : forall aT rT : finType,
+Monomorphic Parameter imset : forall aT rT : finType,
  (aT -> rT) -> mem_pred aT -> {set rT}.
-Parameter imset2 : forall aT1 aT2 rT : finType,
+Monomorphic Parameter imset2 : forall aT1 aT2 rT : finType,
  (aT1 -> aT2 -> rT) -> mem_pred aT1 -> (aT1 -> mem_pred aT2) -> {set rT}.
-Axiom imsetE : imset = imset_def.
-Axiom imset2E : imset2 = imset2_def.
+Monomorphic Axiom imsetE : imset = imset_def.
+Monomorphic Axiom imset2E : imset2 = imset2_def.
 End ImsetSig.
 
 Module Imset : ImsetSig.
-Definition imset := imset_def.
-Definition imset2 := imset2_def.
-Lemma imsetE : imset = imset_def. Proof. by []. Qed.
-Lemma imset2E : imset2 = imset2_def. Proof. by []. Qed.
+Monomorphic Definition imset := imset_def.
+Monomorphic Definition imset2 := imset2_def.
+Monomorphic Lemma imsetE : imset = imset_def. Proof. by []. Qed.
+Monomorphic Lemma imset2E : imset2 = imset2_def. Proof. by []. Qed.
 End Imset.
 
 Notation imset := Imset.imset.
@@ -1535,7 +1536,7 @@ have ontof: _ \in codom f by apply/(subset_cardP (card_codom injf))/subsetP.
 by exists (fun x => iinv (ontof x)) => x; rewrite (f_iinv, iinv_f).
 Qed.
 
-Lemma card_powerset (T : finType) (A : {set T}) : #|powerset A| = 2 ^ #|A|.
+Lemma card_powerset (T : finType) (A : {set T}) : #|powerset A| = 2 ** #|A|.
 Proof.
 rewrite -card_bool -(card_pffun_on false) -(card_imset _ val_inj).
 apply: eq_card => f; pose sf := false.-support f; pose D := finset sf.
@@ -1778,7 +1779,8 @@ Definition transversal_repr x0 X B := odflt x0 [pick x in X :&: B].
 Lemma leq_card_setU A B : #|A :|: B| <= #|A| + #|B| ?= iff [disjoint A & B].
 Proof.
 rewrite -(addn0 #|_|) -setI_eq0 -cards_eq0 -cardsUI eq_sym.
-by rewrite (mono_leqif (leq_add2l _)).
+move: (mono_leqif (leq_add2l #|A :|: B|) 0 #| A :&: B| (0 == #|A :&: B|)) => p.
+by refine (transport idfun (inverse p) _).
 Qed.
 
 Lemma leq_card_cover P : #|cover P| <= \sum_(A in P) #|A| ?= iff trivIset P.
@@ -1797,7 +1799,8 @@ elim: {P}(enum _) (enum_uniq (mem P)) => [_ | A e IHe] /=.
 case/andP; rewrite set_cons -(in_set (fun B => B \in e)) => PA {IHe}/IHe.
 move: {e}[set x in e] PA => P PA IHP.
 rewrite /trivIset /cover !big_setU1 //= eq_sym.
-have:= leq_card_cover P; rewrite -(mono_leqif (leq_add2l #|A|)).
+have:= leq_card_cover P; have:= (mono_leqif (leq_add2l #|A|)) => m.
+refine (transport (fun X:Type => X -> _) (m _ _ (trivIset P)) _).
 move/(leqif_trans (leq_card_setU _ _))->; rewrite disjoints_subset setC_bigcup.
 case: bigcapsP => [disjA | meetA]; last first.
   right=> [tI]; case: meetA => B PB; rewrite -disjoints_subset.
@@ -1897,8 +1900,8 @@ Qed.
 Section BigOps.
 
 Variables (R : Type) (idx : R) (op : Monoid.com_law idx).
-Let rhs_cond P K E := \big[op/idx]_(A in P) \big[op/idx]_(x in A | K x) E x.
-Let rhs P E := \big[op/idx]_(A in P) \big[op/idx]_(x in A) E x.
+Local Notation rhs_cond P K E := (\big[op/idx]_(A in P) \big[op/idx]_(x in A | K x) E x).
+Local Notation rhs P E := (\big[op/idx]_(A in P) \big[op/idx]_(x in A) E x).
 
 Lemma big_trivIset_cond P (K : pred T) (E : T -> R) :
   trivIset P -> \big[op/idx]_(x in cover P | K x) E x = rhs_cond P K E.
@@ -1914,7 +1917,7 @@ Lemma big_trivIset P (E : T -> R) :
   trivIset P -> \big[op/idx]_(x in cover P) E x = rhs P E.
 Proof.
 have biginT := eq_bigl _ _ (fun _ => andbT _) => tiP.
-by rewrite -biginT big_trivIset_cond //; apply: eq_bigr => A _; apply: biginT.
+rewrite -biginT big_trivIset_cond //; apply: eq_bigr => A _; apply: biginT.
 Qed.
 
 Lemma set_partition_big_cond P D (K : pred T) (E : T -> R) :
@@ -1937,7 +1940,7 @@ have trivP: trivIset P.
 have ->: \bigcup_i F i = cover P.
   apply/esym; rewrite cover_imset big_mkcond; apply: eq_bigr => i _.
   by rewrite inE; case: eqP.
-rewrite big_trivIset // /rhs big_imset => [|i j _ /setIdP[_ notFj0] eqFij].
+rewrite big_trivIset // big_imset => [|i j _ /setIdP[_ notFj0] eqFij].
   rewrite big_mkcond; apply: eq_bigr => i _; rewrite inE.
   by case: eqP => //= ->; rewrite big_set0.
 by apply: contraNeq (disjF _ _) _; rewrite -setI_eq0 eqFij setIid.

@@ -295,7 +295,7 @@ Proof. exact/contraNF/mem2r. Qed.
 Lemma mem2_cat p1 p2 x y :
   mem2 (p1 ++ p2) x y = mem2 p1 x y || mem2 p2 x y || (x \in p1) && (y \in p2).
 Proof.
-rewrite [LHS]/mem2 index_cat fun_if if_arg !drop_cat addKn.
+rewrite [in LHS]/mem2 index_cat fun_if if_arg !drop_cat addKn.
 case: ifPn => [p1x | /mem2lf->]; last by rewrite ltnNge leq_addr orbF.
 by rewrite index_mem p1x mem_cat -orbA (orb_idl (@mem2r _ _ _)).
 Qed.
@@ -312,7 +312,7 @@ Proof. exact: mem2_splice [::z]. Qed.
 
 Lemma mem2_cons x p y z :
   mem2 (x :: p) y z = (if x == y then z \in x :: p else mem2 p y z).
-Proof. by rewrite [LHS]/mem2 /=; case: ifP. Qed.
+Proof. by rewrite [in LHS]/mem2 /=; case: ifP. Qed.
 
 Lemma mem2_seq1 x y z : mem2 [:: x] y z = (y == x) && (z == x).
 Proof. by rewrite mem2_cons eq_sym inE. Qed.
@@ -620,7 +620,7 @@ Lemma nth_traject i n : i < n -> forall x, nth x (traject x n) i = iter i f x.
 Proof.
 elim: n => // n IHn; rewrite ltnS leq_eqVlt => le_i_n x.
 rewrite trajectSr nth_rcons size_traject.
-by case: ltngtP le_i_n => [? _||->] //; apply: IHn.
+by case: ltngtP le_i_n => [? _||->] //; [apply: IHn | case: eqP].
 Qed.
 
 End Trajectory.

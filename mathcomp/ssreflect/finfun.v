@@ -10,9 +10,9 @@ From mathcomp Require Import fintype tuple.
 (*  and {ffun funT} where funT expands to a product over a finType.           *)
 (* Any eqType, choiceType, countType and finType structures on rT extend to   *)
 (* {ffun aT -> rT} as Leibnitz equality and extensional equalities coincide.  *)
-(*     (T ^ n)%type is notation for {ffun 'I_n -> T}, which is isomorphic     *)
+(*     (T ** n)%type is notation for {ffun 'I_n -> T}, which is isomorphic     *)
 (*   to n.-tuple T, but is structurally positive and thus can be used to      *)
-(*   define inductive types, e.g., Inductive tree := node n of tree ^ n (see  *)
+(*   define inductive types, e.g., Inductive tree := node n of tree ** n (see  *)
 (*   mid-file for an expanded example).                                       *)
 (* --> More generally, {ffun fT} is always structurally positive.             *)
 (*   {ffun fT} inherits combinatorial structures of rT, i.e., eqType,         *)
@@ -79,7 +79,7 @@ Local Fixpoint fun_of_fin_rec x s (f_s : finfun_on s) : x \in s -> rT x :=
     if eqP is ReflectT Dx in reflect _ Dxb return Dxb || (x \in s1) -> rT x then
       fun=> ecast x (rT x) (esym Dx) y1
     else fun_of_fin_rec f_s1
-  else fun isF =>  False_rect (rT x) (notF isF).
+  else fun isF => Empty_rect (fun _ => rT x) (notF isF).
 
 Variant finfun_of (ph : phant (forall x, rT x)) : predArgType :=
   FinfunOf of finfun_on (enum aT).
@@ -102,7 +102,7 @@ Notation "{ 'dffun' fT }" := (dfinfun_of (Phant fT))
   (at level 0, format "{ 'dffun'  '[hv' fT ']' }") : type_scope.
 
 Definition exp_finIndexType := ordinal_finType.
-Notation "T ^ n" :=
+Notation "T ** n" :=
   (@finfun_of (exp_finIndexType n) (fun=> T) (Phant _)) : type_scope.
 
 Local Notation finPi aT rT := (forall x : Finite.sort aT, rT x) (only parsing).
@@ -110,13 +110,13 @@ Local Notation finfun_def :=
   (fun aT rT g => FinfunOf (Phant (finPi aT rT)) (finfun_rec g (enum aT))).
 
 Module Type FinfunDefSig.
-Parameter finfun : forall aT rT, finPi aT rT -> {ffun finPi aT rT}.
-Axiom finfunE : finfun = finfun_def.
+Monomorphic Parameter finfun : forall aT rT, finPi aT rT -> {ffun finPi aT rT}.
+Monomorphic Axiom finfunE : finfun = finfun_def.
 End FinfunDefSig.
 
 Module FinfunDef : FinfunDefSig.
-Definition finfun := finfun_def.
-Lemma finfunE : finfun = finfun_def. Proof. by []. Qed.
+Monomorphic Definition finfun := finfun_def.
+Monomorphic Lemma finfunE : finfun = finfun_def. Proof. by []. Qed.
 End FinfunDef.
 
 Notation finfun := FinfunDef.finfun.
@@ -137,7 +137,7 @@ Notation "[ 'ffun' => E ]" := [ffun _ => E]
 (* types, and making use of the fact that the type and accessor are           *)
 (* structurally positive and decreasing, respectively.                        *)
 Unset Elimination Schemes.
-Inductive tree := node n of tree ^ n.
+Inductive tree := node n of tree ** n.
 Fixpoint size t := let: node n f := t in sumn (codom (size \o f)) + 1.
 Example tree_step (K : tree -> Type) :=
   forall n st (t := node st) & forall i : 'I_n, K (st i), K t.
@@ -178,8 +178,11 @@ case: f => f Dg; rewrite unlock; congr FinfunOf.
 have{Dg} Dg x (aTx : mem_seq (enum aT) x): g x = fun_of_fin_rec f aTx.
   by rewrite -Dg /= (bool_irrelevance (mem_enum _ _) aTx).
 elim: (enum aT) / f (enum_uniq aT) => //= x1 s y f IHf /andP[s'x1 Us] in Dg *.
-rewrite Dg ?eqxx //=; case: eqP => // /eq_axiomK-> /= _.
-rewrite {}IHf // => x s_x; rewrite Dg ?s_x ?orbT //.
+have a: (x1 == x1) || mem_seq s x1 by rewrite eqxx.
+rewrite (Dg _ a) /=; move: a; case: eqP => // /eq_axiomK-> /= _.
+rewrite {}IHf // => x s_x.
+have a: (x == x1) || mem_seq s x by rewrite s_x orbT.
+rewrite (Dg x a); move: a.
 by case: eqP (memPn s'x1 x s_x) => // _ _ /(bool_irrelevance s_x) <-.
 Qed.
 
@@ -449,19 +452,19 @@ rewrite card_family !/(image _ _) /(enum D) -enumT /=.
 by elim: (enum aT) => //= x E ->; have [// | D'x] := ifP; rewrite card1 mul1n.
 Qed.
 
-Lemma card_pffun_on y0 D R : #|pffun_on y0 D R| = #|R| ^ #|D|.
+Lemma card_pffun_on y0 D R : #|pffun_on y0 D R| = #|R| ** #|D|.
 Proof.
 rewrite (cardE D) card_pfamily /image_mem.
 by elim: (enum D) => //= _ e ->; rewrite expnS.
 Qed.
 
-Lemma card_ffun_on R : #|@ffun_on aT R| = #|R| ^ #|aT|.
+Lemma card_ffun_on R : #|@ffun_on aT R| = #|R| ** #|aT|.
 Proof.
 rewrite card_family /image_mem cardT.
 by elim: (enum aT) => //= _ e ->; rewrite expnS.
 Qed.
 
-Lemma card_ffun : #|fT| = #|rT| ^ #|aT|.
+Lemma card_ffun : #|fT| = #|rT| ** #|aT|.
 Proof. by rewrite -card_ffun_on; apply/esym/eq_card=> f; apply/forallP. Qed.
 
 End FinFunTheory.

@@ -104,6 +104,7 @@ Reserved Notation "x <> y %[mod_eq e ]" (at level 70, y at next level,
 Reserved Notation "{eq_quot e }" (at level 0, e at level 0,
   format "{eq_quot  e }", only parsing).
 
+Declare Scope quotient_scope.
 Delimit Scope quotient_scope with qT.
 Local Open Scope quotient_scope.
 
@@ -148,28 +149,28 @@ Arguments repr_ofK {T qT}.
 (****************************)
 
 Module Type PiSig.
-Parameter f : forall (T : Type) (qT : quotType T), phant qT -> T -> qT.
-Axiom E : f = pi_phant.
+Monomorphic Parameter f : forall (T : Type) (qT : quotType T), phant qT -> T -> qT.
+Monomorphic Axiom E : f = pi_phant.
 End PiSig.
 
 Module Pi : PiSig.
-Definition f := pi_phant.
-Definition E := erefl f.
+Monomorphic Definition f := pi_phant.
+Monomorphic Definition E := erefl f.
 End Pi.
 
 Module MPi : PiSig.
-Definition f := pi_phant.
-Definition E := erefl f.
+Monomorphic Definition f := pi_phant.
+Monomorphic Definition E := erefl f.
 End MPi.
 
 Module Type ReprSig.
-Parameter f : forall (T : Type) (qT : quotType T), qT -> T.
-Axiom E : f = repr_of.
+Monomorphic Parameter f : forall (T : Type) (qT : quotType T), qT -> T.
+Monomorphic Axiom E : f = repr_of.
 End ReprSig.
 
 Module Repr : ReprSig.
-Definition f := repr_of.
-Definition E := erefl f.
+Monomorphic Definition f := repr_of.
+Monomorphic Definition E := erefl f.
 End Repr.
 
 (*******************)
@@ -265,9 +266,9 @@ Variables (a b : T) (x : equal_to (\pi_qT a)) (y : equal_to (\pi_qT b)).
 
 (* Internal Lemmmas : do not use directly *)
 Lemma pi_morph1 : \pi (f a) = fq (equal_val x). Proof. by rewrite !piE. Qed.
-Lemma pi_morph2 : \pi (g a b) = gq (equal_val x) (equal_val y). Proof. by rewrite !piE. Qed.
+Lemma pi_morph2 : \pi (g a b) = gq (equal_val x) (equal_val y). Proof. by repeat rewrite !piE. Qed.
 Lemma pi_mono1 : p a = pq (equal_val x). Proof. by rewrite !piE. Qed.
-Lemma pi_mono2 : r a b = rq (equal_val x) (equal_val y). Proof. by rewrite !piE. Qed.
+Lemma pi_mono2 : r a b = rq (equal_val x) (equal_val y). Proof. by repeat rewrite !piE. Qed.
 Lemma pi_morph11 : \pi (h a) = hq (equal_val x). Proof. by rewrite !piE. Qed.
 
 End Morphism.
@@ -348,10 +349,10 @@ Definition eq_quot_class eqT : eq_quot_class_of eqT :=
   let: EqQuotTypePack _ cT as qT' := eqT return eq_quot_class_of qT' in cT.
 
 Canonical eqQuotType_eqType eqT := EqType eqT (eq_quot_class eqT).
-Canonical eqQuotType_quotType eqT := QuotType eqT (eq_quot_class eqT).
+Definition eqQuotType_quotType' eqT := QuotType eqT (eq_quot_class eqT).
 
 Coercion eqQuotType_eqType : eqQuotType >-> eqType.
-Coercion eqQuotType_quotType : eqQuotType >-> quotType.
+Coercion eqQuotType_quotType' : eqQuotType >-> quotType.
 
 Definition EqQuotType_pack Q :=
   fun (qT : quotType T) (eT : eqType) qc ec 
@@ -361,12 +362,16 @@ Definition EqQuotType_pack Q :=
 Definition EqQuotType_clone (Q : Type) eqT cT 
   of phant_id (eq_quot_class eqT) cT := @EqQuotTypePack Q cT.
 
-Lemma pi_eq_quot eqT : {mono \pi_eqT : x y / eq_quot_op x y >-> x == y}.
+End EqQuotTypeStructure.
+
+Monomorphic Canonical eqQuotType_quotType := eqQuotType_quotType'.
+
+Lemma pi_eq_quot T (eq_quot_op : rel T) (eqT : eqQuotType eq_quot_op)
+  : {mono \pi_eqT : x y / eq_quot_op x y >-> x == y}.
 Proof. by case: eqT => [] ? []. Qed.
 
-Canonical pi_eq_quot_mono eqT := PiMono2 (pi_eq_quot eqT).
-
-End EqQuotTypeStructure.
+Canonical pi_eq_quot_mono T (eq_quot_op : rel T) (eqT : eqQuotType eq_quot_op)
+  := PiMono2 (pi_eq_quot eqT).
 
 Notation EqQuotType e Q m := (@EqQuotType_pack _ e Q _ _ _ _ id id m).
 Notation "[ 'eqQuotType' e 'of' Q ]" := (@EqQuotType_clone _ e Q _ _ id)
