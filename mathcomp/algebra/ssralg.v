@@ -560,7 +560,7 @@ From mathcomp Require Import choice fintype finfun bigop prime binomial.
 (*   X -- ring exponentiation, as in rmorphX : f (x ^+ n) = f x ^+ n.         *)
 (*   Z -- (left) module scaling, as in linearZ : f (a *: v)  = s *: f v.      *)
 (* The operator suffixes D, B, M and X are also used for the corresponding    *)
-(* operations on nat, as in natrX : (m ^ n)%:R = m%:R ^+ n. For the binary    *)
+(* operations on nat, as in natrX : (m ** n)%:R = m%:R ^+ n. For the binary    *)
 (* power operator, a trailing "n" suffix is used to indicate the operator     *)
 (* suffix applies to the left-hand ring argument, as in                       *)
 (*   expr1n : 1 ^+ n = 1 vs. expr1 : x ^+ 1 = x.                              *)
@@ -598,8 +598,12 @@ Reserved Notation "a \*o f" (at level 40).
 Reserved Notation "a \o* f" (at level 40).
 Reserved Notation "a \*: f" (at level 40).
 
+Declare Scope ring_scope.
 Delimit Scope ring_scope with R.
+
+Declare Scope term_scope.
 Delimit Scope term_scope with T.
+
 Local Open Scope ring_scope.
 
 Module Import GRing.
@@ -1113,7 +1117,7 @@ Qed.
 Lemma commr_sign x n : comm x ((-1) ^+ n).
 Proof. exact: (commrX n (commrN1 x)). Qed.
 
-Lemma exprMn_n x m n : (x *+ m) ^+ n = x ^+ n *+ (m ^ n) :> R.
+Lemma exprMn_n x m n : (x *+ m) ^+ n = x ^+ n *+ (m ** n) :> R.
 Proof.
 elim: n => [|n IHn]; first by rewrite mulr1n.
 rewrite exprS IHn -mulr_natr -mulrA -commr_nat mulr_natr -mulrnA -expnSr.
@@ -1140,7 +1144,7 @@ Proof.
 by move=> xn1 dvd_n_i; rewrite -(expr_mod i xn1) (eqnP dvd_n_i).
 Qed.
 
-Lemma natrX n k : (n ^ k)%:R = n%:R ^+ k :> R.
+Lemma natrX n k : (n ** k)%:R = n%:R ^+ k :> R.
 Proof. by rewrite exprMn_n expr1n. Qed.
 
 Lemma signr_odd n : (-1) ^+ (odd n) = (-1) ^+ n :> R.
@@ -1230,7 +1234,7 @@ by rewrite exprS !mulrA mulN1r !mulNr commrX //; apply: commrN1.
 Qed.
 
 Lemma prodrMn n (I : finType) (A : pred I) (F : I -> R) :
-  \prod_(i in A) (F i *+ n) = \prod_(i in A) F i *+ n ^ #|A|.
+  \prod_(i in A) (F i *+ n) = \prod_(i in A) F i *+ n ** #|A|.
 Proof.
 rewrite -sum1_card; elim/big_rec3: _ => // i x m _ _ ->.
 by rewrite mulrnAr mulrnAl expnS mulrnA.
@@ -1381,7 +1385,7 @@ pose p := pdiv n; have [|n_gt1 charRn] := leqP n 1; first by case: (n) => [|[]].
 have charRp: p \in [char R] by rewrite (pnatPpi charRn) // pi_pdiv.
 have /p_natP[e ->]: p.-nat n by rewrite -(eq_pnat _ (charf_eq charRp)).
 elim: e => // e IHe; rewrite expnSr !exprM {}IHe.
-by rewrite -Frobenius_autE Frobenius_autN.
+by rewrite -(Frobenius_autE charRp) Frobenius_autN.
 Qed.
 
 Section Char2.
@@ -2182,7 +2186,10 @@ Canonical Scale.mul_law.
 Canonical Scale.scale_law.
 Canonical Scale.comp_law.
 Canonical Scale.op_additive.
+
+Declare Scope linear_ring_scope.
 Delimit Scope linear_ring_scope with linR.
+
 Notation "a *: u" := (@Scale.op _ _ *:%R _ a u) : linear_ring_scope.
 Notation "a * u" := (@Scale.op _ _ *%R _ a u) : linear_ring_scope.
 Notation "a *:^ nu u" := (@Scale.op _ _ (nu \; *:%R) _ a u)
@@ -2358,7 +2365,10 @@ Variables (A : lalgType R) (U : lmodType R).
 Variables (a : A) (f : {linear U -> A}).
 
 Fact mulr_fun_is_scalable : scalable (a \o* f).
-Proof. by move=> k x /=; rewrite linearZ scalerAl. Qed.
+Proof.
+move=> k x /=.
+by rewrite (linearZ (f : Linear.map_at _ _ k)) scalerAl.
+Qed.
 Canonical mulr_fun_linear := AddLinear mulr_fun_is_scalable.
 
 End LinearLalg.
@@ -2584,7 +2594,7 @@ Proof.
 pose p := pdiv n; have [|n_gt1 charRn] := leqP n 1; first by case: (n) => [|[]].
 have charRp: p \in [char R] by rewrite (pnatPpi charRn) ?pi_pdiv.
 have{charRn} /p_natP[e ->]: p.-nat n by rewrite -(eq_pnat _ (charf_eq charRp)).
-by elim: e => // e IHe; rewrite !expnSr !exprM IHe -Frobenius_autE rmorphD.
+by elim: e => // e IHe; rewrite !expnSr !exprM IHe -(Frobenius_autE charRp) rmorphD.
 Qed.
 
 Lemma rmorph_comm (S : ringType) (f : {rmorphism R -> S}) x y : 
@@ -2600,7 +2610,10 @@ Proof. by move=> a v /=; rewrite !scalerA mulrC. Qed.
 Canonical scale_linear := AddLinear scale_is_scalable.
 
 Lemma scale_fun_is_scalable : scalable (b \*: f).
-Proof. by move=> a v /=; rewrite !linearZ. Qed.
+Proof.
+move=> a v /=.
+by rewrite (linearZ (f : Linear.map_at _ _ a)) linearZ.
+Qed.
 Canonical scale_fun_linear := AddLinear scale_fun_is_scalable.
 
 End ScaleLinear.
@@ -2722,7 +2735,7 @@ Canonical regular_algType := CommAlgType R R^o.
 Variables (U : lmodType R) (a : A) (f : {linear U -> A}).
 
 Lemma mull_fun_is_scalable : scalable (a \*o f).
-Proof. by move=> k x /=; rewrite linearZ scalerAr. Qed.
+Proof. by move=> k x /=; rewrite (linearZ (f : Linear.map_at _ _ _)) scalerAr. Qed.
 Canonical mull_fun_linear := AddLinear mull_fun_is_scalable.
 
 End AlgebraTheory.
@@ -3786,7 +3799,7 @@ Variable R : Type.
 
 Fixpoint tsubst (t : term R) (s : nat * term R) :=
   match t with
-  | 'X_i => if i == s.1 then s.2 else t
+  | 'X_i => if (i == s.1)%type then s.2 else t
   | _%:T | _%:R => t
   | t1 + t2 => tsubst t1 s + tsubst t2 s
   | - t1 => - tsubst t1 s
@@ -3805,8 +3818,8 @@ Fixpoint fsubst (f : formula R) (s : nat * term R) :=
   | f1 \/ f2 => fsubst f1 s \/ fsubst f2 s
   | f1 ==> f2 => fsubst f1 s ==> fsubst f2 s
   | ~ f1 => ~ fsubst f1 s
-  | ('exists 'X_i, f1) => 'exists 'X_i, if i == s.1 then f1 else fsubst f1 s
-  | ('forall 'X_i, f1) => 'forall 'X_i, if i == s.1 then f1 else fsubst f1 s
+  | ('exists 'X_i, f1) => 'exists 'X_i, if (i == s.1)%type then f1 else fsubst f1 s
+  | ('forall 'X_i, f1) => 'forall 'X_i, if (i == s.1)%type then f1 else fsubst f1 s
   end%T.
 
 End Substitution.
@@ -3838,7 +3851,7 @@ Lemma eval_tsubst e t s :
   eval e (tsubst t s) = eval (set_nth 0 e s.1 (eval e s.2)) t.
 Proof.
 case: s => i u; elim: t => //=; do 2?[move=> ? -> //] => j.
-by rewrite nth_set_nth /=; case: (_ == _).
+by rewrite nth_set_nth /=; destruct (j == i).
 Qed.
 
 (* Evaluation of a reified formula *)
@@ -3867,10 +3880,15 @@ have eq_i i v e1 e2: same_env e1 e2 -> same_env (sv e1 i v) (sv e2 i v).
 elim: f e e' => //=.
 - by move=> t1 t2 e e' eq_e; rewrite !(eq_eval _ eq_e).
 - by move=> t e e' eq_e; rewrite (eq_eval _ eq_e).
-- by move=> f1 IH1 f2 IH2 e e' eq_e; move/IH2: (eq_e); move/IH1: eq_e; tauto.
-- by move=> f1 IH1 f2 IH2 e e' eq_e; move/IH2: (eq_e); move/IH1: eq_e; tauto.
+- move=> f1 IH1 f2 IH2 e e' eq_e; move/IH2: (eq_e); move/IH1: eq_e.
+  by move => x y [] ? ?; split; [apply: x | apply y].
+- move=> f1 IH1 f2 IH2 e e' eq_e; move/IH2: (eq_e); move/IH1: eq_e.
+  move => x y [|] ?.
+    by left; apply: x.
+    by right; apply y.
 - by move=> f1 IH1 f2 IH2 e e' eq_e f12; move/IH1: (same_env_sym eq_e); eauto.
-- by move=> f1 IH1 e e'; move/same_env_sym; move/IH1; tauto.
+- move=> f1 IH1 e e'; move/same_env_sym; move/IH1.
+  by move=> x a b; apply: a; apply: x.
 - by move=> i f1 IH1 e e'; move/(eq_i i)=> eq_e [x f_ex]; exists x; eauto.
 by move=> i f1 IH1 e e'; move/(eq_i i); eauto.
 Qed.
@@ -3879,19 +3897,43 @@ Qed.
 Lemma holds_fsubst e f i v :
   holds e (fsubst f (i, v%:T)%T) <-> holds (set_nth 0 e i v) f.
 Proof.
-elim: f e => //=; do [
-  by move=> *; rewrite !eval_tsubst
-| move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e); tauto
-| move=> f IHf e; move: (IHf e); tauto
-| move=> j f IHf e].
-- case eq_ji: (j == i); first rewrite (eqP eq_ji).
+elim: f e => //=.
+- by move=> *; rewrite !eval_tsubst.
+- by move=> *; rewrite !eval_tsubst.
+- move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e).
+  move=> [] x1 y1 [] x2 y2; split; move=> [] x3 y3; split.
+  + by apply: x1.
+  + by apply: x2.
+  + by apply: y1.
+  + by apply: y2.
+- move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e).
+  move=> [] x1 y1 [] x2 y2; split; move=> [|] z.
+  + by left; apply: x1.
+  + by right; apply: x2.
+  + by left; apply: y1.
+  + by right; apply: y2.
+- move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e).
+  move=> [] x1 y1 [] x2 y2; split; move=> x3 y3.
+  + by apply: x2; apply: x3; apply: y1.
+  + by apply: y2; apply: x3; apply: x1.
+- move=> f IHf e; move: (IHf e).
+  move=> [] x1 y1; split; move=> z1 z2.
+  + by apply: z1; apply: y1.
+  + by apply: z1; apply: x1.
+- move=> j f IHf e.
+  case eq_ji: (j == i); first rewrite (eqP eq_ji).
     by split=> [] [x f_x]; exists x; rewrite set_set_nth eqxx in f_x *.
   split=> [] [x f_x]; exists x; move: f_x; rewrite set_set_nth eq_sym eq_ji;
-     have:= IHf (set_nth 0 e j x); tauto.
-case eq_ji: (j == i); first rewrite (eqP eq_ji).
-  by split=> [] f_ x; move: (f_ x); rewrite set_set_nth eqxx.
-split=> [] f_ x; move: (IHf (set_nth 0 e j x)) (f_ x);
-  by rewrite set_set_nth eq_sym eq_ji; tauto.
+    have:= IHf (set_nth 0 e j x).
+  + move=> [] x1 y1 z. by apply: x1; apply: z.
+  + move=> [] x1 y1 z. by apply: y1; apply: z.
+- move=> j f IHf e.
+  case eq_ji: (j == i); first rewrite (eqP eq_ji).
+    by split=> [] f_ x; move: (f_ x); rewrite set_set_nth eqxx.
+  split=> [] f_ x; move: (IHf (set_nth 0 e j x)) (f_ x);
+    rewrite set_set_nth eq_sym eq_ji.
+  + move=> [] x1 y1 z. by apply: x1; apply: z.
+  + move=> [] x1 y1 z. by apply: y1; apply: z.
 Qed.
 
 (* Boolean test selecting terms in the language of rings *)
@@ -3991,7 +4033,7 @@ Fixpoint to_rform f :=
 Lemma to_rform_rformula f : rformula (to_rform f).
 Proof.
 suffices eq0_ring t1: rformula (eq0_rform t1) by elim: f => //= => f1 ->.
-rewrite /eq0_rform; move: (ub_var t1) => m; set tr := _ m.
+rewrite /eq0_rform; move: (ub_var t1) => m; set tr := to_rterm _ _ m.
 suffices: all rterm (tr.1 :: tr.2).
   case: tr => {t1} t1 r /= /andP[t1_r].
   by elim: r m => [|t r IHr] m; rewrite /= ?andbT // => /andP[->]; apply: IHr.
@@ -4001,15 +4043,12 @@ rewrite {}/tr; elim: t1 [::] => //=.
   move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
   move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
-- by move=> t1 IHt1 r /IHt1; case: to_rterm.
-- by move=> t1 IHt1 n r /IHt1; case: to_rterm.
 - move=> t1 IHt1 t2 IHt2 r.
   move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
   move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
 - move=> t1 IHt1 r.
   by move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /=; rewrite all_rcons.
-- by move=> t1 IHt1 n r /IHt1; case: to_rterm.
 Qed.
 
 (* Correctness of the transformation. *)
@@ -4017,14 +4056,31 @@ Lemma to_rformP e f : holds e (to_rform f) <-> holds e f.
 Proof.
 suffices{e f} equal0_equiv e t1 t2:
   holds e (eq0_rform (t1 - t2)) <-> (eval e t1 == eval e t2).
-- elim: f e => /=; try tauto.
+- elim: f e => /=.
+  + done.
   + move=> t1 t2 e.
     by split; [move/equal0_equiv/eqP | move/eqP/equal0_equiv].
   + by move=> t1 e; rewrite unitrE; apply: equal0_equiv.
-  + by move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e); tauto.
-  + by move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e); tauto.
-  + by move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e); tauto.
-  + by move=> f1 IHf1 e; move: (IHf1 e); tauto.
+  + move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e).
+    move=> [] x1 y1 [] x2 y2; split; move=> [] z1 z2; split.
+    * by apply: x1.
+    * by apply: x2.
+    * by apply: y1.
+    * by apply: y2.
+  + move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e).
+    move=> [] x1 y1 [] x2 y2; split; move=> [] z.
+    * by left; apply: x1.
+    * by right; apply: x2.
+    * by left; apply: y1.
+    * by right; apply: y2.
+  + move=> f1 IHf1 f2 IHf2 e; move: (IHf1 e) (IHf2 e).
+    move=> [] x1 y1 [] x2 y2; split; move=> z1 z2.
+    * by apply: x2; apply: z1; apply: y1.
+    * by apply: y2; apply: z1; apply: x1.
+  + move=> f1 IHf1 e; move: (IHf1 e).
+    move=> [] x1 y1; split; move=> z1 z2; apply: z1.
+    * by apply: y1.
+    * by apply: x1.
   + by move=> n f1 IHf1 e; split=> [] [x] /IHf1; exists x.
   + by move=> n f1 IHf1 e; split=> Hx x; apply/IHf1.
 rewrite -(add0r (eval e t2)) -(can2_eq (subrK _) (addrK _)).
@@ -4116,7 +4172,7 @@ Fixpoint qf_form (f : formula R) :=
 Definition qf_eval e := fix loop (f : formula R) : bool :=
   match f with
   | Bool b => b
-  | t1 == t2 => (eval e t1 == eval e t2)%bool
+  | t1 == t2 => (eval e t1 == eval e t2)%type
   | Unit t1 => eval e t1 \in unit
   | f1 /\ f2 => loop f1 && loop f2
   | f1 \/ f2 => loop f1 || loop f2
@@ -4283,6 +4339,8 @@ rewrite mA // big1 => [|i _]; first by case: pick.
 by rewrite fun_if if_same /= qfp.
 Qed.
 
+Definition Bool_rect := Bool_ind.
+
 Lemma eval_Pick e (qev := qf_eval e) :
   let P i := qev (pred_f i) in
   qev Pick = (if pick P is Some i then qev (then_f i) else qev else_f).
@@ -4292,7 +4350,11 @@ apply/existsP/idP=> [[p] | true_at_P].
   rewrite ((big_morph qev) true andb) //= big_andE /=.
   case/andP=> /forallP-eq_p_P.
   rewrite (@eq_pick _ _ P) => [|i]; first by case: pick.
-  by move/(_ i): eq_p_P => /=; case: (p i) => //=; move/negbTE.
+  move/(_ i): eq_p_P => /=.
+  refine (match p i as r return
+            qev (if r then pred_f i else (~ pred_f i)%T) -> r = P i
+          with true => _ | false => _ end); first done.
+  by move/negbTE.
 exists [ffun i => P i] => /=; apply/andP; split.
   rewrite ((big_morph qev) true andb) //= big_andE /=.
   by apply/forallP=> i; rewrite /= ffunE; case Pi: (P i) => //=; apply: negbT.
@@ -4315,9 +4377,9 @@ elim: I e => /= [|i I IHi] e.
   by split=> [[e' eq_e] |]; [apply: eq_holds => i; rewrite eq_e | exists e].
 split=> [[e' eq_e f_e'] | [x]]; last set e_x := set_nth 0 e i x.
   exists e'`_i; apply/IHi; exists e' => // j.
-  by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP => // ->.
+  by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP => //; move=> ->.
 case/IHi=> e' eq_e f_e'; exists e' => // j.
-by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP.
+by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP.
 Qed.
 
 Lemma foldForallP I e :
@@ -4328,9 +4390,9 @@ elim: I e => /= [|i I IHi] e.
   by split=> [|f_e e' eq_e]; [apply | apply: eq_holds f_e => i; rewrite eq_e].
 split=> [f_e' x | f_e e' eq_e]; first set e_x := set_nth 0 e i x.
   apply/IHi=> e' eq_e; apply: f_e' => j.
-  by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP.
+  by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP.
 move/IHi: (f_e e'`_i); apply=> j.
-by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP => // ->.
+by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP => //; move=> ->.
 Qed.
 
 End MultiQuant.
@@ -4475,7 +4537,7 @@ Proof.
 have [-> | n_gt0] := posnP n; first by rewrite eqxx.
 apply/idP/idP => [|nz_n]; last first.
   by apply/pnatP=> // p p_pr p_dvd_n; apply: contra nz_n => /dvdn_charf <-.
-apply: contraL => n0; have [// | p charRp] := natf0_char _ n0.
+apply: contraL => n0. have [p charRp | //] := natf0_char _ n0.
 have [p_pr _] := andP charRp; rewrite (eq_pnat _ (eq_negn (charf_eq charRp))).
 by rewrite p'natE // (dvdn_charf charRp) n0.
 Qed.
@@ -4510,7 +4572,7 @@ Proof. by rewrite -subr_eq0 subr_sqr_1 mulf_eq0 subr_eq0 addr_eq0. Qed.
 
 Lemma expfS_eq1 x n :
   (x ^+ n.+1 == 1) = (x == 1) || (\sum_(i < n.+1) x ^+ i == 0).
-Proof. by rewrite -![_ == 1]subr_eq0 subrX1 mulf_eq0. Qed.
+Proof. by rewrite -[_ == 1]subr_eq0 subrX1 mulf_eq0 subr_eq0. Qed.
 
 Lemma lregP x : reflect (lreg x) (x != 0).
 Proof. by apply: (iffP idP) => [/mulfI | /lreg_neq0]. Qed.
