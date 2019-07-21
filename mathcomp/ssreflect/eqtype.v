@@ -197,7 +197,7 @@ Proof. exact/eqP/eqP. Qed.
 
 Hint Resolve eq_refl eq_sym : core.
 
-Variant eq_xor_neq (T : eqType) (x y : T) : bool -> bool -> Set :=
+Variant eq_xor_neq (T : eqType) (x y : T) : bool -> bool -> Type :=
   | EqNotNeq of x = y : eq_xor_neq x y true true
   | NeqNotEq of x != y : eq_xor_neq x y false false.
 
@@ -310,8 +310,8 @@ Module Export EqTypePred := MakeEqTypePred Equality.
 Lemma unit_eqP : Equality.axiom (fun _ _ : unit => true).
 Proof. by do 2!case; left. Qed.
 
-Definition unit_eqMixin := EqMixin unit_eqP.
-Canonical unit_eqType := EqType unit unit_eqMixin.
+Monomorphic Definition unit_eqMixin := EqMixin unit_eqP.
+Monomorphic Canonical unit_eqType := EqType unit unit_eqMixin.
 
 (* Comparison for booleans. *)
 
@@ -321,8 +321,8 @@ Monomorphic Definition eqb b := addb (~~ b).
 Lemma eqbP : Equality.axiom eqb.
 Proof. by do 2!case; constructor. Qed.
 
-Definition bool_eqMixin := EqMixin eqbP.
-Canonical bool_eqType := Eval hnf in EqType bool bool_eqMixin.
+Monomorphic Definition bool_eqMixin := EqMixin eqbP.
+Monomorphic Canonical bool_eqType := Eval hnf in EqType bool bool_eqMixin.
 
 Lemma eqbE : eqb = eq_op. Proof. by []. Qed.
 
@@ -718,7 +718,7 @@ End SigProj.
 
 Prenex Implicits svalP s2val s2valP s2valP'.
 
-Canonical sig_subType T (P : pred T) : subType [eta P] := [subType for sval, exist P].
+Monomorphic Canonical sig_subType T (P : pred T) : subType [eta P] := [subType for sval, exist P].
 
 (* Shorthand for sigma types over collective predicates. *)
 Notation "{ x 'in' A }" := {x | x \in A}
@@ -763,23 +763,39 @@ End TransferEqType.
 
 Section SubEqType.
 
+Local Notation ev_ax := (fun T v => @Equality.axiom T (fun x y => v x == v y)).
+
+Section SubEqType1.
+
 Variables (T : eqType) (P : pred T) (sT : subType P).
 
-Local Notation ev_ax := (fun T v => @Equality.axiom T (fun x y => v x == v y)).
 Lemma val_eqP : ev_ax sT val. Proof. exact: inj_eqAxiom val_inj. Qed.
 
-Definition sub_eqMixin := EqMixin val_eqP.
-Canonical sub_eqType := Eval hnf in EqType sT sub_eqMixin.
+End SubEqType1.
+
+Section SubEqType2.
+
+Monomorphic Variables (T : eqType) (P : pred T) (sT : subType P).
+
+Monomorphic Definition sub_eqMixin := EqMixin (@val_eqP T P sT).
+Monomorphic Canonical sub_eqType := Eval hnf in EqType sT sub_eqMixin.
+
+End SubEqType2.
+
+Section SubEqType3.
+
+Variables (T : eqType) (P : pred T) (sT : subType P).
 
 Definition SubEqMixin :=
   (let: SubType _ v _ _ _ as sT' := sT
      return ev_ax sT' val -> Equality.class_of sT' in
    fun vP : ev_ax _ v => EqMixin vP
-   ) val_eqP.
+   ) (@val_eqP T P sT).
 
 Lemma val_eqE (u v : sT) : (val u == val v) = (u == v).
 Proof. by []. Qed.
 
+End SubEqType3.
 End SubEqType.
 
 Arguments val_eqP {T P sT x y}.
@@ -787,7 +803,7 @@ Arguments val_eqP {T P sT x y}.
 Notation "[ 'eqMixin' 'of' T 'by' <: ]" := (SubEqMixin _ : Equality.class_of T)
   (at level 0, format "[ 'eqMixin'  'of'  T  'by'  <: ]") : form_scope.
 
-Section ProdEqType.
+Section ProdEqType1.
 
 Variable T1 T2 : eqType.
 
@@ -799,10 +815,18 @@ move=> [x1 x2] [y1 y2] /=; apply: (iffP andP) => [[]|[<- <-]] //=.
 by do 2!move/eqP->.
 Qed.
 
-Canonical prod_eqMixin := EqMixin pair_eqP.
-Canonical prod_eqType := Eval hnf in EqType (T1 * T2) prod_eqMixin.
+End ProdEqType1.
 
-Lemma pair_eqE : pair_eq = eq_op :> rel _. Proof. by []. Qed.
+Monomorphic Canonical prod_eqMixin (T1 T2 : eqType) :=
+  EqMixin (@pair_eqP T1 T2).
+Monomorphic Canonical prod_eqType (T1 T2 : eqType) :=
+  Eval hnf in EqType (T1 * T2) (prod_eqMixin T1 T2).
+
+Section ProdEqType2.
+
+Variable T1 T2 : eqType.
+
+Lemma pair_eqE : @pair_eq T1 T2 = eq_op :> rel _. Proof. by []. Qed.
 
 Lemma xpair_eqE (x1 y1 : T1) (x2 y2 : T2) :
   ((x1, x2) == (y1, y2)) = ((x1 == y1) && (x2 == y2)).
@@ -814,7 +838,7 @@ Proof. by case/andP. Qed.
 Lemma pair_eq2 (u v : T1 * T2) : u == v -> u.2 == v.2.
 Proof. by case/andP. Qed.
 
-End ProdEqType.
+End ProdEqType2.
 
 Arguments pair_eq {T1 T2} u v /.
 Arguments pair_eqP {T1 T2}.
@@ -837,10 +861,12 @@ Proof.
 case=> [x|] [y|] /=; by [constructor | apply: (iffP eqP) => [|[]] ->].
 Qed.
 
-Canonical option_eqMixin := EqMixin opt_eqP.
-Canonical option_eqType := Eval hnf in EqType (option T) option_eqMixin.
-
 End OptionEqType.
+
+Monomorphic Canonical option_eqMixin (T : eqType) :=
+  EqMixin (@opt_eqP T).
+Monomorphic Canonical option_eqType (T : eqType) :=
+  Eval hnf in EqType (option T) (option_eqMixin T).
 
 Arguments opt_eq {T} !u !v.
 
@@ -861,7 +887,7 @@ Qed.
 
 End TaggedAs.
 
-Section TagEqType.
+Section TagEqType1.
 
 Variables (I : eqType) (T_ : I -> eqType).
 Implicit Types u v : {i : I & T_ i}.
@@ -875,10 +901,23 @@ case: eqP => [<-|Hij] y; last by right; case.
 by apply: (iffP eqP) => [->|<-]; rewrite tagged_asE.
 Qed.
 
-Canonical tag_eqMixin := EqMixin tag_eqP.
-Canonical tag_eqType := Eval hnf in EqType {i : I & T_ i} tag_eqMixin.
+End TagEqType1.
 
-Lemma tag_eqE : tag_eq = eq_op. Proof. by []. Qed.
+Section TagEqType2.
+
+Monomorphic Variables (I : eqType) (T_ : I -> eqType).
+
+Monomorphic Canonical tag_eqMixin := EqMixin (@tag_eqP I T_).
+Monomorphic Canonical tag_eqType := Eval hnf in EqType {i : I & T_ i} tag_eqMixin.
+
+End TagEqType2.
+
+Section TagEqType3.
+
+Variables (I : eqType) (T_ : I -> eqType).
+Implicit Types u v : {i : I & T_ i}.
+
+Lemma tag_eqE : @tag_eq I T_ = eq_op. Proof. by []. Qed.
 
 Lemma eq_tag u v : u == v -> tag u = tag v.
 Proof. by move/eqP->. Qed.
@@ -886,12 +925,12 @@ Proof. by move/eqP->. Qed.
 Lemma eq_Tagged u x :(u == Tagged _ x) = (tagged u == x).
 Proof. by rewrite -tag_eqE /tag_eq eqxx tagged_asE. Qed.
 
-End TagEqType.
+End TagEqType3.
 
 Arguments tag_eq {I T_} !u !v.
 Arguments tag_eqP {I T_ x y}.
 
-Section SumEqType.
+Section SumEqType1.
 
 Variables T1 T2 : eqType.
 Implicit Types u v : T1 + T2.
@@ -905,12 +944,18 @@ Definition sum_eq u v :=
 Lemma sum_eqP : Equality.axiom sum_eq.
 Proof. case=> x [] y /=; by [right | apply: (iffP eqP) => [->|[->]]]. Qed.
 
-Canonical sum_eqMixin := EqMixin sum_eqP.
-Canonical sum_eqType := Eval hnf in EqType (T1 + T2) sum_eqMixin.
+End SumEqType1.
 
-Lemma sum_eqE : sum_eq = eq_op. Proof. by []. Qed.
+Section SumEqType2.
 
-End SumEqType.
+Monomorphic Variables T1 T2 : eqType.
+
+Monomorphic Canonical sum_eqMixin := EqMixin (@sum_eqP T1 T2).
+Monomorphic Canonical sum_eqType := Eval hnf in EqType (T1 + T2) sum_eqMixin.
+
+End SumEqType2.
+
+Lemma sum_eqE (T1 T2 : eqType) : @sum_eq T1 T2 = eq_op. Proof. by []. Qed.
 
 Arguments sum_eq {T1 T2} !u !v.
 Arguments sum_eqP {T1 T2 x y}.

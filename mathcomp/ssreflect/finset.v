@@ -112,24 +112,24 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 Section SetType.
 
-Variable T : finType.
+Monomorphic Variable T : finType.
 
-Inductive set_type : predArgType := FinSet of {ffun pred T}.
-Definition finfun_of_set A := let: FinSet f := A in f.
-Definition set_of of phant T := set_type.
-Identity Coercion type_of_set_of : set_of >-> set_type.
+Monomorphic Inductive set_type : predArgType := FinSet of {ffun pred T}.
+Monomorphic Definition finfun_of_set A := let: FinSet f := A in f.
+Monomorphic Definition set_of of phant T := set_type.
+Monomorphic Identity Coercion type_of_set_of : set_of >-> set_type.
 
-Canonical set_subType := Eval hnf in [newType for finfun_of_set].
-Definition set_eqMixin := Eval hnf in [eqMixin of set_type by <:].
-Canonical set_eqType := Eval hnf in EqType set_type set_eqMixin.
-Definition set_choiceMixin := [choiceMixin of set_type by <:].
-Canonical set_choiceType := Eval hnf in ChoiceType set_type set_choiceMixin.
-Definition set_countMixin := [countMixin of set_type by <:].
-Canonical set_countType := Eval hnf in CountType set_type set_countMixin.
-Canonical set_subCountType := Eval hnf in [subCountType of set_type].
-Definition set_finMixin := [finMixin of set_type by <:].
-Canonical set_finType := Eval hnf in FinType set_type set_finMixin.
-Canonical set_subFinType := Eval hnf in [subFinType of set_type].
+Monomorphic Canonical set_subType := Eval hnf in [newType for finfun_of_set].
+Monomorphic Definition set_eqMixin := Eval hnf in [eqMixin of set_type by <:].
+Monomorphic Canonical set_eqType := Eval hnf in EqType set_type set_eqMixin.
+Monomorphic Definition set_choiceMixin := [choiceMixin of set_type by <:].
+Monomorphic Canonical set_choiceType := Eval hnf in ChoiceType set_type set_choiceMixin.
+Monomorphic Definition set_countMixin := [countMixin of set_type by <:].
+Monomorphic Canonical set_countType := Eval hnf in CountType set_type set_countMixin.
+Monomorphic Canonical set_subCountType := Eval hnf in [subCountType of set_type].
+Monomorphic Definition set_finMixin := [finMixin of set_type by <:].
+Monomorphic Canonical set_finType := Eval hnf in FinType set_type set_finMixin.
+Monomorphic Canonical set_subFinType := Eval hnf in [subFinType of set_type].
 
 End SetType.
 
@@ -183,8 +183,8 @@ End SetDef.
 
 Notation finset := SetDef.finset.
 Notation pred_of_set := SetDef.pred_of_set.
-Canonical finset_unlock := Unlockable SetDef.finsetE.
-Canonical pred_of_set_unlock := Unlockable SetDef.pred_of_setE.
+Monomorphic Canonical finset_unlock := Unlockable SetDef.finsetE.
+Monomorphic Canonical pred_of_set_unlock := Unlockable SetDef.pred_of_setE.
 
 Notation "[ 'set' x : T | P ]" := (finset (fun x : T => P%B))
   (at level 0, x at level 99, only parsing) : set_scope.
@@ -214,20 +214,26 @@ Coercion pred_of_set: set_type >-> fin_pred_sort.
 
 (* Declare pred_of_set as a canonical instance of topred, but use the         *)
 (* coercion to resolve mem A to @mem (predPredType T) (pred_of_set A).        *)
-Canonical set_predType T := @PredType _ (unkeyed (set_type T)) (@pred_of_set T).
+Monomorphic Canonical set_predType T := @PredType _ (unkeyed (set_type T)) (@pred_of_set T).
 
-Section BasicSetTheory.
+Section BasicSetTheory1.
+
+Monomorphic Variable T : finType.
+
+Monomorphic Canonical set_of_subType := Eval hnf in [subType of {set T}].
+Monomorphic Canonical set_of_eqType := Eval hnf in [eqType of {set T}].
+Monomorphic Canonical set_of_choiceType := Eval hnf in [choiceType of {set T}].
+Monomorphic Canonical set_of_countType := Eval hnf in [countType of {set T}].
+Monomorphic Canonical set_of_subCountType := Eval hnf in [subCountType of {set T}].
+Monomorphic Canonical set_of_finType := Eval hnf in [finType of {set T}].
+Monomorphic Canonical set_of_subFinType := Eval hnf in [subFinType of {set T}].
+
+End BasicSetTheory1.
+
+Section BasicSetTheory2.
 
 Variable T : finType.
 Implicit Types (x : T) (A B : {set T}) (pA : pred T).
-
-Canonical set_of_subType := Eval hnf in [subType of {set T}].
-Canonical set_of_eqType := Eval hnf in [eqType of {set T}].
-Canonical set_of_choiceType := Eval hnf in [choiceType of {set T}].
-Canonical set_of_countType := Eval hnf in [countType of {set T}].
-Canonical set_of_subCountType := Eval hnf in [subCountType of {set T}].
-Canonical set_of_finType := Eval hnf in [finType of {set T}].
-Canonical set_of_subFinType := Eval hnf in [subFinType of {set T}].
 
 Lemma in_set pA x : x \in finset pA = pA x.
 Proof. by rewrite [@finset]unlock unlock [x \in _]ffunE. Qed.
@@ -249,7 +255,7 @@ Proof. by apply: eqVneq. Qed.
 Lemma eq_finset (pA pB : pred T) : pA =1 pB -> finset pA = finset pB.
 Proof. by move=> eq_p; apply/setP => x; rewrite !(in_set, inE) eq_p. Qed.
 
-End BasicSetTheory.
+End BasicSetTheory2.
 
 Arguments eqsVneq {T} A B, {T A B}.
 
@@ -994,19 +1000,19 @@ Section setOpsAlgebra.
 
 Import Monoid.
 
-Variable T : finType.
+Monomorphic Variable T : finType.
 
-Canonical setI_monoid := Law (@setIA T) (@setTI T) (@setIT T).
+Monomorphic Canonical setI_monoid := Law (@setIA T) (@setTI T) (@setIT T).
 
-Canonical setI_comoid := ComLaw (@setIC T).
-Canonical setI_muloid := MulLaw (@set0I T) (@setI0 T).
+Monomorphic Canonical setI_comoid := ComLaw (@setIC T).
+Monomorphic Canonical setI_muloid := MulLaw (@set0I T) (@setI0 T).
 
-Canonical setU_monoid := Law (@setUA T) (@set0U T) (@setU0 T).
-Canonical setU_comoid := ComLaw (@setUC T).
-Canonical setU_muloid := MulLaw (@setTU T) (@setUT T).
+Monomorphic Canonical setU_monoid := Law (@setUA T) (@set0U T) (@setU0 T).
+Monomorphic Canonical setU_comoid := ComLaw (@setUC T).
+Monomorphic Canonical setU_muloid := MulLaw (@setTU T) (@setUT T).
 
-Canonical setI_addoid := AddLaw (@setUIl T) (@setUIr T).
-Canonical setU_addoid := AddLaw (@setIUl T) (@setIUr T).
+Monomorphic Canonical setI_addoid := AddLaw (@setUIl T) (@setUIr T).
+Monomorphic Canonical setU_addoid := AddLaw (@setIUl T) (@setIUr T).
 
 End setOpsAlgebra.
 
@@ -1055,8 +1061,8 @@ End Imset.
 
 Notation imset := Imset.imset.
 Notation imset2 := Imset.imset2.
-Canonical imset_unlock := Unlockable Imset.imsetE.
-Canonical imset2_unlock := Unlockable Imset.imset2E.
+Monomorphic Canonical imset_unlock := Unlockable Imset.imsetE.
+Monomorphic Canonical imset2_unlock := Unlockable Imset.imset2E.
 Definition preimset (aT : finType) rT f (R : mem_pred rT) :=
   [set x : aT | in_mem (f x) R].
 

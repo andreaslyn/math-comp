@@ -32,17 +32,17 @@ Global Set Bullet Behavior "None".
 
 Module NonPropType.
 
-Structure call_of (condition : unit) (result : bool) := Call {callee : Type}.
+Monomorphic Structure call_of (condition : unit) (result : bool) := Call {callee : Type}.
 Definition maybeProp (T : Type) := tt.
-Definition call T := Call (maybeProp T) false T.
+Monomorphic Definition call T := Call (maybeProp T) false T.
 
-Structure test_of (result : bool) := Test {condition :> unit}.
-Definition test_Prop (P : Prop) := Test true (maybeProp P).
-Definition test_negative := Test false tt.
+Monomorphic Structure test_of (result : bool) := Test {condition :> unit}.
+Monomorphic Definition test_Prop (P : Prop) := Test true (maybeProp P).
+Monomorphic Definition test_negative := Test false tt.
 
-Structure type :=
+Monomorphic Structure type :=
   Check {result : bool; test : test_of result; frame : call_of test result}.
-Definition check result test frame := @Check result test frame.
+Monomorphic Definition check result test frame := @Check result test frame.
 
 Module Exports.
 Canonical call.
@@ -70,15 +70,15 @@ Ltac warn old_id new_id :=
 Ltac stop old_id new_id :=
   fail 1 "Error:" old_id "is deprecated; use" new_id "instead".
 
-Structure hinted := Hint {statement; hint : statement}.
+Monomorphic Structure hinted := Hint {statement; hint : statement}.
 Ltac check cond := let test := constr:(hint _ : cond) in idtac.
 
-Variant reject := Reject.
-Definition reject_hint := Hint reject Reject.
+Monomorphic Variant reject := Reject.
+Monomorphic Definition reject_hint := Hint reject Reject.
 Module Reject. Canonical reject_hint. End Reject.
 
-Variant silent := Silent.
-Definition silent_hint := Hint silent Silent.
+Monomorphic Variant silent := Silent.
+Monomorphic Definition silent_hint := Hint silent Silent.
 Module Silent. Canonical silent_hint. End Silent.
 
 Ltac flag old_id new_id :=

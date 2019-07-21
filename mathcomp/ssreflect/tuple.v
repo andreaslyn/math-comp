@@ -37,17 +37,18 @@ Unset Printing Implicit Defensive.
 (*     ord_tuple n : the n.-tuple of all i : 'I_n                             *)
 (******************************************************************************)
 
+Monomorphic Structure tuple_of (n : nat) (T : Type) : Type :=
+  Tuple {tval :> seq T; _ : size tval == n}.
+
+Monomorphic Canonical tuple_subType (n : nat) (T : Type) :=
+  Eval hnf in [subType for @tval n T].
+
 Section Def.
 
 Variables (n : nat) (T : Type).
+Implicit Type t : tuple_of n T.
 
-Structure tuple_of : Type := Tuple {tval :> seq T; _ : size tval == n}.
-
-Canonical tuple_subType := Eval hnf in [subType for tval].
-
-Implicit Type t : tuple_of.
-
-Definition tsize of tuple_of := n.
+Definition tsize of tuple_of n T := n.
 
 Lemma size_tuple t : size t = n.
 Proof. exact: (eqP (valP t)). Qed.
@@ -75,10 +76,10 @@ Proof.
 by move/eq_map=> eq_t; apply: val_inj; rewrite /= -!map_tnth_enum eq_t.
 Qed.
 
-Definition tuple t mkT : tuple_of :=
+Definition tuple t mkT : tuple_of n T :=
   mkT (let: Tuple _ tP := t return size t == n in tP).
 
-Lemma tupleE t : tuple (fun sP => @Tuple t sP) = t.
+Lemma tupleE t : tuple (fun sP => @Tuple n T t sP) = t.
 Proof. by case: t. Qed.
 
 End Def.
@@ -95,8 +96,8 @@ Notation "[ 'tuple' 'of' s ]" := (tuple (fun sP => @Tuple _ _ s sP))
 Notation "[ 'tnth' t i ]" := (tnth t (@Ordinal (tsize t) i (erefl true)))
   (at level 0, t, i at level 8, format "[ 'tnth'  t  i ]") : form_scope.
 
-Canonical nil_tuple T := Tuple (isT : @size T [::] == 0).
-Canonical cons_tuple n T x (t : n.-tuple T) :=
+Monomorphic Canonical nil_tuple T := Tuple (isT : @size T [::] == 0).
+Monomorphic Canonical cons_tuple n T x (t : n.-tuple T) :=
   Tuple (valP t : size (x :: t) == n.+1).
 
 Notation "[ 'tuple' x1 ; .. ; xn ]" := [tuple of x1 :: .. [:: xn] ..]
@@ -141,94 +142,94 @@ End CastTuple.
 
 Section SeqTuple.
 
-Variables (n m : nat) (T U rT : Type).
+Monomorphic Variables (n m : nat) (T U rT : Type).
 Implicit Type t : n.-tuple T.
 
-Lemma rcons_tupleP t x : size (rcons t x) == n.+1.
+Monomorphic Lemma rcons_tupleP t x : size (rcons t x) == n.+1.
 Proof. by rewrite size_rcons size_tuple. Qed.
-Canonical rcons_tuple t x := Tuple (rcons_tupleP t x).
+Monomorphic Canonical rcons_tuple t x := Tuple (rcons_tupleP t x).
 
-Lemma nseq_tupleP x : @size T (nseq n x) == n.
+Monomorphic Lemma nseq_tupleP x : @size T (nseq n x) == n.
 Proof. by rewrite size_nseq. Qed.
-Canonical nseq_tuple x := Tuple (nseq_tupleP x).
+Monomorphic Canonical nseq_tuple x := Tuple (nseq_tupleP x).
 
-Lemma iota_tupleP : size (iota m n) == n.
+Monomorphic Lemma iota_tupleP : size (iota m n) == n.
 Proof. by rewrite size_iota. Qed.
-Canonical iota_tuple := Tuple iota_tupleP.
+Monomorphic Canonical iota_tuple := Tuple iota_tupleP.
 
-Lemma behead_tupleP t : size (behead t) == n.-1.
+Monomorphic Lemma behead_tupleP t : size (behead t) == n.-1.
 Proof. by rewrite size_behead size_tuple. Qed.
-Canonical behead_tuple t := Tuple (behead_tupleP t).
+Monomorphic Canonical behead_tuple t := Tuple (behead_tupleP t).
 
-Lemma belast_tupleP x t : size (belast x t) == n.
+Monomorphic Lemma belast_tupleP x t : size (belast x t) == n.
 Proof. by rewrite size_belast size_tuple. Qed.
-Canonical belast_tuple x t := Tuple (belast_tupleP x t).
+Monomorphic Canonical belast_tuple x t := Tuple (belast_tupleP x t).
 
-Lemma cat_tupleP t (u : m.-tuple T) : size (t ++ u) == n + m.
+Monomorphic Lemma cat_tupleP t (u : m.-tuple T) : size (t ++ u) == n + m.
 Proof. by rewrite size_cat !size_tuple. Qed.
-Canonical cat_tuple t u := Tuple (cat_tupleP t u).
+Monomorphic Canonical cat_tuple t u := Tuple (cat_tupleP t u).
 
-Lemma take_tupleP t : size (take m t) == minn m n.
+Monomorphic Lemma take_tupleP t : size (take m t) == minn m n.
 Proof. by rewrite size_take size_tuple eqxx. Qed.
-Canonical take_tuple t := Tuple (take_tupleP t).
+Monomorphic Canonical take_tuple t := Tuple (take_tupleP t).
 
-Lemma drop_tupleP t : size (drop m t) == n - m.
+Monomorphic Lemma drop_tupleP t : size (drop m t) == n - m.
 Proof. by rewrite size_drop size_tuple. Qed.
-Canonical drop_tuple t := Tuple (drop_tupleP t).
+Monomorphic Canonical drop_tuple t := Tuple (drop_tupleP t).
 
-Lemma rev_tupleP t : size (rev t) == n.
+Monomorphic Lemma rev_tupleP t : size (rev t) == n.
 Proof. by rewrite size_rev size_tuple. Qed.
-Canonical rev_tuple t := Tuple (rev_tupleP t).
+Monomorphic Canonical rev_tuple t := Tuple (rev_tupleP t).
 
-Lemma rot_tupleP t : size (rot m t) == n.
+Monomorphic Lemma rot_tupleP t : size (rot m t) == n.
 Proof. by rewrite size_rot size_tuple. Qed.
-Canonical rot_tuple t := Tuple (rot_tupleP t).
+Monomorphic Canonical rot_tuple t := Tuple (rot_tupleP t).
 
-Lemma rotr_tupleP t : size (rotr m t) == n.
+Monomorphic Lemma rotr_tupleP t : size (rotr m t) == n.
 Proof. by rewrite size_rotr size_tuple. Qed.
-Canonical rotr_tuple t := Tuple (rotr_tupleP t).
+Monomorphic Canonical rotr_tuple t := Tuple (rotr_tupleP t).
 
-Lemma map_tupleP f t : @size rT (map f t) == n.
+Monomorphic Lemma map_tupleP f t : @size rT (map f t) == n.
 Proof. by rewrite size_map size_tuple. Qed.
-Canonical map_tuple f t := Tuple (map_tupleP f t).
+Monomorphic Canonical map_tuple f t := Tuple (map_tupleP f t).
 
-Lemma scanl_tupleP f x t : @size rT (scanl f x t) == n.
+Monomorphic Lemma scanl_tupleP f x t : @size rT (scanl f x t) == n.
 Proof. by rewrite size_scanl size_tuple. Qed.
-Canonical scanl_tuple f x t := Tuple (scanl_tupleP f x t).
+Monomorphic Canonical scanl_tuple f x t := Tuple (scanl_tupleP f x t).
 
-Lemma pairmap_tupleP f x t : @size rT (pairmap f x t) == n.
+Monomorphic Lemma pairmap_tupleP f x t : @size rT (pairmap f x t) == n.
 Proof. by rewrite size_pairmap size_tuple. Qed.
-Canonical pairmap_tuple f x t := Tuple (pairmap_tupleP f x t).
+Monomorphic Canonical pairmap_tuple f x t := Tuple (pairmap_tupleP f x t).
 
-Lemma zip_tupleP t (u : n.-tuple U) : size (zip t u) == n.
+Monomorphic Lemma zip_tupleP t (u : n.-tuple U) : size (zip t u) == n.
 Proof. by rewrite size1_zip !size_tuple. Qed.
-Canonical zip_tuple t u := Tuple (zip_tupleP t u).
+Monomorphic Canonical zip_tuple t u := Tuple (zip_tupleP t u).
 
-Lemma allpairs_tupleP f t (u : m.-tuple U) : @size rT (allpairs f t u) == n * m.
+Monomorphic Lemma allpairs_tupleP f t (u : m.-tuple U) : @size rT (allpairs f t u) == n * m.
 Proof. by rewrite size_allpairs !size_tuple. Qed.
-Canonical allpairs_tuple f t u := Tuple (allpairs_tupleP f t u).
+Monomorphic Canonical allpairs_tuple f t u := Tuple (allpairs_tupleP f t u).
 
-Definition thead (u : n.+1.-tuple T) := tnth u ord0.
+Monomorphic Definition thead (u : n.+1.-tuple T) := tnth u ord0.
 
-Lemma tnth0 x t : tnth [tuple of x :: t] ord0 = x.
+Monomorphic Lemma tnth0 x t : tnth [tuple of x :: t] ord0 = x.
 Proof. by []. Qed.
 
-Lemma theadE x t : thead [tuple of x :: t] = x.
+Monomorphic Lemma theadE x t : thead [tuple of x :: t] = x.
 Proof. by []. Qed.
 
-Lemma tuple0 : all_equal_to ([tuple] : 0.-tuple T).
+Monomorphic Lemma tuple0 : all_equal_to ([tuple] : 0.-tuple T).
 Proof. by move=> t; apply: val_inj; case: t => [[]]. Qed.
 
-Variant tuple1_spec : n.+1.-tuple T -> Type :=
+Monomorphic Variant tuple1_spec : n.+1.-tuple T -> Type :=
   Tuple1spec x t : tuple1_spec [tuple of x :: t].
 
-Lemma tupleP u : tuple1_spec u.
+Monomorphic Lemma tupleP u : tuple1_spec u.
 Proof.
 case: u => [[|x s] //= sz_s]; pose t := @Tuple n _ s sz_s.
 by rewrite (_ : Tuple _ = [tuple of x :: t]) //; apply: val_inj.
 Qed.
 
-Lemma tnth_map f t i : tnth [tuple of map f t] i = f (tnth t i) :> rT.
+Monomorphic Lemma tnth_map f t i : tnth [tuple of map f t] i = f (tnth t i) :> rT.
 Proof. by apply: nth_map; rewrite size_tuple. Qed.
 
 End SeqTuple.
@@ -268,14 +269,20 @@ End TupleQuantifiers.
 Arguments all_tnthP {n T a t}.
 Arguments has_tnthP {n T a t}.
 
-Section EqTuple.
+Section EqTuple1.
+
+Monomorphic Variables (n : nat) (T : eqType).
+
+Monomorphic Definition tuple_eqMixin := Eval hnf in [eqMixin of n.-tuple T by <:].
+Monomorphic Canonical tuple_eqType := Eval hnf in EqType (n.-tuple T) tuple_eqMixin.
+
+Monomorphic Canonical tuple_predType := PredType (pred_of_seq : n.-tuple T -> pred T).
+
+End EqTuple1.
+
+Section EqTuple2.
 
 Variables (n : nat) (T : eqType).
-
-Definition tuple_eqMixin := Eval hnf in [eqMixin of n.-tuple T by <:].
-Canonical tuple_eqType := Eval hnf in EqType (n.-tuple T) tuple_eqMixin.
-
-Canonical tuple_predType := PredType (pred_of_seq : n.-tuple T -> pred T).
 
 Lemma memtE (t : n.-tuple T) : mem t = mem (tval t).
 Proof. by []. Qed.
@@ -298,43 +305,41 @@ move=> s_x; pose i := index x s; have lt_i: i < size s by rewrite index_mem.
 by exists (Ordinal lt_i); rewrite (tnth_nth x) nth_index.
 Qed.
 
-End EqTuple.
+End EqTuple2.
 
-Definition tuple_choiceMixin n (T : choiceType) :=
+Monomorphic Definition tuple_choiceMixin n (T : choiceType) :=
   [choiceMixin of n.-tuple T by <:].
 
-Canonical tuple_choiceType n (T : choiceType) :=
+Monomorphic Canonical tuple_choiceType n (T : choiceType) :=
   Eval hnf in ChoiceType (n.-tuple T) (tuple_choiceMixin n T).
 
-Definition tuple_countMixin n (T : countType) :=
+Monomorphic Definition tuple_countMixin n (T : countType) :=
   [countMixin of n.-tuple T by <:].
 
-Canonical tuple_countType n (T : countType) :=
+Monomorphic Canonical tuple_countType n (T : countType) :=
   Eval hnf in CountType (n.-tuple T) (tuple_countMixin n T).
 
-Canonical tuple_subCountType n (T : countType) :=
+Monomorphic Canonical tuple_subCountType n (T : countType) :=
   Eval hnf in [subCountType of n.-tuple T].
-
-Unset Universe Polymorphism.
 
 Module Type FinTupleSig.
 Section FinTupleSig.
-Variables (n : nat) (T : finType).
-Parameter enum : seq (n.-tuple T).
-Axiom enumP : Finite.axiom enum.
-Axiom size_enum : size enum = #|T| ** n.
+Monomorphic Variables (n : nat) (T : finType).
+Monomorphic Parameter enum : seq (n.-tuple T).
+Monomorphic Axiom enumP : Finite.axiom enum.
+Monomorphic Axiom size_enum : size enum = #|T| ** n.
 End FinTupleSig.
 End FinTupleSig.
 
 Module FinTuple : FinTupleSig.
 Section FinTuple.
-Variables (n : nat) (T : finType).
+Monomorphic Variables (n : nat) (T : finType).
 
-Definition enum : seq (n.-tuple T) :=
+Monomorphic Definition enum : seq (n.-tuple T) :=
   let extend e := flatten (codom (fun x => map (cons x) e)) in
   pmap insub (iter n extend [::[::]]).
 
-Lemma enumP : Finite.axiom enum.
+Monomorphic Lemma enumP : Finite.axiom enum.
 Proof.
 case=> /= t t_n; rewrite -(count_map _ (pred1 t)) (pmap_filter (insubK _)).
 rewrite count_filter -(@eq_count _ (pred1 t)) => [|s /=]; last first.
@@ -346,7 +351,7 @@ rewrite count_cat count_map inE /preim /= {1}/eq_op /= eq_sym => /IHe->.
 by case: eqP => [->|_]; rewrite ?(ney, count_pred0, IHm).
 Qed.
 
-Lemma size_enum : size enum = #|T| ** n.
+Monomorphic Lemma size_enum : size enum = #|T| ** n.
 Proof.
 rewrite /= cardE size_pmap_sub; elim: n => //= m IHm.
 rewrite expnS /codom /image_mem; elim: {2 3}(fintype.enum T) => //= x e IHe.
@@ -356,20 +361,24 @@ Qed.
 End FinTuple.
 End FinTuple.
 
-Set Universe Polymorphism.
+Section UseFinTuple1.
 
-Section UseFinTuple.
-
-Variables (n : nat) (T : finType).
+Monomorphic Variables (n : nat) (T : finType).
 
 (* tuple_finMixin could, in principle, be made Canonical to allow for folding *)
 (* Finite.enum of a finite tuple type (see comments around eqE in eqtype.v),  *)
 (* but in practice it will not work because the mixin_enum projector          *)
 (* has been burried under an opaque alias, to avoid some performance issues   *)
 (* during type inference.                                                     *)
-Definition tuple_finMixin := Eval hnf in FinMixin (@FinTuple.enumP n T).
-Canonical tuple_finType := Eval hnf in FinType (n.-tuple T) tuple_finMixin.
-Canonical tuple_subFinType := Eval hnf in [subFinType of n.-tuple T].
+Monomorphic Definition tuple_finMixin := Eval hnf in FinMixin (@FinTuple.enumP n T).
+Monomorphic Canonical tuple_finType := Eval hnf in FinType (n.-tuple T) tuple_finMixin.
+Monomorphic Canonical tuple_subFinType := Eval hnf in [subFinType of n.-tuple T].
+
+End UseFinTuple1.
+
+Section UseFinTuple2.
+
+Variables (n : nat) (T : finType).
 
 Lemma card_tuple : #|{:n.-tuple T}| = #|T| ** n.
 Proof. by rewrite [#|_|]cardT enumT unlock FinTuple.size_enum. Qed.
@@ -390,20 +399,22 @@ apply: val_inj; rewrite (tnth_nth i) -(nth_map _ 0) ?size_tuple //.
 by rewrite /= enumT unlock val_ord_enum nth_iota.
 Qed.
 
+End UseFinTuple2.
+
 Section ImageTuple.
 
-Variables (T' : Type) (f : T -> T') (A : {pred T}).
+Monomorphic Variables (n : nat) (T : finType) (T' : Type) (f : T -> T') (A : {pred T}).
 
-Canonical image_tuple : #|A|.-tuple T' := [tuple of image f A].
-Canonical codom_tuple : #|T|.-tuple T' := [tuple of codom f].
+Monomorphic Canonical image_tuple : #|A|.-tuple T' := [tuple of image f A].
+Monomorphic Canonical codom_tuple : #|T|.-tuple T' := [tuple of codom f].
 
 End ImageTuple.
 
 Section MkTuple.
 
-Variables (T' : Type) (f : 'I_n -> T').
+Variables (n : nat) (T : finType) (T' : Type) (f : 'I_n -> T').
 
-Definition mktuple := map_tuple f ord_tuple.
+Definition mktuple := map_tuple f (@ord_tuple n).
 
 Lemma tnth_mktuple i : tnth mktuple i = f i.
 Proof. by rewrite tnth_map tnth_ord_tuple. Qed.
@@ -413,11 +424,9 @@ Proof. by rewrite -tnth_nth tnth_mktuple. Qed.
 
 End MkTuple.
 
-Lemma eq_mktuple T' (f1 f2 : 'I_n -> T') :
+Lemma eq_mktuple (n : nat) T' (f1 f2 : 'I_n -> T') :
   f1 =1 f2 -> mktuple f1 = mktuple f2.
 Proof. by move=> eq_f; apply eq_from_tnth=> i; rewrite !tnth_map eq_f. Qed.
-
-End UseFinTuple.
 
 Notation "[ 'tuple' F | i < n ]" := (mktuple (fun i : 'I_n => F))
   (at level 0, i at level 0,

@@ -200,8 +200,8 @@ End Def.
 End GenTree.
 Arguments GenTree.codeK : clear implicits.
 
-Definition tree_eqMixin (T : eqType) := PcanEqMixin (GenTree.codeK T).
-Canonical tree_eqType (T : eqType) := EqType (GenTree.tree T) (tree_eqMixin T).
+Monomorphic Definition tree_eqMixin (T : eqType) := PcanEqMixin (GenTree.codeK T).
+Monomorphic Canonical tree_eqType (T : eqType) := EqType (GenTree.tree T) (tree_eqMixin T).
 
 (* Structures for Types with a choice function, and for Types with countably  *)
 (* many elements. The two concepts are closely linked: we indeed make         *)
@@ -246,29 +246,29 @@ Module Choice.
 
 Section ClassDef.
 
-Record mixin_of T := Mixin {
+Monomorphic Record mixin_of T := Mixin {
   find : pred T -> nat -> option T;
   _ : forall P n x, find P n = Some x -> P x;
   _ : forall P : pred T, (exists x, P x) -> exists n, find P n;
   _ : forall P Q : pred T, P =1 Q -> find P =1 find Q
 }.
 
-Record class_of T := Class {base : Equality.class_of T; mixin : mixin_of T}.
+Monomorphic Record class_of T := Class {base : Equality.class_of T; mixin : mixin_of T}.
 Local Coercion base : class_of >->  Equality.class_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Definition clone c of phant_id class c := @Pack T c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Definition clone c of phant_id class c := @Pack T c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition pack m :=
+Monomorphic Definition pack m :=
   fun b bT & phant_id (Equality.class bT) b => Pack (@Class T b m).
 
 (* Inheritance *)
-Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
 
 End ClassDef.
 
@@ -321,7 +321,7 @@ Implicit Type T : choiceType.
 Import Choice.InternalTheory CodeSeq.
 Local Notation dc := decode.
 
-Section OneType.
+Section OneType1.
 
 Variable T : choiceType.
 Implicit Types P Q : pred T.
@@ -402,18 +402,23 @@ Definition CanChoiceMixin f' (fK : cancel f f') :=
   PcanChoiceMixin (can_pcan fK).
 
 End CanChoice.
+End OneType1.
 
 Section SubChoice.
 
-Variables (P : pred T) (sT : subType P).
+Monomorphic Variables (T : choiceType) (P : pred T) (sT : subType P).
 
-Definition sub_choiceMixin := PcanChoiceMixin (@valK T P sT).
-Definition sub_choiceClass := @Choice.Class sT (sub_eqMixin sT) sub_choiceMixin.
-Canonical sub_choiceType := Choice.Pack sub_choiceClass.
+Monomorphic Definition sub_choiceMixin := PcanChoiceMixin (@valK T P sT).
+Monomorphic Definition sub_choiceClass := @Choice.Class sT (sub_eqMixin sT) sub_choiceMixin.
+Monomorphic Canonical sub_choiceType := Choice.Pack sub_choiceClass.
 
 End SubChoice.
 
-Fact seq_choiceMixin : choiceMixin (seq T).
+Section OneType2.
+
+Monomorphic Variable T : choiceType.
+
+Monomorphic Fact seq_choiceMixin : choiceMixin (seq T).
 Proof.
 pose r f := [fun xs => fun x : T => f (x :: xs) : option (seq T)].
 pose fix f sP ns xs {struct ns} :=
@@ -432,15 +437,16 @@ elim: {n}(dc n) nil => [|n ns IHs] xs /=; first by rewrite eqPQ.
 rewrite (@extensional _ _ (r (f sQ ns) xs)) => [|x]; last by rewrite IHs.
 by case: find => /=.
 Qed.
-Canonical seq_choiceType := Eval hnf in ChoiceType (seq T) seq_choiceMixin.
 
-End OneType.
+Monomorphic Canonical seq_choiceType := Eval hnf in ChoiceType (seq T) seq_choiceMixin.
+
+End OneType2.
 
 Section TagChoice.
 
-Variables (I : choiceType) (T_ : I -> choiceType).
+Monomorphic Variables (I : choiceType) (T_ : I -> choiceType).
 
-Fact tagged_choiceMixin : choiceMixin {i : I & T_ i}.
+Monomorphic Fact tagged_choiceMixin : choiceMixin {i : I & T_ i}.
 Proof.
 pose mkT i (x : T_ i) := Tagged T_ x.
 pose ft tP n i := omap (mkT i) (find (tP \o mkT i) n).
@@ -459,29 +465,29 @@ rewrite (@extensional _ _ (ft sQ nt)) => [|i].
   by case: find => //= i; congr (omap _ _); apply: extensional => x /=.
 by congr (omap _ _); apply: extensional => x /=.
 Qed.
-Canonical tagged_choiceType :=
+Monomorphic Canonical tagged_choiceType :=
   Eval hnf in ChoiceType {i : I & T_ i} tagged_choiceMixin.
 
 End TagChoice.
 
-Fact nat_choiceMixin : choiceMixin nat.
+Monomorphic Fact nat_choiceMixin : choiceMixin nat.
 Proof.
 pose f := [fun (P : pred nat) n => if P n then Some n else None].
 exists f => [P n m | P [n Pn] | P Q eqPQ n] /=; last by rewrite eqPQ.
   by case: ifP => // Pn [<-].
 by exists n; rewrite Pn.
 Qed.
-Canonical nat_choiceType := Eval hnf in ChoiceType nat nat_choiceMixin.
+Monomorphic Canonical nat_choiceType := Eval hnf in ChoiceType nat nat_choiceMixin.
 
-Definition bool_choiceMixin := CanChoiceMixin oddb.
-Canonical bool_choiceType := Eval hnf in ChoiceType bool bool_choiceMixin.
-Canonical bitseq_choiceType := Eval hnf in [choiceType of bitseq].
+Monomorphic Definition bool_choiceMixin := CanChoiceMixin oddb.
+Monomorphic Canonical bool_choiceType := Eval hnf in ChoiceType bool bool_choiceMixin.
+Monomorphic Canonical bitseq_choiceType := Eval hnf in [choiceType of bitseq].
 
-Definition unit_choiceMixin := CanChoiceMixin bool_of_unitK.
-Canonical unit_choiceType := Eval hnf in ChoiceType unit unit_choiceMixin.
+Monomorphic Definition unit_choiceMixin := CanChoiceMixin bool_of_unitK.
+Monomorphic Canonical unit_choiceType := Eval hnf in ChoiceType unit unit_choiceMixin.
 
-Definition option_choiceMixin T := CanChoiceMixin (@seq_of_optK T).
-Canonical option_choiceType T :=
+Monomorphic Definition option_choiceMixin T := CanChoiceMixin (@seq_of_optK T).
+Monomorphic Canonical option_choiceType T :=
   Eval hnf in ChoiceType (option T) (option_choiceMixin T).
 
 (*
@@ -491,16 +497,16 @@ Canonical sig_choiceType T (P : pred T) :=
  Eval hnf in ChoiceType {x | P x} (sig_choiceMixin P).
 *)
 
-Definition prod_choiceMixin T1 T2 := CanChoiceMixin (@tag_of_pairK T1 T2).
-Canonical prod_choiceType T1 T2 :=
+Monomorphic Definition prod_choiceMixin T1 T2 := CanChoiceMixin (@tag_of_pairK T1 T2).
+Monomorphic Canonical prod_choiceType T1 T2 :=
   Eval hnf in ChoiceType (T1 * T2) (prod_choiceMixin T1 T2).
 
-Definition sum_choiceMixin T1 T2 := PcanChoiceMixin (@opair_of_sumK T1 T2).
-Canonical sum_choiceType T1 T2 :=
+Monomorphic Definition sum_choiceMixin T1 T2 := PcanChoiceMixin (@opair_of_sumK T1 T2).
+Monomorphic Canonical sum_choiceType T1 T2 :=
   Eval hnf in ChoiceType (T1 + T2) (sum_choiceMixin T1 T2).
 
-Definition tree_choiceMixin T := PcanChoiceMixin (GenTree.codeK T).
-Canonical tree_choiceType T := ChoiceType (GenTree.tree T) (tree_choiceMixin T).
+Monomorphic Definition tree_choiceMixin T := PcanChoiceMixin (GenTree.codeK T).
+Monomorphic Canonical tree_choiceType T := ChoiceType (GenTree.tree T) (tree_choiceMixin T).
 
 End ChoiceTheory.
 
@@ -511,7 +517,7 @@ Notation "[ 'choiceMixin' 'of' T 'by' <: ]" :=
 
 Module Countable.
 
-Record mixin_of (T : Type) : Type := Mixin {
+Monomorphic Record mixin_of (T : Type) : Type := Mixin {
   pickle : T -> nat;
   unpickle : nat -> option T;
   pickleK : pcancel pickle unpickle
@@ -522,22 +528,22 @@ Definition ChoiceMixin T m := PcanChoiceMixin (@pickleK T m).
 
 Section ClassDef.
 
-Record class_of T := Class { base : Choice.class_of T; mixin : mixin_of T }.
+Monomorphic Record class_of T := Class { base : Choice.class_of T; mixin : mixin_of T }.
 Local Coercion base : class_of >-> Choice.class_of.
 
-Structure type : Type := Pack {sort : Type; _ : class_of sort}.
+Monomorphic Structure type : Type := Pack {sort : Type; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Definition clone c of phant_id class c := @Pack T c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Definition clone c of phant_id class c := @Pack T c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition pack m :=
+Monomorphic Definition pack m :=
   fun bT b & phant_id (Choice.class bT) b => Pack (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
 
 End ClassDef.
 
@@ -603,10 +609,10 @@ Definition unpickle_seq n := Some (pmap (@unpickle T) (CodeSeq.decode n)).
 Lemma pickle_seqK : pcancel pickle_seq unpickle_seq.
 Proof. by move=> s; rewrite /unpickle_seq CodeSeq.codeK (map_pK pickleK). Qed.
 
-Definition seq_countMixin := CountMixin pickle_seqK.
-Canonical seq_countType := Eval hnf in CountType (seq T) seq_countMixin.
-
 End CountableTheory.
+
+Monomorphic Definition seq_countMixin (T : countType) := CountMixin (@pickle_seqK T).
+Monomorphic Canonical seq_countType (T : countType) := Eval hnf in CountType (seq T) (seq_countMixin T).
 
 Notation "[ 'countMixin' 'of' T 'by' <: ]" :=
     (sub_countMixin _ : Countable.mixin_of T)
@@ -619,17 +625,17 @@ Arguments pickle_invK {T} n : rename.
 
 Section SubCountType.
 
-Variables (T : choiceType) (P : pred T).
+Monomorphic Variables (T : choiceType) (P : pred T).
 Import Countable.
 
-Structure subCountType : Type :=
+Monomorphic Structure subCountType : Type :=
   SubCountType {subCount_sort :> subType P; _ : mixin_of subCount_sort}.
 
-Coercion sub_countType (sT : subCountType) :=
+Monomorphic Coercion sub_countType (sT : subCountType) :=
   Eval hnf in pack (let: SubCountType _ m := sT return mixin_of sT in m) id.
 Canonical sub_countType.
 
-Definition pack_subCountType U :=
+Monomorphic Definition pack_subCountType U :=
   fun sT cT & sub_sort sT * sort cT -> U * U =>
   fun b m   & phant_id (Class b m) (class cT) => @SubCountType sT m.
 
@@ -655,48 +661,42 @@ Proof.
 by case=> i x; rewrite /unpickle_tagged CodeSeq.codeK /= pickleK /= pickleK.
 Qed.
 
-Definition tag_countMixin := CountMixin pickle_taggedK.
-Canonical tag_countType := Eval hnf in CountType {i : I & T_ i} tag_countMixin.
-
 End TagCountType.
+
+Monomorphic Definition tag_countMixin (I : countType) (T_ : I -> countType) :=
+  CountMixin (@pickle_taggedK I T_).
+Monomorphic Canonical tag_countType (I : countType) (T_ : I -> countType) :=
+  Eval hnf in CountType {i : I & T_ i} (tag_countMixin T_).
 
 (* The remaining Canonicals for standard datatypes. *)
 Section CountableDataTypes.
 
 Implicit Type T : countType.
 
-Lemma nat_pickleK : pcancel id (@Some nat). Proof. by []. Qed.
-Definition nat_countMixin := CountMixin nat_pickleK.
-Canonical nat_countType := Eval hnf in CountType nat nat_countMixin.
+Monomorphic Lemma nat_pickleK : pcancel id (@Some nat). Proof. by []. Qed.
+Monomorphic Definition nat_countMixin := CountMixin nat_pickleK.
+Monomorphic Canonical nat_countType := Eval hnf in CountType nat nat_countMixin.
 
-Definition bool_countMixin := CanCountMixin oddb.
-Canonical bool_countType := Eval hnf in CountType bool bool_countMixin.
-Canonical bitseq_countType :=  Eval hnf in [countType of bitseq].
+Monomorphic Definition bool_countMixin := CanCountMixin oddb.
+Monomorphic Canonical bool_countType := Eval hnf in CountType bool bool_countMixin.
+Monomorphic Canonical bitseq_countType :=  Eval hnf in [countType of bitseq].
 
-Definition unit_countMixin := CanCountMixin bool_of_unitK.
-Canonical unit_countType := Eval hnf in CountType unit unit_countMixin.
+Monomorphic Definition unit_countMixin := CanCountMixin bool_of_unitK.
+Monomorphic Canonical unit_countType := Eval hnf in CountType unit unit_countMixin.
 
-Definition option_countMixin T := CanCountMixin (@seq_of_optK T).
-Canonical option_countType T :=
+Monomorphic Definition option_countMixin T := CanCountMixin (@seq_of_optK T).
+Monomorphic Canonical option_countType T :=
   Eval hnf in CountType (option T) (option_countMixin T).
 
-(*
-Definition sig_countMixin T (P : pred T) := [countMixin of {x | P x} by <:].
-Canonical sig_countType T (P : pred T) :=
-  Eval hnf in CountType {x | P x} (sig_countMixin P).
-Canonical sig_subCountType T (P : pred T) :=
-  Eval hnf in [subCountType of {x | P x}].
-*)
-
-Definition prod_countMixin T1 T2 := CanCountMixin (@tag_of_pairK T1 T2).
-Canonical prod_countType T1 T2 :=
+Monomorphic Definition prod_countMixin T1 T2 := CanCountMixin (@tag_of_pairK T1 T2).
+Monomorphic Canonical prod_countType T1 T2 :=
   Eval hnf in CountType (T1 * T2) (prod_countMixin T1 T2).
 
-Definition sum_countMixin T1 T2 := PcanCountMixin (@opair_of_sumK T1 T2).
-Canonical sum_countType T1 T2 :=
+Monomorphic Definition sum_countMixin T1 T2 := PcanCountMixin (@opair_of_sumK T1 T2).
+Monomorphic Canonical sum_countType T1 T2 :=
   Eval hnf in CountType (T1 + T2) (sum_countMixin T1 T2).
 
-Definition tree_countMixin T := PcanCountMixin (GenTree.codeK T).
-Canonical tree_countType T := CountType (GenTree.tree T) (tree_countMixin T).
+Monomorphic Definition tree_countMixin T := PcanCountMixin (GenTree.codeK T).
+Monomorphic Canonical tree_countType T := CountType (GenTree.tree T) (tree_countMixin T).
 
 End CountableDataTypes.

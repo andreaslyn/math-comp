@@ -48,7 +48,7 @@ Unset Printing Implicit Defensive.
 Definition grel (T : eqType) (g : T -> seq T) := [rel x y | y \in g x].
 
 (* Decidable connectivity in finite types.                                  *)
-Section Connect.
+Section Connect1.
 
 Variable T : finType.
 
@@ -127,93 +127,120 @@ by rewrite disjoint_sym disjoint0.
 Qed.
 
 End Dfs.
+End Connect1.
 
-Variable e : rel T.
+Section Connect2.
+
+Variables (T : finType) (e : rel T).
 
 Definition rgraph x := enum (e x).
 
 Lemma rgraphK : grel rgraph =2 e.
 Proof. by move=> x y; rewrite /= mem_enum. Qed.
 
-Definition connect : rel T := fun x y => y \in dfs rgraph #|T| [::] x.
-Canonical connect_app_pred x := ApplicativePred (connect x).
+End Connect2.
+
+Section Connect3.
+
+Monomorphic Variables (T : finType) (e : rel T).
+
+Monomorphic Definition connect : rel T := fun x y => y \in dfs (@rgraph T e) #|T| [::] x.
+Monomorphic Canonical connect_app_pred x := ApplicativePred (connect x).
+
+End Connect3.
+
+Section Connect4.
+
+Variables (T : finType) (e : rel T).
 
 Lemma connectP x y :
-  reflect (exists2 p, path e x p & y = last x p) (connect x y).
+  reflect (exists2 p, path e x p & y = last x p) (connect e x y).
 Proof.
 apply: (equivP (dfsP _ x y)).
-by split=> [] [p e_p ->]; exists p => //; rewrite (eq_path rgraphK) in e_p *.
+by split=> [] [p e_p ->]; exists p => //; rewrite (eq_path (rgraphK e)) in e_p *.
 Qed.
 
-Lemma connect_trans : transitive connect.
+Lemma connect_trans : transitive (connect e).
 Proof.
 move=> x y z /connectP[p e_p ->] /connectP[q e_q ->]; apply/connectP.
 by exists (p ++ q); rewrite ?cat_path ?e_p ?last_cat.
 Qed.
 
-Lemma connect0 x : connect x x.
+Lemma connect0 x : connect e x x.
 Proof. by apply/connectP; exists [::]. Qed.
 
-Lemma eq_connect0 x y : x = y -> connect x y.
+Lemma eq_connect0 x y : x = y -> connect e x y.
 Proof. by move->; apply: connect0. Qed.
 
-Lemma connect1 x y : e x y -> connect x y.
+Lemma connect1 x y : e x y -> connect e x y.
 Proof. by move=> e_xy; apply/connectP; exists [:: y]; rewrite /= ?e_xy. Qed.
 
-Lemma path_connect x p : path e x p -> subpred (mem (x :: p)) (connect x).
+Lemma path_connect x p : path e x p -> subpred (mem (x :: p)) (connect e x).
 Proof.
 move=> e_p y p_y; case/splitPl: p / p_y e_p => p q <-.
 by rewrite cat_path => /andP[e_p _]; apply/connectP; exists p.
 Qed.
 
-Definition root x := odflt x (pick (connect x)).
+Definition root x := odflt x (pick (connect e x)).
 
-Definition roots : pred T := fun x => root x == x.
-Canonical roots_pred := ApplicativePred roots.
+End Connect4.
 
-Definition n_comp_mem (m_a : mem_pred T) := #|predI roots m_a|.
+Section Connect5.
 
-Lemma connect_root x : connect x (root x).
+Monomorphic Variables (T : finType) (e : rel T).
+
+Monomorphic Definition roots : pred T := fun x => root e x == x.
+Monomorphic Canonical roots_pred := ApplicativePred roots.
+
+End Connect5.
+
+Section Connect6.
+
+Variables (T : finType) (e : rel T).
+
+Definition n_comp_mem (m_a : mem_pred T) := #|predI (roots e) m_a|.
+
+Lemma connect_root x : connect e x (root e x).
 Proof. by rewrite /root; case: pickP; rewrite ?connect0. Qed.
 
-Definition connect_sym := symmetric connect.
+Definition connect_sym := symmetric (connect e).
 
 Hypothesis sym_e : connect_sym.
 
-Lemma same_connect : left_transitive connect.
-Proof. exact: sym_left_transitive connect_trans. Qed.
+Lemma same_connect : left_transitive (connect e).
+Proof. exact: sym_left_transitive (@connect_trans T e). Qed.
 
-Lemma same_connect_r : right_transitive connect.
-Proof. exact: sym_right_transitive connect_trans. Qed.
+Lemma same_connect_r : right_transitive (connect e).
+Proof. exact: sym_right_transitive (@connect_trans T e). Qed.
 
-Lemma same_connect1 x y : e x y -> connect x =1 connect y.
+Lemma same_connect1 x y : e x y -> connect e x =1 connect e y.
 Proof. by move/connect1; apply: same_connect. Qed.
 
-Lemma same_connect1r x y : e x y -> connect^~ x =1 connect^~ y.
+Lemma same_connect1r x y : e x y -> (connect e)^~ x =1 (connect e)^~ y.
 Proof. by move/connect1; apply: same_connect_r. Qed.
 
-Lemma rootP x y : reflect (root x = root y) (connect x y).
+Lemma rootP x y : reflect (root e x = root e y) (connect e x y).
 Proof.
 apply: (iffP idP) => e_xy.
   by rewrite /root -(eq_pick (same_connect e_xy)); case: pickP e_xy => // ->.
 by apply: (connect_trans (connect_root x)); rewrite e_xy sym_e connect_root.
 Qed.
 
-Lemma root_root x : root (root x) = root x.
+Lemma root_root x : root e (root e x) = root e x.
 Proof. exact/esym/rootP/connect_root. Qed.
 
-Lemma roots_root x : roots (root x).
+Lemma roots_root x : roots e (root e x).
 Proof. exact/eqP/root_root. Qed.
 
-Lemma root_connect x y : (root x == root y) = connect x y.
+Lemma root_connect x y : (root e x == root e y) = connect e x y.
 Proof. exact: sameP eqP (rootP x y). Qed.
 
 Definition closed_mem m_a := forall x y, e x y -> in_mem x m_a = in_mem y m_a.
 
 Definition closure_mem m_a : pred T :=
-  fun x => ~~ disjoint (mem (connect x)) m_a.
+  fun x => ~~ disjoint (mem (connect e x)) m_a.
 
-End Connect.
+End Connect6.
 
 Hint Resolve connect0 : core.
 

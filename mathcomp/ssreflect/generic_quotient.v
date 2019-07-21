@@ -149,28 +149,28 @@ Arguments repr_ofK {T qT}.
 (****************************)
 
 Module Type PiSig.
-Monomorphic Parameter f : forall (T : Type) (qT : quotType T), phant qT -> T -> qT.
-Monomorphic Axiom E : f = pi_phant.
+Parameter f@{i} : forall (T : Type@{i}) (qT : quotType@{i i} T), phant@{i i} qT -> T -> qT.
+Axiom E@{i j} : paths@{j} f@{i} pi_phant@{i i i}.
 End PiSig.
 
 Module Pi : PiSig.
-Monomorphic Definition f := pi_phant.
-Monomorphic Definition E := erefl f.
+Definition f@{i} := pi_phant@{i i i}.
+Definition E@{i j} := erefl@{j} f@{i}.
 End Pi.
 
 Module MPi : PiSig.
-Monomorphic Definition f := pi_phant.
-Monomorphic Definition E := erefl f.
+Definition f@{i} := pi_phant@{i i i}.
+Definition E@{i j} := erefl@{j} f@{i}.
 End MPi.
 
 Module Type ReprSig.
-Monomorphic Parameter f : forall (T : Type) (qT : quotType T), qT -> T.
-Monomorphic Axiom E : f = repr_of.
+Parameter f@{i} : forall (T : Type@{i}) (qT : quotType@{i i} T), qT -> T.
+Axiom E@{i j} : paths@{j} f@{i} repr_of@{i i}.
 End ReprSig.
 
 Module Repr : ReprSig.
-Monomorphic Definition f := repr_of.
-Monomorphic Definition E := erefl f.
+Definition f@{i} := repr_of@{i i}.
+Definition E@{i j} := erefl@{j} f@{i}.
 End Repr.
 
 (*******************)
@@ -186,9 +186,9 @@ Notation "x != y %[mod Q ]" := (\pi_Q x != \pi_Q y) : quotient_scope.
 Notation "x <> y %[mod Q ]" := (\pi_Q x <> \pi_Q y) : quotient_scope.
 
 Local Notation "\mpi" := (@MPi.f _ _ (Phant _)).
-Canonical mpi_unlock := Unlockable MPi.E.
-Canonical pi_unlock := Unlockable Pi.E.
-Canonical repr_unlock := Unlockable Repr.E.
+Monomorphic Canonical mpi_unlock := Unlockable MPi.E.
+Monomorphic Canonical pi_unlock := Unlockable Pi.E.
+Monomorphic Canonical repr_unlock := Unlockable Repr.E.
 
 Notation quot_class_of := quot_mixin_of.
 Notation QuotType Q m := (@QuotTypePack _ Q m).
@@ -243,7 +243,7 @@ Proof. by case: m. Qed.
 
 Notation piE := (@equal_toE _ _).
 
-Canonical equal_to_pi T (qT : quotType T) (x : T) :=
+Monomorphic Canonical equal_to_pi T (qT : quotType T) (x : T) :=
   @EqualTo _ (\pi_qT x) (\pi x) (erefl _).
 
 Arguments EqualTo {T x equal_val}.
@@ -323,21 +323,21 @@ Notation PiEmbed e :=
 
 Section EqQuotTypeStructure.
 
-Variable T : Type.
-Variable eq_quot_op : rel T.
+Monomorphic Variable T : Type.
+Monomorphic Variable eq_quot_op : rel T.
 
-Definition eq_quot_mixin_of (Q : Type) (qc : quot_class_of T Q)
+Monomorphic Definition eq_quot_mixin_of (Q : Type) (qc : quot_class_of T Q)
   (ec : Equality.class_of Q) :=
   {mono \pi_(QuotTypePack qc) : x y /
    eq_quot_op x y >-> @eq_op (Equality.Pack ec) x y}.
 
-Record eq_quot_class_of (Q : Type) : Type := EqQuotClass {
+Monomorphic Record eq_quot_class_of (Q : Type) : Type := EqQuotClass {
   eq_quot_quot_class :> quot_class_of T Q;
   eq_quot_eq_mixin :> Equality.class_of Q;
   pi_eq_quot_mixin :> eq_quot_mixin_of eq_quot_quot_class eq_quot_eq_mixin
 }.
 
-Record eqQuotType : Type := EqQuotTypePack {
+Monomorphic Record eqQuotType : Type := EqQuotTypePack {
   eq_quot_sort :> Type;
   _ : eq_quot_class_of eq_quot_sort;
  
@@ -345,21 +345,21 @@ Record eqQuotType : Type := EqQuotTypePack {
 
 Implicit Type eqT : eqQuotType.
 
-Definition eq_quot_class eqT : eq_quot_class_of eqT :=
+Monomorphic Definition eq_quot_class eqT : eq_quot_class_of eqT :=
   let: EqQuotTypePack _ cT as qT' := eqT return eq_quot_class_of qT' in cT.
 
-Canonical eqQuotType_eqType eqT := EqType eqT (eq_quot_class eqT).
-Definition eqQuotType_quotType' eqT := QuotType eqT (eq_quot_class eqT).
+Monomorphic Canonical eqQuotType_eqType eqT := EqType eqT (eq_quot_class eqT).
+Monomorphic Definition eqQuotType_quotType' eqT := QuotType eqT (eq_quot_class eqT).
 
 Coercion eqQuotType_eqType : eqQuotType >-> eqType.
 Coercion eqQuotType_quotType' : eqQuotType >-> quotType.
 
-Definition EqQuotType_pack Q :=
+Monomorphic Definition EqQuotType_pack Q :=
   fun (qT : quotType T) (eT : eqType) qc ec 
   of phant_id (quot_class qT) qc & phant_id (Equality.class eT) ec => 
     fun m => EqQuotTypePack (@EqQuotClass Q qc ec m).
 
-Definition EqQuotType_clone (Q : Type) eqT cT 
+Monomorphic Definition EqQuotType_clone (Q : Type) eqT cT 
   of phant_id (eq_quot_class eqT) cT := @EqQuotTypePack Q cT.
 
 End EqQuotTypeStructure.
@@ -370,7 +370,7 @@ Lemma pi_eq_quot T (eq_quot_op : rel T) (eqT : eqQuotType eq_quot_op)
   : {mono \pi_eqT : x y / eq_quot_op x y >-> x == y}.
 Proof. by case: eqT => [] ? []. Qed.
 
-Canonical pi_eq_quot_mono T (eq_quot_op : rel T) (eqT : eqQuotType eq_quot_op)
+Monomorphic Canonical pi_eq_quot_mono T (eq_quot_op : rel T) (eqT : eqQuotType eq_quot_op)
   := PiMono2 (pi_eq_quot eqT).
 
 Notation EqQuotType e Q m := (@EqQuotType_pack _ e Q _ _ _ _ id id m).
@@ -386,7 +386,7 @@ Notation "[ 'eqQuotType' e 'of' Q ]" := (@EqQuotType_clone _ e Q _ _ id)
 (**************************************************************************)
 
 Module QuotSubType.
-Section SubTypeMixin.
+Section SubTypeMixin1.
 
 Variable T : eqType.
 Variable qT : quotType T.
@@ -405,27 +405,34 @@ Proof. by rewrite /Sub reprK. Qed.
 Lemma reprP K (PK : forall x Px, K (@Sub x Px)) u : K u.
 Proof. by rewrite (sort_Sub u); apply: PK. Qed.
 
-Canonical subType  := SubType _ _ _ reprP qreprK.
-Definition eqMixin := Eval hnf in [eqMixin of qT by <:].
+End SubTypeMixin1.
 
-Canonical eqType := EqType qT eqMixin.
+Section SubTypeMixin2.
 
-End SubTypeMixin.
+Monomorphic Variable T : eqType.
+Monomorphic Variable qT : quotType T.
 
-Definition choiceMixin (T : choiceType) (qT : quotType T) :=
+Monomorphic Canonical subType  := SubType _ _ _ (@reprP T qT) (@qreprK T qT).
+Monomorphic Definition eqMixin := Eval hnf in [eqMixin of qT by <:].
+
+Monomorphic Canonical eqType := EqType qT eqMixin.
+
+End SubTypeMixin2.
+
+Monomorphic Definition choiceMixin (T : choiceType) (qT : quotType T) :=
   Eval hnf in [choiceMixin of qT by <:].
-Canonical choiceType (T : choiceType) (qT : quotType T) :=
+Monomorphic Canonical choiceType (T : choiceType) (qT : quotType T) :=
   ChoiceType qT (@choiceMixin T qT).
 
-Definition countMixin (T : countType) (qT : quotType T) :=
+Monomorphic Definition countMixin (T : countType) (qT : quotType T) :=
   Eval hnf in [countMixin of qT by <:].
-Canonical countType (T : countType) (qT : quotType T) :=
+Monomorphic Canonical countType (T : countType) (qT : quotType T) :=
   CountType qT (@countMixin T qT).
 
 Section finType.
-Variables (T : finType) (qT : quotType T).
-Canonical subCountType := [subCountType of qT].
-Definition finMixin := Eval hnf in [finMixin of qT by <:].
+Monomorphic Variables (T : finType) (qT : quotType T).
+Monomorphic Canonical subCountType := [subCountType of qT].
+Monomorphic Definition finMixin := Eval hnf in [finMixin of qT by <:].
 End finType.
 
 End QuotSubType.
@@ -537,7 +544,7 @@ Notation EncModRelClass m :=
   (EncModRelClassPack (fun x _ => m x) (fun _ _ => erefl _)).
 Notation EncModRel r m := (@EncModRelPack _ _ _ _ _ r (EncModRelClass m)).
 
-Section EncodingModuloEquiv.
+Section EncodingModuloEquiv1.
 
 Variables (D E : Type) (ED : E -> D) (DE : D -> E) (e : equiv_rel D).
 Variable (r : encModRel ED DE e).
@@ -565,12 +572,29 @@ split => [x|x y|y x z]; rewrite !e'E //=; first by rewrite equiv_sym.
 by move=> exy /(equiv_trans exy).
 Qed.
 
-Canonical encoded_equiv_equiv_rel := EquivRelPack encoded_equiv_is_equiv.
+End EncodingModuloEquiv1.
+
+Section EncodingModuloEquiv2.
+
+Monomorphic Variables (D E : Type) (ED : E -> D) (DE : D -> E) (e : equiv_rel D).
+Monomorphic Variable (r : encModRel ED DE e).
+
+Monomorphic Canonical encoded_equiv_equiv_rel :=
+  EquivRelPack (@encoded_equiv_is_equiv D E ED DE e r).
+
+End EncodingModuloEquiv2.
+
+Section EncodingModuloEquiv3.
+
+Variables (D E : Type) (ED : E -> D) (DE : D -> E) (e : equiv_rel D).
+Variable (r : encModRel ED DE e).
+
+Local Notation e' := (encoded_equiv r).
 
 Lemma encoded_equivP x : e' (DE (ED x)) x.
 Proof. by rewrite /encoded_equiv /= encModEquivP. Qed.
 
-End EncodingModuloEquiv.
+End EncodingModuloEquiv3.
 
 (**************************************)
 (* Quotient by a equivalence relation *)
@@ -579,29 +603,29 @@ End EncodingModuloEquiv.
 Module EquivQuot.
 Section EquivQuot.
 
-Variables (D : Type) (C : choiceType) (CD : C -> D) (DC : D -> C).
-Variables (eD : equiv_rel D) (encD : encModRel CD DC eD).
+Monomorphic Variables (D : Type) (C : choiceType) (CD : C -> D) (DC : D -> C).
+Monomorphic Variables (eD : equiv_rel D) (encD : encModRel CD DC eD).
 Notation eC := (encoded_equiv encD).
 
-Definition canon x := choose (eC x) (x).
+Monomorphic Definition canon x := choose (eC x) (x).
 
-Record equivQuotient := EquivQuotient {
+Monomorphic Record equivQuotient := EquivQuotient {
   erepr : C;
   _ : (frel canon) erepr erepr
 }.
 
-Definition type_of of (phantom (rel _) encD) := equivQuotient.
+Monomorphic Definition type_of of (phantom (rel _) encD) := equivQuotient.
 
-Lemma canon_id : forall x, (invariant canon canon) x.
+Monomorphic Lemma canon_id : forall x, (invariant canon canon) x.
 Proof.
 move=> x /=; rewrite /canon (@eq_choose _ _ (eC x)).
   by rewrite (@choose_id _ (eC x) _ x) ?chooseP ?equiv_refl.
 by move=> y; apply: equiv_ltrans; rewrite equiv_sym /= chooseP.
 Qed.
 
-Definition pi := locked (fun x => EquivQuotient (canon_id x)).
+Monomorphic Definition pi := locked (fun x => EquivQuotient (canon_id x)).
 
-Lemma ereprK : cancel erepr pi.
+Monomorphic Lemma ereprK : cancel erepr pi.
 Proof.
 unlock pi; case=> x hx; move/eqP:(hx)=> hx'.
 exact: (@val_inj _ _ [subType for erepr]).
@@ -609,9 +633,9 @@ Qed.
 
 Local Notation encDE := (encModRelE encD).
 Local Notation encDP := (encModEquivP encD).
-Canonical encD_equiv_rel := EquivRelPack (enc_mod_rel_is_equiv encD).
+Monomorphic Canonical encD_equiv_rel := EquivRelPack (enc_mod_rel_is_equiv encD).
 
-Lemma pi_CD (x y : C) : reflect (pi x = pi y) (eC x y).
+Monomorphic Lemma pi_CD (x y : C) : reflect (pi x = pi y) (eC x y).
 Proof.
 apply: (iffP idP) => hxy.
   apply: (can_inj ereprK); unlock pi canon => /=.
@@ -623,7 +647,7 @@ move: hxy => /(f_equal erepr) /=; unlock pi canon => /= ->.
 by rewrite equiv_sym /= chooseP.
 Qed.
 
-Lemma pi_DC (x y : D) :
+Monomorphic Lemma pi_DC (x y : D) :
   reflect (pi (DC x) = pi (DC y)) (eD x y).
 Proof.
 apply: (iffP idP)=> hxy.
@@ -633,27 +657,27 @@ rewrite -encDE -(equiv_ltrans (encDP _)) -(equiv_rtrans (encDP _)) /=.
 exact/pi_CD.
 Qed.
 
-Lemma equivQTP : cancel (CD \o erepr) (pi \o DC).
+Monomorphic Lemma equivQTP : cancel (CD \o erepr) (pi \o DC).
 Proof.
 by move=> x; rewrite /= (pi_CD _ (erepr x) _) ?ereprK /eC /= ?encDP.
 Qed.
 
 Local Notation qT := (type_of (Phantom (rel D) encD)).
-Definition quotClass := QuotClass equivQTP.
-Canonical quotType := QuotType qT quotClass.
+Monomorphic Definition quotClass := QuotClass equivQTP.
+Monomorphic Canonical quotType := QuotType qT quotClass.
 
-Lemma eqmodP x y : reflect (x = y %[mod qT]) (eD x y).
+Monomorphic Lemma eqmodP x y : reflect (x = y %[mod qT]) (eD x y).
 Proof. by apply: (iffP (pi_DC _ _)); rewrite !unlock. Qed.
 
-Fact eqMixin : Equality.mixin_of qT. Proof. exact: CanEqMixin ereprK. Qed.
-Canonical eqType := EqType qT eqMixin.
-Definition choiceMixin := CanChoiceMixin ereprK.
-Canonical choiceType := ChoiceType qT choiceMixin.
+Monomorphic Fact eqMixin : Equality.mixin_of qT. Proof. exact: CanEqMixin ereprK. Qed.
+Monomorphic Canonical eqType := EqType qT eqMixin.
+Monomorphic Definition choiceMixin := CanChoiceMixin ereprK.
+Monomorphic Canonical choiceType := ChoiceType qT choiceMixin.
 
-Lemma eqmodE x y : x == y %[mod qT] = eD x y.
+Monomorphic Lemma eqmodE x y : x == y %[mod qT] = eD x y.
 Proof. exact: sameP eqP (@eqmodP _ _). Qed.
 
-Canonical eqQuotType := EqQuotType eD qT eqmodE.
+Monomorphic Canonical eqQuotType := EqQuotType eD qT eqmodE.
 
 End EquivQuot.
 End EquivQuot.
@@ -678,12 +702,12 @@ Notation "x <> y %[mod_eq r ]" := (x <> y %[mod {eq_quot r}]) : quotient_scope.
 
 Section DefaultEncodingModuloRel.
 
-Variables (D : choiceType) (r : rel D).
+Monomorphic Variables (D : choiceType) (r : rel D).
 
-Definition defaultEncModRelClass :=
+Monomorphic Definition defaultEncModRelClass :=
   @EncModRelClassPack D D id id r r (fun _ rxx => rxx) (fun _ _ => erefl _).
 
-Canonical defaultEncModRel := EncModRelPack defaultEncModRelClass.
+Monomorphic Canonical defaultEncModRel := EncModRelPack defaultEncModRelClass.
 
 End DefaultEncodingModuloRel.
 
@@ -693,13 +717,13 @@ End DefaultEncodingModuloRel.
 
 Section CountEncodingModuloRel.
 
-Variables (D : Type) (C : countType) (CD : C -> D) (DC : D -> C).
-Variables (eD : equiv_rel D) (encD : encModRel CD DC eD).
+Monomorphic Variables (D : Type) (C : countType) (CD : C -> D) (DC : D -> C).
+Monomorphic Variables (eD : equiv_rel D) (encD : encModRel CD DC eD).
 Notation eC := (encoded_equiv encD).
 
-Fact eq_quot_countMixin : Countable.mixin_of {eq_quot encD}.
+Monomorphic Fact eq_quot_countMixin : Countable.mixin_of {eq_quot encD}.
 Proof. exact: CanCountMixin EquivQuot.ereprK. Qed.
-Canonical eq_quot_countType := CountType {eq_quot encD} eq_quot_countMixin.
+Monomorphic Canonical eq_quot_countType := CountType {eq_quot encD} eq_quot_countMixin.
 
 End CountEncodingModuloRel.
 

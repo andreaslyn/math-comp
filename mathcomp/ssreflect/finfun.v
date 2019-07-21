@@ -120,7 +120,7 @@ Monomorphic Lemma finfunE : finfun = finfun_def. Proof. by []. Qed.
 End FinfunDef.
 
 Notation finfun := FinfunDef.finfun.
-Canonical finfun_unlock := Unlockable FinfunDef.finfunE.
+Monomorphic Canonical finfun_unlock := Unlockable FinfunDef.finfunE.
 Arguments finfun {aT rT} g.
 
 Notation "[ 'ffun' x : aT => E ]" := (finfun (fun x : aT => E))
@@ -240,35 +240,35 @@ Notation family F := (family_mem (fmem F)).
 
 Section InheritedStructures.
 
-Variable aT : finType.
+Monomorphic Variable aT : finType.
 Notation dffun_aT rT rS := {dffun forall x : aT, rT x : rS}.
 
-Local Remark eqMixin rT : Equality.mixin_of (dffun_aT rT eqType).
+Local Monomorphic Remark eqMixin rT : Equality.mixin_of (dffun_aT rT eqType).
 Proof. exact: PcanEqMixin tfgraphK. Qed.
-Canonical finfun_eqType (rT : eqType) :=
+Monomorphic Canonical finfun_eqType (rT : eqType) :=
   EqType {ffun aT -> rT} (eqMixin (fun=> rT)).
-Canonical dfinfun_eqType rT :=
+Monomorphic Canonical dfinfun_eqType rT :=
   EqType (dffun_aT rT eqType) (eqMixin rT).
 
-Local Remark choiceMixin rT : Choice.mixin_of (dffun_aT rT choiceType).
+Local Monomorphic Remark choiceMixin rT : Choice.mixin_of (dffun_aT rT choiceType).
 Proof. exact: PcanChoiceMixin tfgraphK. Qed.
-Canonical finfun_choiceType (rT : choiceType) :=
+Monomorphic Canonical finfun_choiceType (rT : choiceType) :=
   ChoiceType {ffun aT -> rT} (choiceMixin (fun=> rT)).
-Canonical dfinfun_choiceType rT :=
+Monomorphic Canonical dfinfun_choiceType rT :=
   ChoiceType (dffun_aT rT choiceType) (choiceMixin rT).
 
-Local Remark countMixin rT : Countable.mixin_of (dffun_aT rT countType).
+Local Monomorphic Remark countMixin rT : Countable.mixin_of (dffun_aT rT countType).
 Proof. exact: PcanCountMixin tfgraphK. Qed.
-Canonical finfun_countType (rT : countType) :=
+Monomorphic Canonical finfun_countType (rT : countType) :=
   CountType {ffun aT -> rT} (countMixin (fun => rT)).
-Canonical dfinfun_countType rT :=
+Monomorphic Canonical dfinfun_countType rT :=
   CountType (dffun_aT rT countType) (countMixin rT).
 
-Local Definition finMixin rT :=
+Local Monomorphic Definition finMixin rT :=
   PcanFinMixin (tfgraphK : @pcancel _ (dffun_aT rT finType) _ _).
-Canonical finfun_finType (rT : finType) :=
+Monomorphic Canonical finfun_finType (rT : finType) :=
   FinType {ffun aT -> rT} (finMixin (fun=> rT)).
-Canonical dfinfun_finType rT :=
+Monomorphic Canonical dfinfun_finType rT :=
   FinType (dffun_aT rT finType) (finMixin rT).
 
 End InheritedStructures.

@@ -467,39 +467,39 @@ Section PervasiveMonoids.
 
 Import Monoid.
 
-Canonical andb_monoid := Law andbA andTb andbT.
-Canonical andb_comoid := ComLaw andbC.
+Monomorphic Canonical andb_monoid := Law andbA andTb andbT.
+Monomorphic Canonical andb_comoid := ComLaw andbC.
 
-Canonical andb_muloid := MulLaw andFb andbF.
-Canonical orb_monoid := Law orbA orFb orbF.
-Canonical orb_comoid := ComLaw orbC.
-Canonical orb_muloid := MulLaw orTb orbT.
-Canonical addb_monoid := Law addbA addFb addbF.
-Canonical addb_comoid := ComLaw addbC.
-Canonical orb_addoid := AddLaw andb_orl andb_orr.
-Canonical andb_addoid := AddLaw orb_andl orb_andr.
-Canonical addb_addoid := AddLaw andb_addl andb_addr.
+Monomorphic Canonical andb_muloid := MulLaw andFb andbF.
+Monomorphic Canonical orb_monoid := Law orbA orFb orbF.
+Monomorphic Canonical orb_comoid := ComLaw orbC.
+Monomorphic Canonical orb_muloid := MulLaw orTb orbT.
+Monomorphic Canonical addb_monoid := Law addbA addFb addbF.
+Monomorphic Canonical addb_comoid := ComLaw addbC.
+Monomorphic Canonical orb_addoid := AddLaw andb_orl andb_orr.
+Monomorphic Canonical andb_addoid := AddLaw orb_andl orb_andr.
+Monomorphic Canonical addb_addoid := AddLaw andb_addl andb_addr.
 
-Canonical addn_monoid := Law addnA add0n addn0.
-Canonical addn_comoid := ComLaw addnC.
-Canonical muln_monoid := Law mulnA mul1n muln1.
-Canonical muln_comoid := ComLaw mulnC.
-Canonical muln_muloid := MulLaw mul0n muln0.
-Canonical addn_addoid := AddLaw mulnDl mulnDr.
+Monomorphic Canonical addn_monoid := Law addnA add0n addn0.
+Monomorphic Canonical addn_comoid := ComLaw addnC.
+Monomorphic Canonical muln_monoid := Law mulnA mul1n muln1.
+Monomorphic Canonical muln_comoid := ComLaw mulnC.
+Monomorphic Canonical muln_muloid := MulLaw mul0n muln0.
+Monomorphic Canonical addn_addoid := AddLaw mulnDl mulnDr.
 
-Canonical maxn_monoid := Law maxnA max0n maxn0.
-Canonical maxn_comoid := ComLaw maxnC.
-Canonical maxn_addoid := AddLaw maxn_mull maxn_mulr.
+Monomorphic Canonical maxn_monoid := Law maxnA max0n maxn0.
+Monomorphic Canonical maxn_comoid := ComLaw maxnC.
+Monomorphic Canonical maxn_addoid := AddLaw maxn_mull maxn_mulr.
 
-Canonical gcdn_monoid := Law gcdnA gcd0n gcdn0.
-Canonical gcdn_comoid := ComLaw gcdnC.
-Canonical gcdnDoid := AddLaw muln_gcdl muln_gcdr.
+Monomorphic Canonical gcdn_monoid := Law gcdnA gcd0n gcdn0.
+Monomorphic Canonical gcdn_comoid := ComLaw gcdnC.
+Monomorphic Canonical gcdnDoid := AddLaw muln_gcdl muln_gcdr.
 
-Canonical lcmn_monoid := Law lcmnA lcm1n lcmn1.
-Canonical lcmn_comoid := ComLaw lcmnC.
-Canonical lcmn_addoid := AddLaw muln_lcml muln_lcmr.
+Monomorphic Canonical lcmn_monoid := Law lcmnA lcm1n lcmn1.
+Monomorphic Canonical lcmn_comoid := ComLaw lcmnC.
+Monomorphic Canonical lcmn_addoid := AddLaw muln_lcml muln_lcmr.
 
-Canonical cat_monoid T := Law (@catA T) (@cat0s T) (@cats0 T).
+Monomorphic Canonical cat_monoid T := Law (@catA T) (@cat0s T) (@cats0 T).
 
 End PervasiveMonoids.
 
@@ -542,7 +542,7 @@ Monomorphic Lemma bigopE : bigop = reducebig. Proof. by []. Qed.
 End BigOp.
 
 Notation bigop := BigOp.bigop (only parsing).
-Canonical bigop_unlock := Unlockable BigOp.bigopE.
+Monomorphic Canonical bigop_unlock := Unlockable BigOp.bigopE.
 
 Definition index_iota m n := iota m (n - m).
 

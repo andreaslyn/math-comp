@@ -669,9 +669,7 @@ Proof.
 move=> p m n; case: (posnP p) => [-> //| p_gt0].
 elim: {m}m.+1 {-2}m n (ltnSn m) => // s IHs m n; rewrite ltnS => le_ms.
 rewrite gcdnE [rhs in _ = rhs]gcdnE muln_eq0 (gtn_eqF p_gt0) -muln_modr //=.
-case: posnP => [->//| m_gt0].
-move: m_gt0. case eqP => [->//|??].
-by apply: IHs; apply: leq_trans le_ms; apply: ltn_pmod.
+by case: posnP => // m_gt0; apply: IHs; apply: leq_trans le_ms; apply: ltn_pmod.
 Qed.
 
 Lemma muln_gcdl : left_distributive muln gcdn.

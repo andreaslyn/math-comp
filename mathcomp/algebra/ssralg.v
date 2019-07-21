@@ -4377,9 +4377,9 @@ elim: I e => /= [|i I IHi] e.
   by split=> [[e' eq_e] |]; [apply: eq_holds => i; rewrite eq_e | exists e].
 split=> [[e' eq_e f_e'] | [x]]; last set e_x := set_nth 0 e i x.
   exists e'`_i; apply/IHi; exists e' => // j.
-  by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP => //; move=> ->.
+  by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP => // ->.
 case/IHi=> e' eq_e f_e'; exists e' => // j.
-by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP.
+by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP.
 Qed.
 
 Lemma foldForallP I e :
@@ -4390,9 +4390,9 @@ elim: I e => /= [|i I IHi] e.
   by split=> [|f_e e' eq_e]; [apply | apply: eq_holds f_e => i; rewrite eq_e].
 split=> [f_e' x | f_e e' eq_e]; first set e_x := set_nth 0 e i x.
   apply/IHi=> e' eq_e; apply: f_e' => j.
-  by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP.
+  by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP.
 move/IHi: (f_e e'`_i); apply=> j.
-by have:= eq_e j; rewrite nth_set_nth /= !inE; do 2 case: eqP => //; move=> ->.
+by have:= eq_e j; rewrite nth_set_nth /= !inE; case: eqP => // ->.
 Qed.
 
 End MultiQuant.

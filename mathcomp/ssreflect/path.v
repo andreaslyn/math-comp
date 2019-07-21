@@ -620,7 +620,7 @@ Lemma nth_traject i n : i < n -> forall x, nth x (traject x n) i = iter i f x.
 Proof.
 elim: n => // n IHn; rewrite ltnS leq_eqVlt => le_i_n x.
 rewrite trajectSr nth_rcons size_traject.
-by case: ltngtP le_i_n => [? _||->] //; [apply: IHn | case: eqP].
+by case: ltngtP le_i_n => [? _||->] //; apply: IHn.
 Qed.
 
 End Trajectory.

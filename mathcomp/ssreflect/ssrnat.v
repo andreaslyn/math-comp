@@ -183,8 +183,8 @@ move=> n m; apply: (iffP idP) => [|<-]; last by elim n.
 by elim: n m => [|n IHn] [|m] //= /IHn->.
 Qed.
 
-Canonical nat_eqMixin := EqMixin eqnP.
-Canonical nat_eqType := Eval hnf in EqType nat nat_eqMixin.
+Monomorphic Canonical nat_eqMixin := EqMixin eqnP.
+Monomorphic Canonical nat_eqType := Eval hnf in EqType nat nat_eqMixin.
 
 Arguments eqn !m !n.
 Arguments eqnP {x y}.
@@ -452,7 +452,7 @@ Variant ltn_xor_geq m n : bool -> bool -> Set :=
 Lemma ltnP m n : ltn_xor_geq m n (n <= m) (m < n).
 Proof. by rewrite -(ltnS n); case: leqP; constructor. Qed.
 
-Variant eqn0_xor_gt0 n : bool -> bool -> Set :=
+Variant eqn0_xor_gt0 n : bool -> bool -> Type :=
   | Eq0NotPos of n = 0 : eqn0_xor_gt0 n true false
   | PosNotEq0 of n > 0 : eqn0_xor_gt0 n false true.
 
@@ -460,7 +460,7 @@ Lemma posnP n : eqn0_xor_gt0 n (n == 0) (0 < n).
 Proof. by case: n; constructor. Qed.
 
 Variant compare_nat m n :
-   bool -> bool -> bool -> bool -> bool -> bool -> Set :=
+   bool -> bool -> bool -> bool -> bool -> bool -> Type :=
   | CompareNatLt of m < n : compare_nat m n true false true false false false
   | CompareNatGt of m > n : compare_nat m n false true false true false false
   | CompareNatEq of m = n : compare_nat m n true true false false true true.

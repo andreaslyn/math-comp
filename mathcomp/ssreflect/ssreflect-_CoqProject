@@ -1,0 +1,28 @@
+ssrmatching.v
+ssrnotations.v
+ssreflect.v
+ssrfun.v
+ssrbool.v
+eqtype.v
+ssrnat.v
+seq.v
+bigop.v
+binomial.v
+choice.v
+div.v
+finfun.v
+fingraph.v
+finset.v
+fintype.v
+generic_quotient.v
+path.v
+prime.v
+tuple.v
+all_ssreflect.v
+
+-R . mathcomp.ssreflect
+
+-arg -w -arg -projection-no-head-constant
+-arg -w -arg -notation-overridden
+-arg -w -arg -duplicate-clear
+-arg -w -arg -non-primitive-record

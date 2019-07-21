@@ -419,13 +419,10 @@ Lemma set_set_nth s n1 y1 n2 y2 (s2 := set_nth s n2 y2) :
 Proof.
 have [-> | ne_n12] := altP eqP.
   apply: eq_from_nth => [|i _]; first by rewrite !size_set_nth maxnA maxnn.
-  do 2!rewrite !nth_set_nth /=. by do 3?case: eqP.
+  by do 2!rewrite !nth_set_nth /=; case: eqP.
 apply: eq_from_nth => [|i _]; first by rewrite !size_set_nth maxnCA.
-do 2!rewrite !nth_set_nth /=. case: eqP => //.
-move=> ->.
-rewrite eq_sym -if_neg ne_n12.
-by case: eqP.
-by do 3?case: eqP.
+do 2!rewrite !nth_set_nth /=; case: eqP => // ->.
+by rewrite eq_sym -if_neg ne_n12.
 Qed.
 
 (* find, count, has, all. *)
@@ -910,32 +907,41 @@ Arguments rcons_injr {T} s [x1 x2] eq_rcons : rename.
 
 (* Equality and eqType for seq.                                          *)
 
-Section EqSeq.
+Section EqSeq1.
 
-Universe i.
+Variable (T : eqType).
 
-Variables (n0 : nat) (T : eqType@{i}) (x0 : T).
-Local Notation nth := (nth x0).
-Implicit Types (x y z : T) (s : seq@{i} T).
-
-Fixpoint eqseq@{} (s1 : seq@{i} T) (s2 : seq@{i} T) {struct s2} : Bool :=
+Fixpoint eqseq (s1 : seq T) (s2 : seq T) {struct s2} : Bool :=
   match s1, s2 with
   | [::], [::] => true
   | x1 :: s1', x2 :: s2' => (x1 == x2) && eqseq s1' s2'
   | _, _ => false
   end.
 
-Lemma eqseqP@{i} : Equality.axiom@{i} eqseq.
+Lemma eqseqP : Equality.axiom eqseq.
 Proof.
 move; elim=> [|x1 s1 IHs] [|x2 s2]; do [by constructor | simpl].
 case: (x1 =P x2) => [<-|neqx]; last by right; case.
 by apply: (iffP (IHs s2)) => [<-|[]].
 Qed.
 
-Canonical seq_eqMixin := EqMixin eqseqP.
-Canonical seq_eqType := Eval hnf in EqType (seq T) seq_eqMixin.
+End EqSeq1.
 
-Lemma eqseqE : eqseq = eq_op. Proof. by []. Qed.
+Section EqSeq2.
+
+Monomorphic Variable (T : eqType).
+
+Monomorphic Canonical seq_eqMixin := EqMixin (@eqseqP T).
+Monomorphic Canonical seq_eqType := Eval hnf in EqType (seq T) seq_eqMixin.
+
+End EqSeq2.
+
+Section EqSeq3.
+
+Variable (T : eqType).
+Implicit Types (x y z : T) (s : seq T).
+
+Lemma eqseqE : @eqseq T = eq_op. Proof. by []. Qed.
 
 Lemma eqseq_cons x1 x2 s1 s2 :
   (x1 :: s1 == x2 :: s2) = (x1 == x2) && (s1 == s2).
@@ -968,9 +974,23 @@ Definition seq_eqclass := seq T.
 Identity Coercion seq_of_eqclass : seq_eqclass >-> seq.
 Coercion pred_of_seq (s : seq_eqclass) : {pred T} := mem_seq s.
 
-Canonical seq_predType := PredType (pred_of_seq : seq T -> pred T).
+End EqSeq3.
+
+Section EqSeq4.
+
+Monomorphic Variable (T : eqType).
+
+Monomorphic Canonical seq_predType := PredType (@pred_of_seq T : seq T -> pred T).
 (* The line below makes mem_seq a canonical instance of topred. *)
-Canonical mem_seq_predType := PredType mem_seq.
+Monomorphic Canonical mem_seq_predType := PredType (@mem_seq T).
+
+End EqSeq4.
+
+Section EqSeq5.
+
+Variables (n0 : nat) (T : eqType) (x0 : T).
+Local Notation nth := (nth x0).
+Implicit Types (x y z : T) (s : seq T).
 
 Lemma in_cons y s x : (x \in y :: s) = (x == y) || (x \in s).
 Proof. by []. Qed.
@@ -1312,7 +1332,7 @@ rewrite -cat_cons {}/i; congr cat; elim: s s_x => //= y s IHs.
 by rewrite in_cons; case: eqVneq => // -> _; rewrite drop0.
 Qed.
 
-End EqSeq.
+End EqSeq5.
 
 Definition inE := (mem_seq1, in_cons, inE).
 
@@ -1371,8 +1391,8 @@ Arguments has_nthP {T a s}.
 Arguments all_nthP {T a s}.
 
 Definition bitseq := seq bool.
-Canonical bitseq_eqType := Eval hnf in [eqType of bitseq].
-Canonical bitseq_predType := Eval hnf in [predType of bitseq].
+Monomorphic Canonical bitseq_eqType := Eval hnf in [eqType of bitseq].
+Monomorphic Canonical bitseq_predType := Eval hnf in [predType of bitseq].
 
 (* Incrementing the ith nat in a seq nat, padding with 0's if needed. This  *)
 (* allows us to use nat seqs as bags of nats.                               *)

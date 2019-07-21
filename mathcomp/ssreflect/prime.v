@@ -660,9 +660,7 @@ Lemma logn_prime p q : prime q -> logn p q = (p == q).
 Proof.
 move=> pr_q; have q_gt0 := prime_gt0 pr_q; rewrite lognE q_gt0 /=.
 case pr_p: (prime p); last by case: eqP pr_p pr_q => // -> ->.
-rewrite dvdn_prime2 //. case: eqP => [->|].
-by rewrite eqxx divnn q_gt0 logn1.
-by case: eqP.
+by rewrite dvdn_prime2 //; case: eqP => // ->; rewrite divnn q_gt0 logn1.
 Qed.
 
 Lemma pfactor_coprime p n :
@@ -822,7 +820,7 @@ Qed.
 
 (* Testing for membership in set of prime factors. *)
 
-Canonical nat_pred_pred := Eval hnf in [predType of nat_pred].
+Monomorphic Canonical nat_pred_pred := Eval hnf in [predType of nat_pred].
 
 Monomorphic Coercion nat_pred_of_nat (p : nat) : nat_pred := pred1 p.
 
