@@ -160,14 +160,14 @@ Module Finite.
 
 Section RawMixin.
 
-Variable T : eqType.
+Monomorphic Variable T : eqType.
 
-Definition axiom e := forall x : T, count_mem x e = 1.
+Monomorphic Definition axiom e := forall x : T, count_mem x e = 1.
 
-Lemma uniq_enumP e : uniq e -> e =i T -> axiom e.
+Monomorphic Lemma uniq_enumP e : uniq e -> e =i T -> axiom e.
 Proof. by move=> Ue sT x; rewrite count_uniq_mem ?sT. Qed.
 
-Record mixin_of := Mixin {
+Monomorphic Record mixin_of := Mixin {
   mixin_base : Countable.mixin_of T;
   mixin_enum : seq T;
   _ : axiom mixin_enum
@@ -177,28 +177,28 @@ End RawMixin.
 
 Section Mixins.
 
-Variable T : countType.
+Monomorphic Variable T : countType.
 
-Definition EnumMixin :=
+Monomorphic Definition EnumMixin :=
   let: Countable.Pack _ (Countable.Class _ m) as cT := T
     return forall e : seq cT, axiom e -> mixin_of cT in
   @Mixin (EqType _ _) m.
 
-Definition UniqMixin e Ue eT := @EnumMixin e (uniq_enumP Ue eT).
+Monomorphic Definition UniqMixin e Ue eT := @EnumMixin e (uniq_enumP Ue eT).
 
-Variable n : nat.
+Monomorphic Variable n : nat.
 
-Definition count_enum := pmap (@pickle_inv T) (iota 0 n).
+Monomorphic Definition count_enum := pmap (@pickle_inv T) (iota 0 n).
 
-Hypothesis ubT : forall x : T, pickle x < n.
+Monomorphic Hypothesis ubT : forall x : T, pickle x < n.
 
-Lemma count_enumP : axiom count_enum.
+Monomorphic Lemma count_enumP : axiom count_enum.
 Proof.
 apply: uniq_enumP (pmap_uniq (@pickle_invK T) (iota_uniq _ _)) _ => x.
 by rewrite mem_pmap -pickleK_inv map_f // mem_iota ubT.
 Qed.
 
-Definition CountMixin := EnumMixin count_enumP.
+Monomorphic Definition CountMixin := EnumMixin count_enumP.
 
 End Mixins.
 
@@ -335,7 +335,7 @@ Prenex Implicits pred0b.
 
 Module FiniteQuant.
 
-Variant quantified := Quantified of bool.
+Monomorphic Variant quantified := Quantified of bool.
 
 Declare Scope fin_quant_scope.
 Delimit Scope fin_quant_scope with Q. (* Bogus, only used to declare scope. *)
@@ -463,6 +463,10 @@ Notation "A \proper B" := (proper (mem A) (mem B))
 
 (* image, xinv, inv, and ordinal operations will be defined later. *)
 
+Monomorphic Variant pick_spec (T : finType) (P : pred T) : option T -> Type :=
+  | Pick x of P x         : pick_spec P (Some x)
+  | Nopick of P =1 xpred0 : pick_spec P None.
+
 Section OpsTheory.
 
 Variable T : finType.
@@ -495,11 +499,7 @@ rewrite [enum _](all_pred1P x _ _); first by rewrite size_filter enumP.
 by apply/allP=> y; rewrite mem_enum.
 Qed.
 
-Variant pick_spec : option T -> Type :=
-  | Pick x of P x         : pick_spec (Some x)
-  | Nopick of P =1 xpred0 : pick_spec None.
-
-Lemma pickP : pick_spec (pick P).
+Lemma pickP : pick_spec P (pick P).
 Proof.
 rewrite /pick; case: (enum _) (mem_enum P) => [|x s] Pxs /=.
   by right; apply: fsym.
@@ -952,12 +952,12 @@ Notation "'exists_in_ view" := (exists_inPP _ (fun _ => view))
 Notation "'forall_in_ view" := (forall_inPP _ (fun _ => view))
   (at level 4, right associativity, format "''forall_in_' view").
 
-Section Extrema.
-
-Variant extremum_spec {T : eqType} (ord : rel T) {I : finType}
+Monomorphic Variant extremum_spec {T : eqType} (ord : rel T) {I : finType}
   (P : pred I) (F : I -> T) : I -> Type :=
   ExtremumSpec (i : I) of P i & (forall j : I, P j -> ord (F i) (F j)) :
                    extremum_spec ord P F i.
+
+Section Extrema.
 
 Let arg_pred {T : eqType} ord {I : finType} (P : pred I) (F : I -> T) :=
   [pred i | P i & [forall (j | P j), ord (F i) (F j)]].
@@ -1892,7 +1892,7 @@ Qed.
 Definition unlift n (h i : 'I_n) :=
   omap (fun u : {j | j != h} => Ordinal (unlift_subproof u)) (insub i).
 
-Variant unlift_spec n h i : option 'I_n.-1 -> Type :=
+Monomorphic Variant unlift_spec n h i : option 'I_n.-1 -> Type :=
   | UnliftSome j of i = lift h j : unlift_spec h i (Some j)
   | UnliftNone   of i = h        : unlift_spec h i None.
 
@@ -1944,7 +1944,7 @@ Definition split {m n} (i : 'I_(m + n)) : 'I_m + 'I_n :=
   | GeqNotLtn ge_i_m =>  inr _ (Ordinal (split_subproof ge_i_m))
   end.
 
-Variant split_spec m n (i : 'I_(m + n)) : 'I_m + 'I_n -> bool -> Type :=
+Monomorphic Variant split_spec m n (i : 'I_(m + n)) : 'I_m + 'I_n -> bool -> Type :=
   | SplitLo (j : 'I_m) of i = j :> nat     : split_spec i (inl _ j) true
   | SplitHi (k : 'I_n) of i = m + k :> nat : split_spec i (inr _ k) false.
 

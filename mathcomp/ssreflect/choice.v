@@ -490,13 +490,6 @@ Monomorphic Definition option_choiceMixin T := CanChoiceMixin (@seq_of_optK T).
 Monomorphic Canonical option_choiceType T :=
   Eval hnf in ChoiceType (option T) (option_choiceMixin T).
 
-(*
-Definition sig_choiceMixin T (P : pred T) : choiceMixin {x | P x} :=
-   sub_choiceMixin _.
-Canonical sig_choiceType T (P : pred T) :=
- Eval hnf in ChoiceType {x | P x} (sig_choiceMixin P).
-*)
-
 Monomorphic Definition prod_choiceMixin T1 T2 := CanChoiceMixin (@tag_of_pairK T1 T2).
 Monomorphic Canonical prod_choiceType T1 T2 :=
   Eval hnf in ChoiceType (T1 * T2) (prod_choiceMixin T1 T2).

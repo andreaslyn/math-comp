@@ -114,9 +114,9 @@ Local Open Scope quotient_scope.
 
 Section QuotientDef.
 
-Variable T : Type.
+Monomorphic Variable T : Type.
 
-Record quot_mixin_of qT := QuotClass {
+Monomorphic Record quot_mixin_of qT := QuotClass {
   quot_repr : qT -> T;
   quot_pi : T -> qT;
   _ : cancel quot_repr quot_pi
@@ -124,20 +124,20 @@ Record quot_mixin_of qT := QuotClass {
 
 Notation quot_class_of := quot_mixin_of.
 
-Record quotType := QuotTypePack {
+Monomorphic Record quotType := QuotTypePack {
   quot_sort :> Type;
   quot_class : quot_class_of quot_sort
 }.
 
-Variable qT : quotType.
-Definition pi_phant of phant qT := quot_pi (quot_class qT).
+Monomorphic Variable qT : quotType.
+Monomorphic Definition pi_phant of phant qT := quot_pi (quot_class qT).
 Local Notation "\pi" := (pi_phant (Phant qT)).
-Definition repr_of := quot_repr (quot_class qT).
+Monomorphic Definition repr_of := quot_repr (quot_class qT).
 
-Lemma repr_ofK : cancel repr_of \pi.
+Monomorphic Lemma repr_ofK : cancel repr_of \pi.
 Proof. by rewrite /pi_phant /repr_of /=; case: qT=> [? []]. Qed.
 
-Definition QuotType_clone (Q : Type) qT cT 
+Monomorphic Definition QuotType_clone (Q : Type) qT cT 
   of phant_id (quot_class qT) cT := @QuotTypePack Q cT.
 
 End QuotientDef.
@@ -149,28 +149,28 @@ Arguments repr_ofK {T qT}.
 (****************************)
 
 Module Type PiSig.
-Parameter f@{i} : forall (T : Type@{i}) (qT : quotType@{i i} T), phant@{i i} qT -> T -> qT.
-Axiom E@{i j} : paths@{j} f@{i} pi_phant@{i i i}.
+Monomorphic Parameter f : forall (T : Type) (qT : quotType T), phant qT -> T -> qT.
+Monomorphic Axiom E : f = pi_phant.
 End PiSig.
 
 Module Pi : PiSig.
-Definition f@{i} := pi_phant@{i i i}.
-Definition E@{i j} := erefl@{j} f@{i}.
+Monomorphic Definition f := pi_phant.
+Monomorphic Definition E := erefl f.
 End Pi.
 
 Module MPi : PiSig.
-Definition f@{i} := pi_phant@{i i i}.
-Definition E@{i j} := erefl@{j} f@{i}.
+Monomorphic Definition f := pi_phant.
+Monomorphic Definition E := erefl f.
 End MPi.
 
 Module Type ReprSig.
-Parameter f@{i} : forall (T : Type@{i}) (qT : quotType@{i i} T), qT -> T.
-Axiom E@{i j} : paths@{j} f@{i} repr_of@{i i}.
+Monomorphic Parameter f : forall (T : Type) (qT : quotType T), qT -> T.
+Monomorphic Axiom E : f = repr_of.
 End ReprSig.
 
 Module Repr : ReprSig.
-Definition f@{i} := repr_of@{i i}.
-Definition E@{i j} := erefl@{j} f@{i}.
+Monomorphic Definition f := repr_of.
+Monomorphic Definition E := erefl f.
 End Repr.
 
 (*******************)
@@ -201,6 +201,9 @@ Arguments repr {T qT} x.
 (* Exporting the theory *)
 (************************)
 
+Variant pi_spec (T : Type) (qT : quotType T) (x : T) : T -> Type :=
+  PiSpec y of x = y %[mod qT] : pi_spec qT x y.
+
 Section QuotTypeTheory.
 
 Variable T : Type.
@@ -209,10 +212,7 @@ Variable qT : quotType T.
 Lemma reprK : cancel repr \pi_qT.
 Proof. by move=> x; rewrite !unlock repr_ofK. Qed.
 
-Variant pi_spec (x : T) : T -> Type :=
-  PiSpec y of x = y %[mod qT] : pi_spec x y.
-
-Lemma piP (x : T) : pi_spec x (repr (\pi_qT x)).
+Lemma piP (x : T) : pi_spec qT x (repr (\pi_qT x)).
 Proof. by constructor; rewrite reprK. Qed.
 
 Lemma mpiE : \mpi =1 \pi_qT.
@@ -234,7 +234,7 @@ Arguments reprK {T qT} x.
 (*******************)
 
 (* This was pi_morph T (x : T) := PiMorph { pi_op : T; _ : x = pi_op }. *)
-Structure equal_to T (x : T) := EqualTo {
+Monomorphic Structure equal_to T (x : T) := EqualTo {
    equal_val : T;
    _         : x = equal_val
 }.
@@ -461,6 +461,14 @@ Notation "[ 'finMixin' 'of' Q 'by' <:%/ ]" :=
 (* Definition of a (decidable) equivalence relation *)
 (****************************************************)
 
+Monomorphic Variant equiv_class_of (T : Type) (equiv : rel T) :=
+  EquivClass of reflexive equiv & symmetric equiv & transitive equiv.
+
+Monomorphic Record equiv_rel (T : Type) := EquivRelPack {
+  equiv :> rel T;
+  _ : equiv_class_of equiv
+}.
+
 Section EquivRel.
 
 Variable T : Type.
@@ -473,21 +481,13 @@ Lemma right_trans (e : rel T) :
   symmetric e -> transitive e -> right_transitive e.
 Proof. by move=> s t ? * x; rewrite ![e x _]s; apply: left_trans. Qed.
 
-Variant equiv_class_of (equiv : rel T) :=
-  EquivClass of reflexive equiv & symmetric equiv & transitive equiv.
-
-Record equiv_rel := EquivRelPack {
-  equiv :> rel T;
-  _ : equiv_class_of equiv
-}.
-
-Variable e : equiv_rel.
+Variable e : equiv_rel T.
 
 Definition equiv_class :=
   let: EquivRelPack _ ce as e' := e return equiv_class_of e' in ce.
 
 Definition equiv_pack (r : rel T) ce of phant_id ce equiv_class :=
-  @EquivRelPack r ce.
+  @EquivRelPack T r ce.
 
 Lemma equiv_refl x : e x x. Proof. by case: e => [] ? []. Qed.
 Lemma equiv_sym : symmetric e. Proof. by case: e => [] ? []. Qed.
@@ -514,22 +514,22 @@ Notation "[ 'equiv_rel' 'of' e ]" := (@equiv_pack _ _ e _ id)
 (* Encoding to another type modulo an equivalence *)
 (**************************************************)
 
+Monomorphic Variant encModRel_class_of (D E : Type) (ED : E -> D) (DE : D -> E) (e : rel D) (r : rel D) :=
+  EncModRelClassPack of (forall x, r x x -> r (ED (DE x)) x) & (r =2 e).
+
+Monomorphic Record encModRel (D E : Type) (ED : E -> D) (DE : D -> E) (e : rel D) := EncModRelPack {
+  enc_mod_rel :> rel D;
+  _ : encModRel_class_of ED DE e enc_mod_rel
+}.
+
 Section EncodingModuloRel.
 
 Variables (D E : Type) (ED : E -> D) (DE : D -> E) (e : rel D).
 
-Variant encModRel_class_of (r : rel D) :=
-  EncModRelClassPack of (forall x, r x x -> r (ED (DE x)) x) & (r =2 e).
-
-Record encModRel := EncModRelPack {
-  enc_mod_rel :> rel D;
-  _ : encModRel_class_of enc_mod_rel
-}.
-
-Variable r : encModRel.
+Variable r : encModRel ED DE e.
 
 Definition encModRelClass := 
-  let: EncModRelPack _ c as r' := r return encModRel_class_of r' in c.
+  let: EncModRelPack _ c as r' := r return encModRel_class_of ED DE e r' in c.
 
 Definition encModRelP (x : D) : r x x -> r (ED (DE x)) x.
 Proof. by case: r => [] ? [] /= he _ /he. Qed.

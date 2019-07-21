@@ -327,9 +327,9 @@ Reserved Notation "\bigcap_ ( i 'in' A ) F"
 Module Monoid.
 
 Section Definitions.
-Variables (T : Type) (idm : T).
+Monomorphic Variables (T : Type) (idm : T).
 
-Structure law := Law {
+Monomorphic Structure law := Law {
   operator : T -> T -> T;
   _ : associative operator;
   _ : left_id idm operator;
@@ -337,42 +337,42 @@ Structure law := Law {
 }.
 Local Coercion operator : law >-> Funclass.
 
-Structure com_law := ComLaw {
+Monomorphic Structure com_law := ComLaw {
    com_operator : law;
    _ : commutative com_operator
 }.
 Local Coercion com_operator : com_law >-> law.
 
-Structure mul_law := MulLaw {
+Monomorphic Structure mul_law := MulLaw {
   mul_operator : T -> T -> T;
   _ : left_zero idm mul_operator;
   _ : right_zero idm mul_operator
 }.
 Local Coercion mul_operator : mul_law >-> Funclass.
 
-Structure add_law (mul : T -> T -> T) := AddLaw {
+Monomorphic Structure add_law (mul : T -> T -> T) := AddLaw {
   add_operator : com_law;
   _ : left_distributive mul add_operator;
   _ : right_distributive mul add_operator
 }.
 Local Coercion add_operator : add_law >-> com_law.
 
-Let op_id (op1 op2 : T -> T -> T) := phant_id op1 op2.
+Monomorphic Let op_id (op1 op2 : T -> T -> T) := phant_id op1 op2.
 
-Definition clone_law op :=
+Monomorphic Definition clone_law op :=
   fun (opL : law) & op_id opL op =>
   fun opmA op1m opm1 (opL' := @Law op opmA op1m opm1)
     & phant_id opL' opL => opL'.
 
-Definition clone_com_law op :=
+Monomorphic Definition clone_com_law op :=
   fun (opL : law) (opC : com_law) & op_id opL op & op_id opC op =>
   fun opmC (opC' := @ComLaw opL opmC) & phant_id opC' opC => opC'.
 
-Definition clone_mul_law op :=
+Monomorphic Definition clone_mul_law op :=
   fun (opM : mul_law) & op_id opM op =>
   fun op0m opm0 (opM' := @MulLaw op op0m opm0) & phant_id opM' opM => opM'.
 
-Definition clone_add_law mop aop :=
+Monomorphic Definition clone_add_law mop aop :=
   fun (opC : com_law) (opA : add_law mop) & op_id opC aop & op_id opA aop =>
   fun mopDm mopmD (opA' := @AddLaw mop opC mopDm mopmD)
     & phant_id opA' opA => opA'.
@@ -523,7 +523,7 @@ Open Scope big_scope.
 (* packages both in in a term in which i occurs; it also depends on the       *)
 (* iterated <op>, as this can give more information on the expected type of   *)
 (* the <general_term>, thus allowing for the insertion of coercions.          *)
-Variant bigbody R I := BigBody of I & (R -> R -> R) & bool & R.
+Monomorphic Variant bigbody R I := BigBody of I & (R -> R -> R) & bool & R.
 
 Definition applybig {R I} (body : bigbody R I) x :=
   let: BigBody _ op b v := body in if b then op v x else x.

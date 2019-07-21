@@ -117,20 +117,20 @@ Unset Printing Implicit Defensive.
 
 Module Equality.
 
-Definition axiom T (e : rel T) := forall x y, reflect (x = y) (e x y).
+Monomorphic Definition axiom T (e : rel T) := forall x y, reflect (x = y) (e x y).
 
-Structure mixin_of T := Mixin {op : rel T; _ : axiom op}.
+Monomorphic Structure mixin_of T := Mixin {op : rel T; _ : axiom op}.
 Notation class_of := mixin_of (only parsing).
 
 Section ClassDef.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
+Monomorphic Variables (T : Type) (cT : type).
 
-Definition class := let: Pack _ c := cT return class_of cT in c.
+Monomorphic Definition class := let: Pack _ c := cT return class_of cT in c.
 
-Definition clone := fun c & cT -> T & phant_id (@Pack T c) cT => Pack c.
+Monomorphic Definition clone := fun c & cT -> T & phant_id (@Pack T c) cT => Pack c.
 
 End ClassDef.
 
@@ -150,7 +150,7 @@ End Exports.
 End Equality.
 Export Equality.Exports.
 
-Definition eq_op@{i} (T : eqType@{i}) : rel@{i} T := Equality.op (Equality.class@{i i} T).
+Definition eq_op (T : eqType) : rel T := Equality.op (Equality.class T).
 
 (* eqE is a generic lemma that can be used to fold back recursive comparisons *)
 (* after using partial evaluation to simplify comparisons on concrete         *)
@@ -197,7 +197,7 @@ Proof. exact/eqP/eqP. Qed.
 
 Hint Resolve eq_refl eq_sym : core.
 
-Variant eq_xor_neq (T : eqType) (x y : T) : bool -> bool -> Type :=
+Monomorphic Variant eq_xor_neq (T : eqType) (x y : T) : bool -> bool -> Type :=
   | EqNotNeq of x = y : eq_xor_neq x y true true
   | NeqNotEq of x != y : eq_xor_neq x y false false.
 
@@ -295,7 +295,7 @@ Proof. by move=> eq_x_x; apply: eq_irrelevance. Qed.
 (* forbids using the same constant to coerce to different targets. *)
 Module Type EqTypePredSig.
 
-Parameter sort : eqType@{i} -> predArgType@{i}.
+Monomorphic Parameter sort : eqType -> predArgType.
 
 End EqTypePredSig.
 
@@ -467,13 +467,13 @@ Notation coerced_frel f := (rel_of_simpl_rel (frel f)) (only parsing).
 
 Section FunWith.
 
-Variables (aT : eqType) (rT : Type).
+Monomorphic Variables (aT : eqType) (rT : Type).
 
-Variant fun_delta : Type := FunDelta of aT & rT.
+Monomorphic Variant fun_delta : Type := FunDelta of aT & rT.
 
-Definition fwith x y (f : aT -> rT) := [fun z => if z == x then y else f z].
+Monomorphic Definition fwith x y (f : aT -> rT) := [fun z => if z == x then y else f z].
 
-Definition app_fdelta df f z :=
+Monomorphic Definition app_fdelta df f z :=
   let: FunDelta x y := df in if z == x then y else f z.
 
 End FunWith.
@@ -530,11 +530,11 @@ End ComparableType.
 Definition eq_comparable (T : eqType) : comparable T :=
   fun x y => decP (x =P y).
 
-Section SubType.
+Section SubType1.
 
-Variables (T : Type) (P : pred T).
+Monomorphic Variables (T : Type) (P : pred T).
 
-Structure subType : Type := SubType {
+Monomorphic Structure subType : Type := SubType {
   sub_sort :> Type;
   val : sub_sort -> T;
   Sub : forall x, P x -> sub_sort;
@@ -544,21 +544,41 @@ Structure subType : Type := SubType {
 
 (* Generic proof that the second property holds by conversion.                *)
 (* The vrefl_rect alias is used to flag generic proofs of the first property. *)
-Lemma vrefl : forall x, P x -> x = x. Proof. by []. Qed.
-Definition vrefl_rect := vrefl.
+Monomorphic Lemma vrefl : forall x, P x -> x = x. Proof. by []. Qed.
+Monomorphic Definition vrefl_rect := vrefl.
 
-Definition clone_subType U v :=
+Monomorphic Definition clone_subType U v :=
   fun sT & sub_sort sT -> U =>
   fun c Urec cK (sT' := @SubType U v c Urec cK) & phant_id sT' sT => sT'.
 
-Section Theory.
+Section Theory1.
 
-Variable sT : subType.
+Monomorphic Variable sT : subType.
 
 Local Notation val := (@val sT).
 Local Notation Sub x Px := (@Sub sT x Px).
 
-Variant Sub_spec : sT -> Type := SubSpec x Px : Sub_spec (Sub x Px).
+Monomorphic Variant Sub_spec : sT -> Type := SubSpec x Px : Sub_spec (Sub x Px).
+
+Monomorphic Variant insub_spec x : option sT -> Type :=
+  | InsubSome u of P x & val u = x : insub_spec x (Some u)
+  | InsubNone   of ~~ P x          : insub_spec x None.
+
+End Theory1.
+End SubType1.
+
+Section SubType2.
+
+Variables (T : Type) (P : pred T).
+
+Section Theory2.
+
+Variable sT : subType P.
+
+Local Notation val := (@val T P sT).
+Local Notation Sub x Px := (@Sub T P sT x Px).
+Local Notation Sub_spec := (@Sub_spec T P sT).
+Local Notation SubSpec := (@SubSpec T P sT).
 
 Lemma SubP u : Sub_spec u.
 Proof. case: sT Sub_spec SubSpec u => /= U _ mkU rec _. apply: rec. Qed.
@@ -568,10 +588,6 @@ Lemma SubK x Px : val (Sub x Px) = x. Proof. by case: sT. Qed.
 Definition insub x := if idP is ReflectT Px then Some (Sub x Px) else None.
 
 Definition insubd u0 x := odflt u0 (insub x).
-
-Variant insub_spec x : option sT -> Type :=
-  | InsubSome u of P x & val u = x : insub_spec x (Some u)
-  | InsubNone   of ~~ P x          : insub_spec x None.
 
 Lemma insubP x : insub_spec x (insub x).
 Proof.
@@ -624,9 +640,9 @@ rewrite /insub_eq => x; set b := P x; rewrite [in LHS]/b in (Db := erefl b) *.
 by case: b in Db *; [rewrite (insubT Db) | rewrite (insubF Db)].
 Qed.
 
-End Theory.
+End Theory2.
 
-End SubType.
+End SubType2.
 
 Arguments SubType {T P} sub_sort val Sub rec SubK.
 Arguments val {T P sT} u : rename.

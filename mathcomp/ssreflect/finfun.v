@@ -63,18 +63,18 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Monomorphic Inductive finfun_on (aT : finType) (rT : aT -> Type) : seq aT -> Type :=
+| finfun_nil                            : finfun_on rT [::]
+| finfun_cons x s of rT x & finfun_on rT s : finfun_on rT (x :: s).
+
 Section Def.
 
 Variables (aT : finType) (rT : aT -> Type).
 
-Inductive finfun_on : seq aT -> Type :=
-| finfun_nil                            : finfun_on [::]
-| finfun_cons x s of rT x & finfun_on s : finfun_on (x :: s).
+Local Fixpoint finfun_rec (g : forall x, rT x) s : finfun_on rT s :=
+  if s is x1 :: s1 then finfun_cons (g x1) (finfun_rec g s1) else finfun_nil rT.
 
-Local Fixpoint finfun_rec (g : forall x, rT x) s : finfun_on s :=
-  if s is x1 :: s1 then finfun_cons (g x1) (finfun_rec g s1) else finfun_nil.
-
-Local Fixpoint fun_of_fin_rec x s (f_s : finfun_on s) : x \in s -> rT x :=
+Local Fixpoint fun_of_fin_rec x s (f_s : finfun_on rT s) : x \in s -> rT x :=
   if f_s is finfun_cons x1 s1 y1 f_s1 then
     if eqP is ReflectT Dx in reflect _ Dxb return Dxb || (x \in s1) -> rT x then
       fun=> ecast x (rT x) (esym Dx) y1
@@ -82,7 +82,7 @@ Local Fixpoint fun_of_fin_rec x s (f_s : finfun_on s) : x \in s -> rT x :=
   else fun isF => Empty_rect (fun _ => rT x) (notF isF).
 
 Variant finfun_of (ph : phant (forall x, rT x)) : predArgType :=
-  FinfunOf of finfun_on (enum aT).
+  FinfunOf of finfun_on rT (enum aT).
 
 Definition dfinfun_of ph := finfun_of ph.
 

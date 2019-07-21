@@ -218,7 +218,7 @@ Notation "[ :: x1 ; x2 ; .. ; xn ]" := (x1 :: x2 :: .. [:: xn] ..)
   (at level 0, format "[ :: '['  x1 ; '/'  x2 ; '/'  .. ; '/'  xn ']' ]"
   ) : seq_scope.
 
-Section Sequences.
+Section Sequences1.
 
 Variable n0 : nat.  (* numerical parameter for take, drop et al *)
 Variable T : Type.  (* must come before the implicit Type     *)
@@ -331,9 +331,23 @@ Proof. by rewrite -cats1 -catA. Qed.
 Lemma rcons_cat x s1 s2 : rcons (s1 ++ s2) x = s1 ++ rcons s2 x.
 Proof. by rewrite -!cats1 catA. Qed.
 
-Variant last_spec : seq T -> Type :=
+End Sequences1.
+
+Monomorphic Variant last_spec (T : Type) : seq T -> Type :=
   | LastNil        : last_spec [::]
   | LastRcons s x  : last_spec (rcons s x).
+
+Section Sequences2.
+
+Variable n0 : nat.  (* numerical parameter for take, drop et al *)
+Variable T : Type.  (* must come before the implicit Type     *)
+Variable x0 : T.    (* default for head/nth *)
+
+Implicit Types x y z : T.
+Implicit Types m n : nat.
+Implicit Type s : seq T.
+
+Local Notation last_spec := (@last_spec T).
 
 Lemma lastP s : last_spec s.
 Proof. case: s => [|x s]; [left | rewrite lastI; right]. Qed.
@@ -355,7 +369,7 @@ Fixpoint set_nth s n y {struct n} :=
   if s is x :: s' then if n is n'.+1 then x :: @set_nth s' n' y else y :: s'
   else ncons n x0 [:: y].
 
-Lemma nth0 s : nth s 0 = head s. Proof. by []. Qed.
+Lemma nth0 s : nth s 0 = head x0 s. Proof. by []. Qed.
 
 Lemma nth_default s n : size s <= n -> nth s n = x0.
 Proof. by elim: s n => [|x s IHs] []. Qed.
@@ -371,6 +385,8 @@ Proof. by case: s => //= x s; rewrite last_nth. Qed.
 
 Lemma nth_behead s n : nth (behead s) n = nth s n.+1.
 Proof. by case: s n => [|x s] [|n]. Qed.
+
+Notation "s1 ++ s2" := (cat s1 s2).
 
 Lemma nth_cat s1 s2 n :
   nth (s1 ++ s2) n = if n < size s1 then nth s1 n else nth s2 (n - size s1).
@@ -647,12 +663,12 @@ Fixpoint drop n s {struct s} :=
   | _, _ => s
   end.
 
-Lemma drop_behead : drop n0 =1 iter n0 behead.
+Lemma drop_behead : drop n0 =1 iter n0 (@behead T).
 Proof. by elim: n0 => [|n IHn] [|x s] //; rewrite iterSr -IHn. Qed.
 
 Lemma drop0 s : drop 0 s = s. Proof. by case: s. Qed.
 
-Lemma drop1 : drop 1 =1 behead. Proof. by case=> [|x [|y s]]. Qed.
+Lemma drop1 : drop 1 =1 @behead T. Proof. by case=> [|x [|y s]]. Qed.
 
 Lemma drop_oversize n s : size s <= n -> drop n s = [::].
 Proof. by elim: s n => [|x s IHs] []. Qed.
@@ -843,7 +859,7 @@ Proof. by rewrite !has_count count_rev. Qed.
 Lemma all_rev a s : all a (rev s) = all a s.
 Proof. by rewrite !all_count count_rev size_rev. Qed.
 
-End Sequences.
+End Sequences2.
 
 Prenex Implicits size ncons nseq head ohead behead last rcons belast.
 Arguments seqn {T} n.
@@ -1323,7 +1339,21 @@ Proof. by move=> x; rewrite -{2}(cat_take_drop n0 s) !mem_cat /= orbC. Qed.
 Lemma eqseq_rot s1 s2 : (rot n0 s1 == rot n0 s2) = (s1 == s2).
 Proof. by apply: inj_eq; apply: rot_inj. Qed.
 
-Variant rot_to_spec s x := RotToSpec i s' of rot i s = x :: s'.
+End EqSeq5.
+
+Section EqSeq6.
+
+Monomorphic Variables (T : eqType).
+Implicit Types (x y z : T) (s : seq T).
+
+Monomorphic Variant rot_to_spec s x := RotToSpec i s' of @rot T i s = x :: s'.
+
+End EqSeq6.
+
+Section EqSeq7.
+
+Variables (T : eqType).
+Implicit Types (x y z : T) (s : seq T).
 
 Lemma rot_to s x : x \in s -> rot_to_spec s x.
 Proof.
@@ -1332,7 +1362,7 @@ rewrite -cat_cons {}/i; congr cat; elim: s s_x => //= y s IHs.
 by rewrite in_cons; case: eqVneq => // -> _; rewrite drop0.
 Qed.
 
-End EqSeq5.
+End EqSeq7.
 
 Definition inE := (mem_seq1, in_cons, inE).
 

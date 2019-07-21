@@ -159,13 +159,32 @@ End Paths.
 
 Arguments pathP {T e x p}.
 
+Monomorphic Variant split (T : eqType) x : seq T -> seq T -> seq T -> Type :=
+  Split p1 p2 : split x (rcons p1 x ++ p2) p1 p2.
+
+Monomorphic Variant splitl (T : eqType) x1 x : seq T -> Type :=
+  Splitl p1 p2 of last x1 p1 = x : splitl x1 x (p1 ++ p2).
+
+Monomorphic Variant splitr (T :eqType) x : seq T -> Type :=
+  Splitr p1 p2 : splitr x (p1 ++ x :: p2).
+
+Monomorphic Variant split2r (T : eqType) x y : seq T -> Type :=
+  Split2r p1 p2 of y \in x :: p2 : split2r x y (p1 ++ x :: p2).
+
+Monomorphic Variant shorten_spec (T : eqType) (e : rel T) x (p : seq T) : T -> seq T -> Type :=
+   ShortenSpec p' of path e x p' & uniq (x :: p') & subpred (mem p') (mem p) :
+     shorten_spec e x p (last x p') p'.
+
 Section EqPath.
 
 Variables (n0 : nat) (T : eqType) (x0_cycle : T) (e : rel T).
 Implicit Type p : seq T.
 
-Variant split x : seq T -> seq T -> seq T -> Type :=
-  Split p1 p2 : split x (rcons p1 x ++ p2) p1 p2.
+Notation split := (@split T).
+Notation splitl := (@splitl T).
+Notation splitr := (@splitr T).
+Notation split2r := (@split2r T).
+Notation shorten_spec := (@shorten_spec T e).
 
 Lemma splitP p x (i := index x p) :
   x \in p -> split x p (take i p) (drop i.+1 p).
@@ -174,17 +193,11 @@ move=> p_x; have lt_ip: i < size p by rewrite index_mem.
 by rewrite -{1}(cat_take_drop i p) (drop_nth x lt_ip) -cat_rcons nth_index.
 Qed.
 
-Variant splitl x1 x : seq T -> Type :=
-  Splitl p1 p2 of last x1 p1 = x : splitl x1 x (p1 ++ p2).
-
 Lemma splitPl x1 p x : x \in x1 :: p -> splitl x1 x p.
 Proof.
 rewrite inE; case: eqP => [->| _ /splitP[]]; first by rewrite -(cat0s p).
 by split; apply: last_rcons.
 Qed.
-
-Variant splitr x : seq T -> Type :=
-  Splitr p1 p2 : splitr x (p1 ++ x :: p2).
 
 Lemma splitPr p x : x \in p -> splitr x p.
 Proof. by case/splitP=> p1 p2; rewrite cat_rcons. Qed.
@@ -338,9 +351,6 @@ move=> p2'x p2'y; rewrite catA !mem2_cat !mem_cat.
 by rewrite (negPf p2'x) (negPf p2'y) (mem2lf p2'x) andbF !orbF.
 Qed.
 
-Variant split2r x y : seq T -> Type :=
-  Split2r p1 p2 of y \in x :: p2 : split2r x y (p1 ++ x :: p2).
-
 Lemma splitP2r p x y : mem2 p x y -> split2r x y p.
 Proof.
 move=> pxy; have px := mem2l pxy.
@@ -352,10 +362,6 @@ Fixpoint shorten x p :=
   if p is y :: p' then
     if x \in p then shorten x p' else y :: shorten y p'
   else [::].
-
-Variant shorten_spec x p : T -> seq T -> Type :=
-   ShortenSpec p' of path e x p' & uniq (x :: p') & subpred (mem p') (mem p) :
-     shorten_spec x p (last x p') p'.
 
 Lemma shortenP x p : path e x p -> shorten_spec x p (last x p) (shorten x p).
 Proof.
@@ -867,13 +873,15 @@ rewrite -[p]cat_cons -rot_size_cat rot_uniq => Up.
 by rewrite arc_rot ?left_arc ?mem_head.
 Qed.
 
-Variant rot_to_arc_spec p x y :=
+End CycleArc.
+
+Monomorphic Variant rot_to_arc_spec (T : eqType) (p : seq T) x y :=
     RotToArcSpec i p1 p2 of x :: p1 = arc p x y
                           & y :: p2 = arc p y x
                           & rot i p = x :: p1 ++ y :: p2 :
     rot_to_arc_spec p x y.
 
-Lemma rot_to_arc p x y :
+Lemma rot_to_arc (T : eqType) (p : seq T) x y :
   uniq p -> x \in p -> y \in p -> x != y -> rot_to_arc_spec p x y.
 Proof.
 move=> Up p_x p_y ne_xy; case: (rot_to p_x) (p_y) (Up) => [i q def_p] q_y.
@@ -883,8 +891,6 @@ case/splitPr: q / q_y def_p => q1 q2 def_p Uq12; exists i q1 q2 => //.
   by rewrite -(arc_rot i Up p_x) def_p left_arc.
 by rewrite -(arc_rot i Up p_y) def_p right_arc.
 Qed.
-
-End CycleArc.
 
 Prenex Implicits arc.
 
