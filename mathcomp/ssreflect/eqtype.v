@@ -176,12 +176,20 @@ Open Scope eq_scope.
 
 Notation "x == y" := (eq_op x y)
   (at level 70, no associativity) : type_scope.
+Notation "x == y" := (eq_op x y)
+  (at level 70, no associativity) : bool_scope.
 Notation "x == y :> T" := ((x : T) == (y : T))
   (at level 70, y at next level) : type_scope.
+Notation "x == y :> T" := ((x : T) == (y : T))
+  (at level 70, y at next level) : bool_scope.
 Notation "x != y" := (~~ (x == y))
   (at level 70, no associativity) : type_scope.
+Notation "x != y" := (~~ (x == y))
+  (at level 70, no associativity) : bool_scope.
 Notation "x != y :> T" := (~~ (x == y :> T))
   (at level 70, y at next level) : type_scope.
+Notation "x != y :> T" := (~~ (x == y :> T))
+  (at level 70, y at next level) : bool_scope.
 Notation "x =P y" := (eqP : reflect (x = y) (x == y))
   (at level 70, no associativity) : eq_scope.
 Notation "x =P y :> T" := (eqP : reflect (x = y :> T) (x == y :> T))

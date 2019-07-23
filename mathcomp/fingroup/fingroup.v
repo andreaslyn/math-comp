@@ -207,7 +207,7 @@ Module FinGroup.
 (* Another potential benefit (not exploited here) would   *)
 (* be to define a class for infinite groups, which could  *)
 (* share all of the algebraic laws.                       *)
-Record mixin_of (T : Type) : Type := BaseMixin {
+Monomorphic Record mixin_of (T : Type) : Type := BaseMixin {
   mul : T -> T -> T;
   one : T;
   inv : T -> T;
@@ -217,7 +217,7 @@ Record mixin_of (T : Type) : Type := BaseMixin {
   _ : {morph inv : x y / mul x y >-> mul y x}
 }.
 
-Structure base_type : Type := PackBase {
+Monomorphic Structure base_type : Type := PackBase {
   sort : Type;
    _ : mixin_of sort;
    _ : Finite.class_of sort
@@ -241,15 +241,15 @@ Structure base_type : Type := PackBase {
 (* Note that since we do this here and in quotient.v for all the  *)
 (* basic functions, the inferred return type should generally be  *)
 (* correct.                                                       *)
-Definition arg_sort := sort.
+Monomorphic Definition arg_sort := sort.
 
-Definition mixin T :=
+Monomorphic Definition mixin T :=
   let: PackBase _ m _ := T return mixin_of (sort T) in m.
 
-Definition finClass T :=
+Monomorphic Definition finClass T :=
   let: PackBase _ _ m := T return Finite.class_of (sort T) in m.
 
-Structure type : Type := Pack {
+Monomorphic Structure type : Type := Pack {
   base : base_type;
   _ : left_inverse (one (mixin base)) (inv (mixin base)) (mul (mixin base))
 }.
@@ -280,18 +280,20 @@ move=> x y /=; rewrite -[y^-1 * _]mul1 -(mulV (x * y)) -2!mulA (mulA y).
 by rewrite mulxV mul1 mulxV -(mulxV (x * y)) mulA mulV mul1.
 Qed.
 
-Definition Mixin := BaseMixin mulA mul1 mk_invgK mk_invMg.
-
 End Mixin.
 
-Definition pack_base T m :=
+Monomorphic Definition Mixin (T : Type) (one : T) (mul : T -> T -> T) (inv : T -> T)
+  (mulA : associative mul) (mul1 : left_id one mul) (mulV : left_inverse one inv mul)
+:= BaseMixin mulA mul1 (@mk_invgK T one mul inv mulA mul1 mulV) (@mk_invMg  T one mul inv mulA mul1 mulV).
+
+Monomorphic Definition pack_base T m :=
   fun c cT & phant_id (Finite.class cT) c => @PackBase T m c.
 
-Definition clone_base T :=
+Monomorphic Definition clone_base T :=
   fun bT & sort bT -> T =>
   fun m c (bT' := @PackBase T m c) & phant_id bT' bT => bT'.
 
-Definition clone T :=
+Monomorphic Definition clone T :=
   fun bT gT & sort bT * sort (base gT) -> T * T =>
   fun m (gT' := @Pack bT m) & phant_id gT' gT => gT'.
 
@@ -430,8 +432,6 @@ Proof. by rewrite eq_invg_sym invg1. Qed.
 
 Lemma mulg1 : right_id 1 mulgT.
 Proof. by move=> x; apply: invg_inj; rewrite invMg invg1 mul1g. Qed.
-
-Canonical finGroup_law := Monoid.Law mulgA mul1g mulg1.
 
 Lemma expgnE x n : x ^+ n = expgn_rec x n. Proof. by []. Qed.
 
@@ -633,6 +633,9 @@ Proof. exact/eqP/commgP/commuteV/commuteX. Qed.
 
 End GroupIdentities.
 
+Monomorphic Canonical finGroup_law (T : baseFinGroupType) :=
+  Monoid.Law (@mulgA T) (@mul1g T) (@mulg1 T).
+
 Hint Rewrite mulg1 mul1g invg1 mulVg mulgV (@invgK) mulgK mulgKV
              invMg mulgA : gsimpl.
 
@@ -712,16 +715,18 @@ apply/imset2P/imset2P=> [[x y Ax By /(canRL invgK)->] | [y x]].
 by rewrite !inE => By1 Ax1 ->; exists x^-1 y^-1; rewrite ?invMg.
 Qed.
 
-Definition group_set_baseGroupMixin : FinGroup.mixin_of (set_type gT) :=
-  FinGroup.BaseMixin set_mulgA set_mul1g set_invgK set_invgM.
+End BaseSetMulDef.
 
-Canonical group_set_baseGroupType :=
-  Eval hnf in BaseFinGroupType (set_type gT) group_set_baseGroupMixin.
+Monomorphic Definition group_set_baseGroupMixin (gT : baseFinGroupType)
+  : FinGroup.mixin_of (set_type gT) :=
+  FinGroup.BaseMixin (@set_mulgA gT) (@set_mul1g gT) (@set_invgK gT) (@set_invgM gT).
 
-Canonical group_set_of_baseGroupType :=
+Canonical group_set_baseGroupType (gT : baseFinGroupType) :=
+  Eval hnf in BaseFinGroupType (set_type gT) (group_set_baseGroupMixin gT).
+
+Canonical group_set_of_baseGroupType (gT : baseFinGroupType) :=
   Eval hnf in [baseFinGroupType of {set gT}].
 
-End BaseSetMulDef.
 
 (* Time to open the bag of dirty tricks. When we define groups down below *)
 (* as a subtype of {set gT}, we need them to be able to coerce to sets in *)
@@ -747,11 +752,11 @@ End MakeGroupSetBaseGroup.
 
 Module Export GroupSetBaseGroup := MakeGroupSetBaseGroup GroupSet.
 
-Canonical group_set_eqType gT := Eval hnf in [eqType of GroupSet.sort gT].
-Canonical group_set_choiceType gT :=
+Monomorphic Canonical group_set_eqType gT := Eval hnf in [eqType of GroupSet.sort gT].
+Monomorphic Canonical group_set_choiceType gT :=
   Eval hnf in [choiceType of GroupSet.sort gT].
-Canonical group_set_countType gT := Eval hnf in [countType of GroupSet.sort gT].
-Canonical group_set_finType gT := Eval hnf in [finType of GroupSet.sort gT].
+Monomorphic Canonical group_set_countType gT := Eval hnf in [countType of GroupSet.sort gT].
+Monomorphic Canonical group_set_finType gT := Eval hnf in [finType of GroupSet.sort gT].
 
 Section GroupSetMulDef.
 (* Some of these constructs could be defined on a baseFinGroupType. *)
@@ -948,7 +953,7 @@ Arguments set1gP {gT x}.
 Arguments mulsgP {gT A B x}.
 Arguments prodsgP {gT I P A x}.
 
-Section GroupSetMulProp.
+Section GroupSetMulProp1.
 (* Constructs that need a finGroupType *)
 Variable gT : finGroupType.
 Implicit Types A B C D : {set gT}.
@@ -1234,45 +1239,63 @@ apply: (iffP andP) => [] [A1 AM]; split=> {A1}//.
 by apply/subsetP=> _ /mulsgP[x y Ax Ay ->]; apply: AM.
 Qed.
 
-Structure group_type : Type := Group {
+End GroupSetMulProp1.
+
+Section GroupSetMulProp2.
+
+Monomorphic Variable gT : finGroupType.
+Implicit Types A B C D : {set gT}.
+Implicit Type x y z : gT.
+
+Monomorphic Structure group_type : Type := Group {
   gval :> GroupSet.sort gT;
   _ : group_set gval
 }.
 
-Definition group_of of phant gT : predArgType := group_type.
+Monomorphic Definition group_of of phant gT : predArgType := group_type.
 Local Notation groupT := (group_of (Phant gT)).
-Identity Coercion type_of_group : group_of >-> group_type.
+Monomorphic Identity Coercion type_of_group : group_of >-> group_type.
 
-Canonical group_subType := Eval hnf in [subType for gval].
-Definition group_eqMixin := Eval hnf in [eqMixin of group_type by <:].
-Canonical group_eqType := Eval hnf in EqType group_type group_eqMixin.
-Definition group_choiceMixin := [choiceMixin of group_type by <:].
-Canonical group_choiceType :=
+Monomorphic Canonical group_subType := Eval hnf in [subType for gval].
+Monomorphic Definition group_eqMixin := Eval hnf in [eqMixin of group_type by <:].
+Monomorphic Canonical group_eqType := Eval hnf in EqType group_type group_eqMixin.
+Monomorphic Definition group_choiceMixin := [choiceMixin of group_type by <:].
+Monomorphic Canonical group_choiceType :=
   Eval hnf in ChoiceType group_type group_choiceMixin.
-Definition group_countMixin := [countMixin of group_type by <:].
-Canonical group_countType := Eval hnf in CountType group_type group_countMixin.
-Canonical group_subCountType := Eval hnf in [subCountType of group_type].
-Definition group_finMixin := [finMixin of group_type by <:].
-Canonical group_finType := Eval hnf in FinType group_type group_finMixin.
-Canonical group_subFinType := Eval hnf in [subFinType of group_type].
+Monomorphic Definition group_countMixin := [countMixin of group_type by <:].
+Monomorphic Canonical group_countType := Eval hnf in CountType group_type group_countMixin.
+Monomorphic Canonical group_subCountType := Eval hnf in [subCountType of group_type].
+Monomorphic Definition group_finMixin := [finMixin of group_type by <:].
+Monomorphic Canonical group_finType := Eval hnf in FinType group_type group_finMixin.
+Monomorphic Canonical group_subFinType := Eval hnf in [subFinType of group_type].
 
 (* No predType or baseFinGroupType structures, as these would hide the *)
 (* group-to-set coercion and thus spoil unification.                  *)
 
-Canonical group_of_subType := Eval hnf in [subType of groupT].
-Canonical group_of_eqType := Eval hnf in [eqType of groupT].
-Canonical group_of_choiceType := Eval hnf in [choiceType of groupT].
-Canonical group_of_countType := Eval hnf in [countType of groupT].
-Canonical group_of_subCountType := Eval hnf in [subCountType of groupT].
-Canonical group_of_finType := Eval hnf in [finType of groupT].
-Canonical group_of_subFinType := Eval hnf in [subFinType of groupT].
+Monomorphic Canonical group_of_subType := Eval hnf in [subType of groupT].
+Monomorphic Canonical group_of_eqType := Eval hnf in [eqType of groupT].
+Monomorphic Canonical group_of_choiceType := Eval hnf in [choiceType of groupT].
+Monomorphic Canonical group_of_countType := Eval hnf in [countType of groupT].
+Monomorphic Canonical group_of_subCountType := Eval hnf in [subCountType of groupT].
+Monomorphic Canonical group_of_finType := Eval hnf in [finType of groupT].
+Monomorphic Canonical group_of_subFinType := Eval hnf in [subFinType of groupT].
 
-Definition group (A : {set gT}) gA : groupT := @Group A gA.
+End GroupSetMulProp2.
+
+Section GroupSetMulProp3.
+
+Variable gT : finGroupType.
+Implicit Types A B C D : {set gT}.
+Implicit Type x y z : gT.
+
+Local Notation groupT := (group_of (Phant gT)).
+
+Definition group (A : {set gT}) gA : groupT := @Group gT A gA.
 
 Definition clone_group G :=
-  let: Group _ gP := G return {type of Group for G} -> groupT in fun k => k gP.
+  let: Group _ gP := G return {type of @Group gT for G} -> groupT in fun k => k gP.
 
-Lemma group_inj : injective gval. Proof. exact: val_inj. Qed.
+Lemma group_inj : injective (@gval gT). Proof. exact: val_inj. Qed.
 Lemma groupP (G : groupT) : group_set G. Proof. by case: G. Qed.
 
 Lemma congr_group (H K : groupT) : H = K -> H :=: K.
@@ -1281,16 +1304,26 @@ Proof. exact: congr1. Qed.
 Lemma isgroupP A : reflect (exists G : groupT, A = G) (group_set A).
 Proof. by apply: (iffP idP) => [gA | [[B gB] -> //]]; exists (Group gA). Qed.
 
-Lemma group_set_one : group_set 1.
+Lemma group_set_one : @group_set gT 1.
 Proof. by rewrite /group_set set11 mulg1 subxx. Qed.
-
-Canonical one_group := group group_set_one.
-Canonical set1_group := @group [set 1] group_set_one.
 
 Lemma group_setT (phT : phant gT) : group_set (setTfor phT).
 Proof. by apply/group_setP; split=> [|x y _ _]; rewrite inE. Qed.
 
-Canonical setT_group phT := group (group_setT phT).
+End GroupSetMulProp3.
+
+Monomorphic Canonical one_group (gT : finGroupType) := group (@group_set_one gT).
+Monomorphic Canonical set1_group (gT : finGroupType) := @group gT [set 1] (@group_set_one gT).
+
+Monomorphic Canonical setT_group (gT : finGroupType) phT := group (@group_setT gT phT).
+
+Section GroupSetMulProp4.
+
+Variable gT : finGroupType.
+Implicit Types A B C D : {set gT}.
+Implicit Type x y z : gT.
+
+Local Notation groupT := (group_of (Phant gT)).
 
 (* These definitions come early so we can establish the Notation. *)
 Definition generated A := \bigcap_(G : groupT | A \subset G) G.
@@ -1300,7 +1333,7 @@ Definition commutator A B := generated (commg_set A B).
 Definition cycle x := generated [set x].
 Definition order x := #|cycle x|.
 
-End GroupSetMulProp.
+End GroupSetMulProp4.
 
 Arguments lcosetP {gT A x y}.
 Arguments lcosetsP {gT A B C}.
@@ -1341,17 +1374,18 @@ Notation "[ ~: A1 , A2 , .. , An ]" :=
 
 Prenex Implicits order cycle gcore.
 
-Section GroupProp.
+Monomorphic Variant rcoset_repr_spec (gT : finGroupType) (G : {group gT}) x : gT -> Type :=
+  RcosetReprSpec g : g \in G -> rcoset_repr_spec G x (g * x).
 
-Variable gT : finGroupType.
+Monomorphic Inductive subg_of (gT : finGroupType) (G : {group gT}) : predArgType := Subg x & x \in G.
+
+Section GroupProp1.
+
+Variables (gT : finGroupType) (G : {group gT}).
 Notation sT := {set gT}.
 Implicit Types A B C D : sT.
 Implicit Types x y z : gT.
 Implicit Types G H K : {group gT}.
-
-Section OneGroup.
-
-Variable G : {group gT}.
 
 Lemma valG : val G = G. Proof. by []. Qed.
 
@@ -1568,15 +1602,12 @@ Proof. by move=> Gx; rewrite (rcoset_eqP (_ : x \in G :* 1)) mulg1. Qed.
 
 (* Elimination form. *)
 
-Variant rcoset_repr_spec x : gT -> Type :=
-  RcosetReprSpec g : g \in G -> rcoset_repr_spec x (g * x).
-
 Lemma mem_repr_rcoset x : repr (G :* x) \in G :* x.
 Proof. exact: mem_repr (rcoset_refl x). Qed.
 
 (* This form sometimes fails because ssreflect 1.1 delegates matching to the *)
 (* (weaker) primitive Coq algorithm for general (co)inductive type families. *)
-Lemma repr_rcosetP x : rcoset_repr_spec x (repr (G :* x)).
+Lemma repr_rcosetP x : rcoset_repr_spec G x (repr (G :* x)).
 Proof.
 by rewrite -[repr _](mulgKV x); split; rewrite -mem_rcoset mem_repr_rcoset.
 Qed.
@@ -1605,8 +1636,6 @@ Proof. by rewrite /group_set mem_conjg conj1g -conjsMg conjSg. Qed.
 
 Lemma group_set_conjG x : group_set (G :^ x).
 Proof. by rewrite group_setJ groupP. Qed.
-
-Canonical conjG_group x := group (group_set_conjG x).
 
 Lemma conjGid : {in G, normalised G}.
 Proof. by move=> x Gx; apply/setP=> y; rewrite mem_conjg groupJr ?groupV. Qed.
@@ -1718,32 +1747,49 @@ rewrite cover_imset class_supportEr setDE big_distrl /=.
 by apply: eq_bigr => x _; rewrite -setDE conjD1g.
 Qed.
 
+End GroupProp1.
+
+Section GroupProp2.
+
+Monomorphic Variables (gT : finGroupType) (G : {group gT}).
+
+Monomorphic Canonical conjG_group x := group (group_set_conjG G x).
+
 (* Subgroup Type construction. *)
 (* We only expect to use this for abstract groups, so we don't project *)
 (* the argument to a set.                                              *)
 
-Inductive subg_of : predArgType := Subg x & x \in G.
-Definition sgval u := let: Subg x _ := u in x.
-Canonical subg_subType := Eval hnf in [subType for sgval].
-Definition subg_eqMixin := Eval hnf in [eqMixin of subg_of by <:].
-Canonical subg_eqType := Eval hnf in EqType subg_of subg_eqMixin.
-Definition subg_choiceMixin := [choiceMixin of subg_of by <:].
-Canonical subg_choiceType := Eval hnf in ChoiceType subg_of subg_choiceMixin.
-Definition subg_countMixin := [countMixin of subg_of by <:].
-Canonical subg_countType := Eval hnf in CountType subg_of subg_countMixin.
-Canonical subg_subCountType := Eval hnf in [subCountType of subg_of].
-Definition subg_finMixin := [finMixin of subg_of by <:].
-Canonical subg_finType := Eval hnf in FinType subg_of subg_finMixin.
-Canonical subg_subFinType := Eval hnf in [subFinType of subg_of].
+Monomorphic Definition sgval (u : subg_of G) := let: Subg x _ := u in x.
+Monomorphic Canonical subg_subType := Eval hnf in [subType for sgval].
+Monomorphic Definition subg_eqMixin := Eval hnf in [eqMixin of subg_of G by <:].
+Monomorphic Canonical subg_eqType := Eval hnf in EqType (subg_of G) subg_eqMixin.
+Monomorphic Definition subg_choiceMixin := [choiceMixin of subg_of G by <:].
+Monomorphic Canonical subg_choiceType := Eval hnf in ChoiceType (subg_of G) subg_choiceMixin.
+Monomorphic Definition subg_countMixin := [countMixin of subg_of G by <:].
+Monomorphic Canonical subg_countType := Eval hnf in CountType (subg_of G) subg_countMixin.
+Monomorphic Canonical subg_subCountType := Eval hnf in [subCountType of subg_of G].
+Monomorphic Definition subg_finMixin := [finMixin of subg_of G by <:].
+Monomorphic Canonical subg_finType := Eval hnf in FinType (subg_of G) subg_finMixin.
+Monomorphic Canonical subg_subFinType := Eval hnf in [subFinType of subg_of G].
 
-Lemma subgP u : sgval u \in G.
+End GroupProp2.
+
+Section GroupProp3.
+
+Variables (gT : finGroupType) (G : {group gT}).
+Notation sT := {set gT}.
+Implicit Types A B C D : sT.
+Implicit Types x y z : gT.
+Implicit Types G H K : {group gT}.
+
+Lemma subgP u : @sgval gT G u \in G.
 Proof. exact: valP. Qed.
-Lemma subg_inj : injective sgval.
+Lemma subg_inj : injective (@sgval gT G).
 Proof. exact: val_inj. Qed.
-Lemma congr_subg u v : u = v -> sgval u = sgval v.
+Lemma congr_subg u v : u = v -> @sgval gT G u = sgval v.
 Proof. exact: congr1. Qed.
 
-Definition subg_one := Subg group1.
+Definition subg_one := Subg (group1 G).
 Definition subg_inv u := Subg (groupVr (subgP u)).
 Definition subg_mul u v := Subg (groupM (subgP u) (subgP v)).
 Lemma subg_oneP : left_id subg_one subg_mul.
@@ -1754,28 +1800,53 @@ Proof. by move=> u; apply: val_inj; apply: mulVg. Qed.
 Lemma subg_mulP : associative subg_mul.
 Proof. by move=> u v w; apply: val_inj; apply: mulgA. Qed.
 
-Definition subFinGroupMixin := FinGroup.Mixin subg_mulP subg_oneP subg_invP.
-Canonical subBaseFinGroupType :=
-  Eval hnf in BaseFinGroupType subg_of subFinGroupMixin.
-Canonical subFinGroupType := FinGroupType subg_invP.
+End GroupProp3.
 
-Lemma sgvalM : {in setT &, {morph sgval : x y / x * y}}. Proof. by []. Qed.
-Lemma valgM : {in setT &, {morph val : x y / (x : subg_of) * y >-> x * y}}.
+Section GroupProp4.
+
+Monomorphic Variables (gT : finGroupType) (G : {group gT}).
+
+Monomorphic Definition subFinGroupMixin :=
+  FinGroup.Mixin (@subg_mulP gT G) (@subg_oneP gT G) (@subg_invP gT G).
+Monomorphic Canonical subBaseFinGroupType :=
+  Eval hnf in BaseFinGroupType (subg_of G) subFinGroupMixin.
+Monomorphic Canonical subFinGroupType := FinGroupType (@subg_invP gT G).
+
+End GroupProp4.
+
+Section GroupProp5.
+
+Variables (gT : finGroupType) (G : {group gT}).
+Notation sT := {set gT}.
+Implicit Types A B C D : sT.
+Implicit Types x y z : gT.
+Implicit Types G H K : {group gT}.
+
+Lemma sgvalM : {in setT &, {morph @sgval gT G : x y / x * y}}. Proof. by []. Qed.
+Lemma valgM : {in setT &, {morph val : x y / (x : subg_of G) * y >-> x * y}}.
 Proof. by []. Qed.
 
-Definition subg : gT -> subg_of := insubd (1 : subg_of).
+Definition subg : gT -> subg_of G := insubd (1 : subg_of G).
 Lemma subgK x : x \in G -> val (subg x) = x.
 Proof. by move=> Gx; rewrite insubdK. Qed.
-Lemma sgvalK : cancel sgval subg.
+Lemma sgvalK : cancel (@sgval gT G) subg.
 Proof. by case=> x Gx; apply: val_inj; apply: subgK. Qed.
 Lemma subg_default x : (x \in G) = false -> val (subg x) = 1.
 Proof. by move=> Gx; rewrite val_insubd Gx. Qed.
 Lemma subgM : {in G &, {morph subg : x y / x * y}}.
 Proof. by move=> x y Gx Gy; apply: val_inj; rewrite /= !subgK ?groupM. Qed.
 
-End OneGroup.
+End GroupProp5.
 
-Hint Resolve group1 : core.
+Section GroupProp6.
+
+Variables (gT : finGroupType).
+Notation sT := {set gT}.
+Implicit Types A B C D : sT.
+Implicit Types x y z : gT.
+Implicit Types G H K : {group gT}.
+
+Hint Resolve (@group1 gT) : core.
 
 Lemma groupD1_inj G H : G^# = H^# -> G :=: H.
 Proof. by move/(congr1 (setU 1)); rewrite !setD1K. Qed.
@@ -1821,7 +1892,7 @@ move=> sBG; apply: invg_inj; rewrite !(invMg, invIg) !invGid !(setIC G).
 by rewrite group_modl // -invGid invSg.
 Qed.
 
-End GroupProp.
+End GroupProp6.
 
 Hint Extern 0 (is_true (1%g \in _)) => apply: group1 : core.
 Hint Extern 0 (is_true (0 < #|_|)) => apply: cardG_gt0 : core.
@@ -1843,13 +1914,13 @@ Arguments trivgP {gT G}.
 Arguments trivGP {gT G}.
 Arguments lcoset_eqP {gT G x y}.
 Arguments rcoset_eqP {gT G x y}.
-Arguments mulGidPl [gT G H].
-Arguments mulGidPr [gT G H].
+Arguments mulGidPl {gT G H}.
+Arguments mulGidPr {gT G H}.
 Arguments comm_group_setP {gT G H}.
 Arguments class_eqP {gT G x y}.
 Arguments repr_classesP {gT G xG}.
 
-Section GroupInter.
+Section GroupInter1.
 
 Variable gT : finGroupType.
 Implicit Types A B : {set gT}.
@@ -1861,26 +1932,44 @@ apply/group_setP; split=> [|x y]; rewrite !inE ?group1 //.
 by case/andP=> Gx Hx; rewrite !groupMl.
 Qed.
 
-Canonical setI_group G H := group (group_setI G H).
+End GroupInter1.
 
-Section Nary.
+Monomorphic Canonical setI_group (gT : finGroupType) (G H : {group gT})
+  := group (group_setI G H).
 
-Variables (I : finType) (P : pred I) (F : I -> {group gT}).
+Section GroupInterNary.
+
+Variables (gT : finGroupType) (I : finType) (P : pred I) (F : I -> {group gT}).
 
 Lemma group_set_bigcap : group_set (\bigcap_(i | P i) F i).
 Proof.
 by elim/big_rec: _ => [|i G _ gG]; rewrite -1?(insubdK 1%G gG) groupP.
 Qed.
 
-Canonical bigcap_group := group group_set_bigcap.
+End GroupInterNary.
 
-End Nary.
+Monomorphic Canonical bigcap_group (gT : finGroupType) (I : finType) (P : pred I) (F : I -> {group gT})
+  := group (@group_set_bigcap gT I P F).
 
-Canonical generated_group A : {group _} := Eval hnf in [group of <<A>>].
-Canonical gcore_group G A : {group _} := Eval hnf in [group of gcore G A].
-Canonical commutator_group A B : {group _} := Eval hnf in [group of [~: A, B]].
-Canonical joing_group A B : {group _} := Eval hnf in [group of A <*> B].
-Canonical cycle_group x : {group _} := Eval hnf in [group of <[x]>].
+Section GroupInter2.
+
+Monomorphic Variable gT : finGroupType.
+Implicit Types A B : {set gT}.
+Implicit Types G H : {group gT}.
+
+Monomorphic Canonical generated_group A : {group _} := Eval hnf in [group of <<A>>].
+Monomorphic Canonical gcore_group G A : {group _} := Eval hnf in [group of gcore G A].
+Monomorphic Canonical commutator_group A B : {group _} := Eval hnf in [group of [~: A, B]].
+Monomorphic Canonical joing_group A B : {group _} := Eval hnf in [group of A <*> B].
+Monomorphic Canonical cycle_group x : {group _} := Eval hnf in [group of <[x]>].
+
+End GroupInter2.
+
+Section GroupInter3.
+
+Variable gT : finGroupType.
+Implicit Types A B : {set gT}.
+Implicit Types G H : {group gT}.
 
 Definition joinG G H := joing_group G H.
 
@@ -1889,7 +1978,7 @@ Definition subgroups A := [set G : {group gT} | G \subset A].
 Lemma order_gt0 (x : gT) : 0 < #[x].
 Proof. exact: cardG_gt0. Qed.
 
-End GroupInter.
+End GroupInter3.
 
 Hint Resolve order_gt0 : core.
 
@@ -2280,8 +2369,6 @@ Proof. by rewrite -gen0 joing_idl /joing set0U genGid. Qed.
 Lemma joingG1 G : G <*> 1 = G.
 Proof. by rewrite joingC joing1G. Qed.
 
-Axiom any : forall A:Type, A.
-
 Lemma genM_join G H : <<G * H>> = G <*> H.
 Proof.
 apply/eqP; rewrite eqEsubset gen_subG /=.
@@ -2320,9 +2407,6 @@ Proof. by move=> G; apply: val_inj; apply: joing1G. Qed.
 
 Lemma joinG1 : right_id 1%G joinGT.
 Proof. by move=> G; apply: val_inj; apply: joingG1. Qed.
-
-Canonical joinG_law := Monoid.Law joinGA join1G joinG1.
-Canonical joinG_abelaw := Monoid.ComLaw joinGC.
 
 Lemma bigprodGEgen I r (P : pred I) (F : I -> {set gT}) :
   (\prod_(i <- r | P i) <<F i>>)%G :=: << \bigcup_(i <- r | P i) F i >>.
@@ -2378,6 +2462,11 @@ by rewrite conjRg mem_commg ?memJ_conjg.
 Qed.
 
 End GeneratedGroup.
+
+Monomorphic Canonical joinG_law (gT : finGroupType) :=
+  Monoid.Law (@joinGA gT) (@join1G gT) (@joinG1 gT).
+Monomorphic Canonical joinG_abelaw (gT : finGroupType) :=
+  Monoid.ComLaw (@joinGC gT).
 
 Arguments gen_prodgP {gT A x}.
 Arguments joing_idPl {gT G A}.
@@ -2495,7 +2584,7 @@ Proof. by rewrite /order cycleJ cardJg. Qed.
 
 End Cycles.
 
-Section Normaliser.
+Section Normaliser1.
 
 Variable gT : finGroupType.
 Implicit Types x y z : gT.
@@ -2515,7 +2604,17 @@ apply/group_setP; split=> [|x y Nx Ny]; rewrite inE ?conjsg1 //.
 by rewrite conjsgM !(normP _).
 Qed.
 
-Canonical normaliser_group A := group (group_set_normaliser A).
+End Normaliser1.
+
+Monomorphic Canonical normaliser_group (gT : finGroupType) (A : {set gT}) :=
+  group (group_set_normaliser A).
+
+Section Normaliser2.
+
+Variable gT : finGroupType.
+Implicit Types x y z : gT.
+Implicit Types A B C D : {set gT}.
+Implicit Type G H K : {group gT}.
 
 Lemma normsP A B : reflect {in A, normalised B} (A \subset 'N(B)).
 Proof.
@@ -2525,7 +2624,7 @@ Qed.
 Arguments normsP {A B}.
 
 Lemma memJ_norm x y A : x \in 'N(A) -> (y ** x \in A) = (y \in A).
-Proof. by move=> Nx; rewrite -{1}(normP Nx) memJ_conjg. Qed.
+Proof. by move=> Nx; rewrite -{1}(normP x A Nx) memJ_conjg. Qed.
 
 Lemma norms_cycle x y : (<[y]> \subset 'N(<[x]>)) = (x ** y \in <[x]>).
 Proof. by rewrite cycle_subG inE -cycleJ cycle_subG. Qed.
@@ -2578,10 +2677,10 @@ Qed.
 
 Lemma norm_conj_norm x A B :
   x \in 'N(A) -> (A \subset 'N(B :^ x)) = (A \subset 'N(B)).
-Proof. by move=> Nx; rewrite normJ -sub_conjgV (normP _) ?groupV. Qed.
+Proof. by move=> Nx; rewrite normJ -sub_conjgV (normP _ _ _) ?groupV. Qed.
 
 Lemma norm_gen A : 'N(A) \subset 'N(<<A>>).
-Proof. by apply/normsP=> x Nx; rewrite -genJ (normP Nx). Qed.
+Proof. by apply/normsP=> x Nx; rewrite -genJ (normP x A Nx). Qed.
 
 Lemma class_norm x G : G \subset 'N(x ^: G).
 Proof. by apply/normsP=> y; apply: classGidr. Qed.
@@ -2807,7 +2906,17 @@ Proof. by rewrite (sameP (cent1P x y) eqP). Qed.
 Lemma cent1C x y : (x \in 'C[y]) = (y \in 'C[x]).
 Proof. by rewrite !cent1E eq_sym. Qed.
 
-Canonical centraliser_group A : {group _} := Eval hnf in [group of 'C(A)].
+End Normaliser2.
+
+Monomorphic Canonical centraliser_group (gT : finGroupType) (A : {set gT}) : {group _}
+  := Eval hnf in [group of 'C(A)].
+
+Section Normaliser3.
+
+Variable gT : finGroupType.
+Implicit Types x y z : gT.
+Implicit Types A B C D : {set gT}.
+Implicit Type G H K : {group gT}.
 
 Lemma cent_set1 x : 'C([set x]) = 'C[x].
 Proof. by apply: big_pred1 => y /=; rewrite inE. Qed.
@@ -2859,7 +2968,7 @@ by apply: (conjg_inj x^-1); rewrite 2!conjMg cAy -?mem_conjg.
 Qed.
 
 Lemma cent_norm A : 'N(A) \subset 'N('C(A)).
-Proof. by apply/normsP=> x nCx; rewrite -centJ (normP nCx). Qed.
+Proof. by apply/normsP=> x nCx; rewrite -centJ (normP x A nCx). Qed.
 
 Lemma norms_cent A B : A \subset 'N(B) -> A \subset 'N('C(B)).
 Proof. by move=> nBA; apply: subset_trans nBA (cent_norm B). Qed.
@@ -2968,7 +3077,7 @@ Qed.
 
 End SubAbelian.
 
-End Normaliser.
+End Normaliser3.
 
 Arguments normP {gT x A}.
 Arguments centP {gT A x}.
