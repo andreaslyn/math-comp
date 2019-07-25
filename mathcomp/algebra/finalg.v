@@ -65,7 +65,7 @@ Local Notation fin_ c := (@Finite.Class _ c c).
 Local Notation do_pack pack T := (pack T _ _ id _ _ id).
 Import GRing.Theory.
 
-Definition groupMixin V := FinGroup.Mixin (@addrA V) (@add0r V) (@addNr V).
+Monomorphic Definition groupMixin V := FinGroup.Mixin (@addrA V) (@add0r V) (@addNr V).
 Local Notation base_group T vT fT :=
   (@FinGroup.PackBase T (groupMixin vT) (Finite.class fT)).
 Local Notation fin_group B V := (@FinGroup.Pack B (@addNr V)).
@@ -74,37 +74,37 @@ Module Zmodule.
 
 Section ClassDef.
 
-Record class_of M :=
+Monomorphic Record class_of M :=
   Class { base : GRing.Zmodule.class_of M; mixin : mixin_of M base }.
 Local Coercion base : class_of >-> GRing.Zmodule.class_of.
 Local Coercion base2 R (c : class_of R) : CountRing.Zmodule.class_of R :=
   CountRing.Zmodule.Class c (mixin c).
 Local Coercion mixin : class_of >-> mixin_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Definition pack := gen_pack Pack Class GRing.Zmodule.class.
-Variable cT : type.
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Definition pack := gen_pack Pack Class GRing.Zmodule.class.
+Monomorphic Variable cT : type.
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition zmod_finType := @Finite.Pack zmodType (fin_ xclass).
-Definition zmod_baseFinGroupType := base_group zmodType zmodType finType.
-Definition zmod_finGroupType := fin_group zmod_baseFinGroupType zmodType.
-Definition countZmod_finType := @Finite.Pack countZmodType (fin_ xclass).
-Definition countZmod_baseFinGroupType :=
+Monomorphic Definition zmod_finType := @Finite.Pack zmodType (fin_ xclass).
+Monomorphic Definition zmod_baseFinGroupType := base_group zmodType zmodType finType.
+Monomorphic Definition zmod_finGroupType := fin_group zmod_baseFinGroupType zmodType.
+Monomorphic Definition countZmod_finType := @Finite.Pack countZmodType (fin_ xclass).
+Monomorphic Definition countZmod_baseFinGroupType :=
   base_group countZmodType zmodType finType.
-Definition countZmod_finGroupType :=
+Monomorphic Definition countZmod_finGroupType :=
   fin_group countZmod_baseFinGroupType zmodType.
 
 End ClassDef.
@@ -171,7 +171,7 @@ Module Ring.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : GRing.Ring.class_of R; mixin : mixin_of R base }.
 Local Coercion base : class_of >-> GRing.Ring.class_of.
 Local Coercion base2 R (c : class_of R) : CountRing.Ring.class_of R :=
@@ -179,36 +179,36 @@ Local Coercion base2 R (c : class_of R) : CountRing.Ring.class_of R :=
 Local Coercion base3 R (c : class_of R) : Zmodule.class_of R :=
   Zmodule.Class (mixin c).
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Definition pack := gen_pack Pack Class GRing.Ring.class.
-Variable cT : type.
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Definition pack := gen_pack Pack Class GRing.Ring.class.
+Monomorphic Variable cT : type.
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition ring_finType := @Finite.Pack ringType (fin_ xclass).
-Definition ring_baseFinGroupType := base_group ringType zmodType finType.
-Definition ring_finGroupType := fin_group ring_baseFinGroupType zmodType.
-Definition ring_finZmodType := @Zmodule.Pack ringType xclass.
-Definition countRing_finType := @Finite.Pack countRingType (fin_ xclass).
-Definition countRing_baseFinGroupType :=
+Monomorphic Definition ring_finType := @Finite.Pack ringType (fin_ xclass).
+Monomorphic Definition ring_baseFinGroupType := base_group ringType zmodType finType.
+Monomorphic Definition ring_finGroupType := fin_group ring_baseFinGroupType zmodType.
+Monomorphic Definition ring_finZmodType := @Zmodule.Pack ringType xclass.
+Monomorphic Definition countRing_finType := @Finite.Pack countRingType (fin_ xclass).
+Monomorphic Definition countRing_baseFinGroupType :=
   base_group countRingType zmodType finType.
-Definition countRing_finGroupType :=
+Monomorphic Definition countRing_finGroupType :=
   fin_group countRing_baseFinGroupType zmodType.
-Definition countRing_finZmodType := @Zmodule.Pack countRingType xclass.
+Monomorphic Definition countRing_finZmodType := @Zmodule.Pack countRingType xclass.
 
 End ClassDef.
 
@@ -295,7 +295,7 @@ Module ComRing.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : GRing.ComRing.class_of R; mixin : mixin_of R base }.
 Local Coercion base : class_of >-> GRing.ComRing.class_of.
 Local Coercion base2 R (c : class_of R) : CountRing.ComRing.class_of R :=
@@ -303,41 +303,41 @@ Local Coercion base2 R (c : class_of R) : CountRing.ComRing.class_of R :=
 Local Coercion base3 R (c : class_of R) : Ring.class_of R :=
   Ring.Class (mixin c).
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Definition pack := gen_pack Pack Class GRing.ComRing.class.
-Variable cT : type.
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Definition pack := gen_pack Pack Class GRing.ComRing.class.
+Monomorphic Variable cT : type.
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition comRing_finType := @Finite.Pack comRingType (fin_ xclass).
-Definition comRing_baseFinGroupType := base_group comRingType zmodType finType.
-Definition comRing_finGroupType := fin_group comRing_baseFinGroupType zmodType.
-Definition comRing_finZmodType := @Zmodule.Pack comRingType xclass.
-Definition comRing_finRingType := @Ring.Pack comRingType xclass.
-Definition countComRing_finType := @Finite.Pack countComRingType (fin_ xclass).
-Definition countComRing_baseFinGroupType :=
+Monomorphic Definition comRing_finType := @Finite.Pack comRingType (fin_ xclass).
+Monomorphic Definition comRing_baseFinGroupType := base_group comRingType zmodType finType.
+Monomorphic Definition comRing_finGroupType := fin_group comRing_baseFinGroupType zmodType.
+Monomorphic Definition comRing_finZmodType := @Zmodule.Pack comRingType xclass.
+Monomorphic Definition comRing_finRingType := @Ring.Pack comRingType xclass.
+Monomorphic Definition countComRing_finType := @Finite.Pack countComRingType (fin_ xclass).
+Monomorphic Definition countComRing_baseFinGroupType :=
   base_group countComRingType zmodType finType.
-Definition countComRing_finGroupType :=
+Monomorphic Definition countComRing_finGroupType :=
   fin_group countComRing_baseFinGroupType zmodType.
-Definition countComRing_finZmodType := @Zmodule.Pack countComRingType xclass.
-Definition countComRing_finRingType := @Ring.Pack countComRingType xclass.
+Monomorphic Definition countComRing_finZmodType := @Zmodule.Pack countComRingType xclass.
+Monomorphic Definition countComRing_finRingType := @Ring.Pack countComRingType xclass.
 
 End ClassDef.
 
@@ -397,7 +397,7 @@ Module UnitRing.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : GRing.UnitRing.class_of R; mixin : mixin_of R base }.
 Local Coercion base : class_of >-> GRing.UnitRing.class_of.
 Local Coercion base2 R (c : class_of R) : CountRing.UnitRing.class_of R :=
@@ -405,44 +405,44 @@ Local Coercion base2 R (c : class_of R) : CountRing.UnitRing.class_of R :=
 Local Coercion base3 R (c : class_of R) : Ring.class_of R :=
   Ring.Class (mixin c).
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Definition pack := gen_pack Pack Class GRing.UnitRing.class.
-Variable cT : type.
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Definition pack := gen_pack Pack Class GRing.UnitRing.class.
+Monomorphic Variable cT : type.
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition unitRing_finType := @Finite.Pack unitRingType (fin_ xclass).
-Definition unitRing_baseFinGroupType :=
+Monomorphic Definition unitRing_finType := @Finite.Pack unitRingType (fin_ xclass).
+Monomorphic Definition unitRing_baseFinGroupType :=
   base_group unitRingType zmodType finType.
-Definition unitRing_finGroupType :=
+Monomorphic Definition unitRing_finGroupType :=
   fin_group unitRing_baseFinGroupType zmodType.
-Definition unitRing_finZmodType := @Zmodule.Pack unitRingType xclass.
-Definition unitRing_finRingType := @Ring.Pack unitRingType xclass.
-Definition countUnitRing_finType :=
+Monomorphic Definition unitRing_finZmodType := @Zmodule.Pack unitRingType xclass.
+Monomorphic Definition unitRing_finRingType := @Ring.Pack unitRingType xclass.
+Monomorphic Definition countUnitRing_finType :=
   @Finite.Pack countUnitRingType (fin_ xclass).
-Definition countUnitRing_baseFinGroupType :=
+Monomorphic Definition countUnitRing_baseFinGroupType :=
   base_group countUnitRingType zmodType finType.
-Definition countUnitRing_finGroupType :=
+Monomorphic Definition countUnitRing_finGroupType :=
   fin_group countUnitRing_baseFinGroupType zmodType.
-Definition countUnitRing_finZmodType := @Zmodule.Pack countUnitRingType xclass.
-Definition countUnitRing_finRingType := @Ring.Pack countUnitRingType xclass.
+Monomorphic Definition countUnitRing_finZmodType := @Zmodule.Pack countUnitRingType xclass.
+Monomorphic Definition countUnitRing_finRingType := @Ring.Pack countUnitRingType xclass.
 
 End ClassDef.
 
@@ -500,65 +500,65 @@ Import UnitRing.Exports.
 
 Section UnitsGroup.
 
-Variable R : finUnitRingType.
+Monomorphic Variable R : finUnitRingType.
 
-Inductive unit_of (phR : phant R) := Unit (x : R) of x \is a GRing.unit.
+Monomorphic Inductive unit_of (phR : phant R) := Unit (x : R) of x \is a GRing.unit.
 Bind Scope group_scope with unit_of.
 
-Let phR := Phant R.
+Monomorphic Let phR := Phant R.
 Local Notation uT := (unit_of phR).
 Implicit Types u v : uT.
-Definition uval u := let: Unit x _ := u in x.
+Monomorphic Definition uval u := let: Unit x _ := u in x.
 
-Canonical unit_subType := [subType for uval].
-Definition unit_eqMixin := Eval hnf in [eqMixin of uT by <:].
-Canonical unit_eqType := Eval hnf in EqType uT unit_eqMixin.
-Definition unit_choiceMixin := [choiceMixin of uT by <:].
-Canonical unit_choiceType := Eval hnf in ChoiceType uT unit_choiceMixin.
-Definition unit_countMixin := [countMixin of uT by <:].
-Canonical unit_countType := Eval hnf in CountType uT unit_countMixin.
-Canonical unit_subCountType := Eval hnf in [subCountType of uT].
-Definition unit_finMixin := [finMixin of uT by <:].
-Canonical unit_finType := Eval hnf in FinType uT unit_finMixin.
-Canonical unit_subFinType := Eval hnf in [subFinType of uT].
+Monomorphic Canonical unit_subType := [subType for uval].
+Monomorphic Definition unit_eqMixin := Eval hnf in [eqMixin of uT by <:].
+Monomorphic Canonical unit_eqType := Eval hnf in EqType uT unit_eqMixin.
+Monomorphic Definition unit_choiceMixin := [choiceMixin of uT by <:].
+Monomorphic Canonical unit_choiceType := Eval hnf in ChoiceType uT unit_choiceMixin.
+Monomorphic Definition unit_countMixin := [countMixin of uT by <:].
+Monomorphic Canonical unit_countType := Eval hnf in CountType uT unit_countMixin.
+Monomorphic Canonical unit_subCountType := Eval hnf in [subCountType of uT].
+Monomorphic Definition unit_finMixin := [finMixin of uT by <:].
+Monomorphic Canonical unit_finType := Eval hnf in FinType uT unit_finMixin.
+Monomorphic Canonical unit_subFinType := Eval hnf in [subFinType of uT].
 
-Definition unit1 := Unit phR (@GRing.unitr1 _).
-Lemma unit_inv_proof u : (val u)^-1 \is a GRing.unit.
+Monomorphic Definition unit1 := Unit phR (@GRing.unitr1 _).
+Monomorphic Lemma unit_inv_proof u : (val u)^-1 \is a GRing.unit.
 Proof. by rewrite GRing.unitrV ?(valP u). Qed.
-Definition unit_inv u := Unit phR (unit_inv_proof u).
-Lemma unit_mul_proof u v : val u * val v \is a GRing.unit.
+Monomorphic Definition unit_inv u := Unit phR (unit_inv_proof u).
+Monomorphic Lemma unit_mul_proof u v : val u * val v \is a GRing.unit.
 Proof. by rewrite (GRing.unitrMr _ (valP u)) ?(valP v). Qed.
-Definition unit_mul u v := Unit phR (unit_mul_proof u v).
-Lemma unit_muluA : associative unit_mul.
+Monomorphic Definition unit_mul u v := Unit phR (unit_mul_proof u v).
+Monomorphic Lemma unit_muluA : associative unit_mul.
 Proof. by move=> u v w; apply: val_inj; apply: GRing.mulrA. Qed.
-Lemma unit_mul1u : left_id unit1 unit_mul.
+Monomorphic Lemma unit_mul1u : left_id unit1 unit_mul.
 Proof. by move=> u; apply: val_inj; apply: GRing.mul1r. Qed.
-Lemma unit_mulVu : left_inverse unit1 unit_inv unit_mul.
+Monomorphic Lemma unit_mulVu : left_inverse unit1 unit_inv unit_mul.
 Proof. by move=> u; apply: val_inj; apply: GRing.mulVr (valP u). Qed.
 
-Definition unit_GroupMixin := FinGroup.Mixin unit_muluA unit_mul1u unit_mulVu.
-Canonical unit_baseFinGroupType :=
+Monomorphic Definition unit_GroupMixin := FinGroup.Mixin unit_muluA unit_mul1u unit_mulVu.
+Monomorphic Canonical unit_baseFinGroupType :=
   Eval hnf in BaseFinGroupType uT unit_GroupMixin.
-Canonical unit_finGroupType := Eval hnf in FinGroupType unit_mulVu.
+Monomorphic Canonical unit_finGroupType := Eval hnf in FinGroupType unit_mulVu.
 
-Lemma val_unit1 : val (1%g : uT) = 1. Proof. by []. Qed.
-Lemma val_unitM x y : val (x * y : uT)%g = val x * val y. Proof. by []. Qed.
-Lemma val_unitV x : val (x^-1 : uT)%g = (val x)^-1. Proof. by []. Qed.
-Lemma val_unitX n x : val (x ^+ n : uT)%g = val x ^+ n.
+Monomorphic Lemma val_unit1 : val (1%g : uT) = 1. Proof. by []. Qed.
+Monomorphic Lemma val_unitM x y : val (x * y : uT)%g = val x * val y. Proof. by []. Qed.
+Monomorphic Lemma val_unitV x : val (x^-1 : uT)%g = (val x)^-1. Proof. by []. Qed.
+Monomorphic Lemma val_unitX n x : val (x ^+ n : uT)%g = val x ^+ n.
 Proof. by case: n; last by elim=> //= n ->. Qed.
 
-Definition unit_act x u := x * val u.
-Lemma unit_actE x u : unit_act x u = x * val u. Proof. by []. Qed.
+Monomorphic Definition unit_act x u := x * val u.
+Monomorphic Lemma unit_actE x u : unit_act x u = x * val u. Proof. by []. Qed.
 
-Canonical unit_action :=
+Monomorphic Canonical unit_action :=
   @TotalAction _ _ unit_act (@GRing.mulr1 _) (fun _ _ _ => GRing.mulrA _ _ _).
-Lemma unit_is_groupAction : @is_groupAction _ R setT setT unit_action.
+Monomorphic Lemma unit_is_groupAction : @is_groupAction _ R setT setT unit_action.
 Proof.
 move=> u _ /=; rewrite inE; apply/andP; split.
   by apply/subsetP=> x _; rewrite inE.
 by apply/morphicP=> x y _ _; rewrite !actpermE /= [_ u]GRing.mulrDl.
 Qed.
-Canonical unit_groupAction := GroupAction unit_is_groupAction.
+Monomorphic Canonical unit_groupAction := GroupAction unit_is_groupAction.
 
 End UnitsGroup.
 
@@ -583,7 +583,7 @@ Module ComUnitRing.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : GRing.ComUnitRing.class_of R; mixin : mixin_of R base }.
 Local Coercion base : class_of >-> GRing.ComUnitRing.class_of.
 Local Coercion base2 R (c : class_of R) : CountRing.ComUnitRing.class_of R :=
@@ -593,65 +593,65 @@ Local Coercion base3 R (c : class_of R) : ComRing.class_of R :=
 Local Coercion base4 R (c : class_of R) : UnitRing.class_of R :=
   @UnitRing.Class R (base c) (mixin c).
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Definition pack := gen_pack Pack Class GRing.ComUnitRing.class.
-Variable cT : type.
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Definition pack := gen_pack Pack Class GRing.ComUnitRing.class.
+Monomorphic Variable cT : type.
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
-Definition finComRingType := @ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
-Definition finUnitRingType := @UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition countComUnitRingType := @CountRing.ComUnitRing.Pack cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
+Monomorphic Definition finComRingType := @ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
+Monomorphic Definition finUnitRingType := @UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition countComUnitRingType := @CountRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition comUnitRing_finType := @Finite.Pack comUnitRingType (fin_ xclass).
-Definition comUnitRing_baseFinGroupType :=
+Monomorphic Definition comUnitRing_finType := @Finite.Pack comUnitRingType (fin_ xclass).
+Monomorphic Definition comUnitRing_baseFinGroupType :=
   base_group comUnitRingType zmodType finType.
-Definition comUnitRing_finGroupType :=
+Monomorphic Definition comUnitRing_finGroupType :=
   fin_group comUnitRing_baseFinGroupType zmodType.
-Definition comUnitRing_finZmodType := @Zmodule.Pack comUnitRingType xclass.
-Definition comUnitRing_finRingType := @Ring.Pack comUnitRingType xclass.
-Definition comUnitRing_finComRingType := @ComRing.Pack comUnitRingType xclass.
-Definition comUnitRing_finUnitRingType := @UnitRing.Pack comUnitRingType xclass.
-Definition countComUnitRing_finType :=
+Monomorphic Definition comUnitRing_finZmodType := @Zmodule.Pack comUnitRingType xclass.
+Monomorphic Definition comUnitRing_finRingType := @Ring.Pack comUnitRingType xclass.
+Monomorphic Definition comUnitRing_finComRingType := @ComRing.Pack comUnitRingType xclass.
+Monomorphic Definition comUnitRing_finUnitRingType := @UnitRing.Pack comUnitRingType xclass.
+Monomorphic Definition countComUnitRing_finType :=
   @Finite.Pack countComUnitRingType (fin_ xclass).
-Definition countComUnitRing_baseFinGroupType :=
+Monomorphic Definition countComUnitRing_baseFinGroupType :=
   base_group countComUnitRingType zmodType finType.
-Definition countComUnitRing_finGroupType :=
+Monomorphic Definition countComUnitRing_finGroupType :=
   fin_group countComUnitRing_baseFinGroupType zmodType.
-Definition countComUnitRing_finZmodType :=
+Monomorphic Definition countComUnitRing_finZmodType :=
   @Zmodule.Pack countComUnitRingType xclass.
-Definition countComUnitRing_finRingType :=
+Monomorphic Definition countComUnitRing_finRingType :=
   @Ring.Pack countComUnitRingType xclass.
-Definition countComUnitRing_finComRingType :=
+Monomorphic Definition countComUnitRing_finComRingType :=
   @ComRing.Pack countComUnitRingType xclass.
-Definition countComUnitRing_finUnitRingType :=
+Monomorphic Definition countComUnitRing_finUnitRingType :=
   @UnitRing.Pack countComUnitRingType xclass.
-Definition unitRing_finComRingType := @ComRing.Pack unitRingType xclass.
-Definition countUnitRing_finComRingType :=
+Monomorphic Definition unitRing_finComRingType := @ComRing.Pack unitRingType xclass.
+Monomorphic Definition countUnitRing_finComRingType :=
   @ComRing.Pack countUnitRingType xclass.
-Definition comRing_finUnitRingType := @UnitRing.Pack comRingType xclass.
-Definition countComRing_finUnitRingType :=
+Monomorphic Definition comRing_finUnitRingType := @UnitRing.Pack comRingType xclass.
+Monomorphic Definition countComRing_finUnitRingType :=
   @UnitRing.Pack countComRingType xclass.
-Definition finComRing_finUnitRingType := @UnitRing.Pack finComRingType xclass.
+Monomorphic Definition finComRing_finUnitRingType := @UnitRing.Pack finComRingType xclass.
 
 End ClassDef.
 
@@ -733,7 +733,7 @@ Module IntegralDomain.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : GRing.IntegralDomain.class_of R; mixin : mixin_of R base }.
 Local Coercion base : class_of >-> GRing.IntegralDomain.class_of.
 Local Coercion base2 R (c : class_of R) : CountRing.IntegralDomain.class_of R :=
@@ -741,57 +741,57 @@ Local Coercion base2 R (c : class_of R) : CountRing.IntegralDomain.class_of R :=
 Local Coercion base3 R (c : class_of R) : ComUnitRing.class_of R :=
   ComUnitRing.Class (mixin c).
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Definition pack := gen_pack Pack Class GRing.IntegralDomain.class.
-Variable cT : type.
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Definition pack := gen_pack Pack Class GRing.IntegralDomain.class.
+Monomorphic Variable cT : type.
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
-Definition finComRingType := @ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
-Definition finUnitRingType := @UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition countComUnitRingType := @CountRing.ComUnitRing.Pack cT xclass.
-Definition finComUnitRingType := @ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition countIdomainType := @CountRing.IntegralDomain.Pack cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
+Monomorphic Definition finComRingType := @ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
+Monomorphic Definition finUnitRingType := @UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition countComUnitRingType := @CountRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition finComUnitRingType := @ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition countIdomainType := @CountRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition idomain_finType := @Finite.Pack idomainType (fin_ xclass).
-Definition idomain_baseFinGroupType := base_group idomainType zmodType finType.
-Definition idomain_finGroupType := fin_group idomain_baseFinGroupType zmodType.
-Definition idomain_finZmodType := @Zmodule.Pack idomainType xclass.
-Definition idomain_finRingType := @Ring.Pack idomainType xclass.
-Definition idomain_finUnitRingType := @UnitRing.Pack idomainType xclass.
-Definition idomain_finComRingType := @ComRing.Pack idomainType xclass.
-Definition idomain_finComUnitRingType := @ComUnitRing.Pack idomainType xclass.
-Definition countIdomain_finType := @Finite.Pack countIdomainType (fin_ xclass).
-Definition countIdomain_baseFinGroupType :=
+Monomorphic Definition idomain_finType := @Finite.Pack idomainType (fin_ xclass).
+Monomorphic Definition idomain_baseFinGroupType := base_group idomainType zmodType finType.
+Monomorphic Definition idomain_finGroupType := fin_group idomain_baseFinGroupType zmodType.
+Monomorphic Definition idomain_finZmodType := @Zmodule.Pack idomainType xclass.
+Monomorphic Definition idomain_finRingType := @Ring.Pack idomainType xclass.
+Monomorphic Definition idomain_finUnitRingType := @UnitRing.Pack idomainType xclass.
+Monomorphic Definition idomain_finComRingType := @ComRing.Pack idomainType xclass.
+Monomorphic Definition idomain_finComUnitRingType := @ComUnitRing.Pack idomainType xclass.
+Monomorphic Definition countIdomain_finType := @Finite.Pack countIdomainType (fin_ xclass).
+Monomorphic Definition countIdomain_baseFinGroupType :=
   base_group countIdomainType zmodType finType.
-Definition countIdomain_finGroupType :=
+Monomorphic Definition countIdomain_finGroupType :=
   fin_group countIdomain_baseFinGroupType zmodType.
-Definition countIdomain_finZmodType := @Zmodule.Pack countIdomainType xclass.
-Definition countIdomain_finRingType := @Ring.Pack countIdomainType xclass.
-Definition countIdomain_finUnitRingType :=
+Monomorphic Definition countIdomain_finZmodType := @Zmodule.Pack countIdomainType xclass.
+Monomorphic Definition countIdomain_finRingType := @Ring.Pack countIdomainType xclass.
+Monomorphic Definition countIdomain_finUnitRingType :=
   @UnitRing.Pack countIdomainType xclass.
-Definition countIdomain_finComRingType := @ComRing.Pack countIdomainType xclass.
-Definition countIdomain_finComUnitRingType :=
+Monomorphic Definition countIdomain_finComRingType := @ComRing.Pack countIdomainType xclass.
+Monomorphic Definition countIdomain_finComUnitRingType :=
   @ComUnitRing.Pack countIdomainType xclass.
 
 End ClassDef.
@@ -876,7 +876,7 @@ Module Field.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : GRing.Field.class_of R; mixin : mixin_of R base }.
 Local Coercion base : class_of >-> GRing.Field.class_of.
 Local Coercion base2 R (c : class_of R) : CountRing.Field.class_of R :=
@@ -884,62 +884,62 @@ Local Coercion base2 R (c : class_of R) : CountRing.Field.class_of R :=
 Local Coercion base3 R (c : class_of R) : IntegralDomain.class_of R :=
   IntegralDomain.Class (mixin c).
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Definition pack := gen_pack Pack Class GRing.Field.class.
-Variable cT : type.
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Definition pack := gen_pack Pack Class GRing.Field.class.
+Monomorphic Variable cT : type.
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
-Definition finComRingType := @ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
-Definition finUnitRingType := @UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition countComUnitRingType := @CountRing.ComUnitRing.Pack cT xclass.
-Definition finComUnitRingType := @ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition countIdomainType := @CountRing.IntegralDomain.Pack cT xclass.
-Definition finIdomainType := @IntegralDomain.Pack cT xclass.
-Definition fieldType := @GRing.Field.Pack cT xclass.
-Definition countFieldType := @CountRing.Field.Pack cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition countComRingType := @CountRing.ComRing.Pack cT xclass.
+Monomorphic Definition finComRingType := @ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
+Monomorphic Definition finUnitRingType := @UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition countComUnitRingType := @CountRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition finComUnitRingType := @ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition countIdomainType := @CountRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition finIdomainType := @IntegralDomain.Pack cT xclass.
+Monomorphic Definition fieldType := @GRing.Field.Pack cT xclass.
+Monomorphic Definition countFieldType := @CountRing.Field.Pack cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition field_finType := @Finite.Pack fieldType (fin_ xclass).
-Definition field_baseFinGroupType := base_group fieldType zmodType finType.
-Definition field_finGroupType := fin_group field_baseFinGroupType zmodType.
-Definition field_finZmodType := @Zmodule.Pack fieldType xclass.
-Definition field_finRingType := @Ring.Pack fieldType xclass.
-Definition field_finUnitRingType := @UnitRing.Pack fieldType xclass.
-Definition field_finComRingType := @ComRing.Pack fieldType xclass.
-Definition field_finComUnitRingType := @ComUnitRing.Pack fieldType xclass.
-Definition field_finIdomainType := @IntegralDomain.Pack fieldType xclass.
-Definition countField_finType := @Finite.Pack countFieldType (fin_ xclass).
-Definition countField_baseFinGroupType :=
+Monomorphic Definition field_finType := @Finite.Pack fieldType (fin_ xclass).
+Monomorphic Definition field_baseFinGroupType := base_group fieldType zmodType finType.
+Monomorphic Definition field_finGroupType := fin_group field_baseFinGroupType zmodType.
+Monomorphic Definition field_finZmodType := @Zmodule.Pack fieldType xclass.
+Monomorphic Definition field_finRingType := @Ring.Pack fieldType xclass.
+Monomorphic Definition field_finUnitRingType := @UnitRing.Pack fieldType xclass.
+Monomorphic Definition field_finComRingType := @ComRing.Pack fieldType xclass.
+Monomorphic Definition field_finComUnitRingType := @ComUnitRing.Pack fieldType xclass.
+Monomorphic Definition field_finIdomainType := @IntegralDomain.Pack fieldType xclass.
+Monomorphic Definition countField_finType := @Finite.Pack countFieldType (fin_ xclass).
+Monomorphic Definition countField_baseFinGroupType :=
   base_group countFieldType zmodType finType.
-Definition countField_finGroupType :=
+Monomorphic Definition countField_finGroupType :=
   fin_group countField_baseFinGroupType zmodType.
-Definition countField_finZmodType := @Zmodule.Pack countFieldType xclass.
-Definition countField_finRingType := @Ring.Pack countFieldType xclass.
-Definition countField_finUnitRingType := @UnitRing.Pack countFieldType xclass.
-Definition countField_finComRingType := @ComRing.Pack countFieldType xclass.
-Definition countField_finComUnitRingType :=
+Monomorphic Definition countField_finZmodType := @Zmodule.Pack countFieldType xclass.
+Monomorphic Definition countField_finRingType := @Ring.Pack countFieldType xclass.
+Monomorphic Definition countField_finUnitRingType := @UnitRing.Pack countFieldType xclass.
+Monomorphic Definition countField_finComRingType := @ComRing.Pack countFieldType xclass.
+Monomorphic Definition countField_finComUnitRingType :=
   @ComUnitRing.Pack countFieldType xclass.
-Definition countField_finIdomainType :=
+Monomorphic Definition countField_finIdomainType :=
   @IntegralDomain.Pack countFieldType xclass.
 
 End ClassDef.
@@ -1047,11 +1047,16 @@ Fixpoint sat e f :=
 
 Lemma decidable : GRing.DecidableField.axiom sat.
 Proof.
-move=> e f; elim: f e;
-  try by move=> f1 IH1 f2 IH2 e /=; case IH1; case IH2; constructor; tauto.
+move=> e f; elim: f e.
 - by move=> b e; apply: idP.
 - by move=> t1 t2 e; apply: eqP.
 - by move=> t e; apply: idP.
+- by move=> f1 IH1 f2 IH2 e /=; case IH1; case IH2; constructor; try case.
+- move=> f1 IH1 f2 IH2 e /=; case IH1; case IH2; constructor; try solve [left; assumption].
+  + right; assumption.
+  + by case.
+- move=> f1 IH1 f2 IH2 e /=; case IH1; case IH2; constructor; try done.
+  by move => g; apply: n; apply: g.
 - by move=> f IH e /=; case: IH; constructor.
 - by move=> i f IH e; apply: (iffP existsP) => [] [x fx]; exists x; apply/IH.
 by move=> i f IH e; apply: (iffP forallP) => f_ x; apply/IH.
@@ -1065,20 +1070,20 @@ Module DecField.
 
 Section Joins.
 
-Variable cT : Field.type.
-Let xT := let: Field.Pack T _ := cT in T. 
-Let xclass : Field.class_of xT := Field.class cT.
+Monomorphic Variable cT : Field.type.
+Monomorphic Let xT := let: Field.Pack T _ := cT in T. 
+Monomorphic Let xclass : Field.class_of xT := Field.class cT.
 
-Definition type := Eval hnf in DecFieldType cT (DecidableFieldMixin cT).
-Definition finType := @Finite.Pack type (fin_ xclass).
-Definition finZmodType := @Zmodule.Pack type xclass.
-Definition finRingType := @Ring.Pack type xclass.
-Definition finUnitRingType := @UnitRing.Pack type xclass.
-Definition finComRingType := @ComRing.Pack type xclass.
-Definition finComUnitRingType := @ComUnitRing.Pack type xclass.
-Definition finIdomainType := @IntegralDomain.Pack type xclass.
-Definition baseFinGroupType := base_group type finZmodType finZmodType.
-Definition finGroupType := fin_group baseFinGroupType cT.
+Monomorphic Definition type := Eval hnf in DecFieldType cT (DecidableFieldMixin cT).
+Monomorphic Definition finType := @Finite.Pack type (fin_ xclass).
+Monomorphic Definition finZmodType := @Zmodule.Pack type xclass.
+Monomorphic Definition finRingType := @Ring.Pack type xclass.
+Monomorphic Definition finUnitRingType := @UnitRing.Pack type xclass.
+Monomorphic Definition finComRingType := @ComRing.Pack type xclass.
+Monomorphic Definition finComUnitRingType := @ComUnitRing.Pack type xclass.
+Monomorphic Definition finIdomainType := @IntegralDomain.Pack type xclass.
+Monomorphic Definition baseFinGroupType := base_group type finZmodType finZmodType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType cT.
 
 End Joins.
 
@@ -1103,39 +1108,39 @@ Module Lmodule.
 
 Section ClassDef.
 
-Variable R : ringType.
+Monomorphic Variable R : ringType.
 
-Record class_of M :=
+Monomorphic Record class_of M :=
   Class { base : GRing.Lmodule.class_of R M; mixin : mixin_of M base }.
 Local Coercion base : class_of >-> GRing.Lmodule.class_of.
-Local Coercion base2 R (c : class_of R) : Zmodule.class_of R :=
+Local Monomorphic Coercion base2 R (c : class_of R) : Zmodule.class_of R :=
   Zmodule.Class (mixin c).
 
-Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (phR : phant R) (cT : type phR).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Definition pack := gen_pack (Pack phR) Class (@GRing.Lmodule.class R phR).
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (phR : phant R) (cT : type phR).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Definition pack := gen_pack (Pack phR) Class (@GRing.Lmodule.class R phR).
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition lmod_countType := @Countable.Pack lmodType (fin_ xclass).
-Definition lmod_finType := @Finite.Pack lmodType (fin_ xclass).
-Definition lmod_baseFinGroupType := base_group lmodType zmodType finType.
-Definition lmod_finGroupType := fin_group lmod_baseFinGroupType zmodType.
-Definition lmod_countZmodType := @CountRing.Zmodule.Pack lmodType xclass.
-Definition lmod_finZmodType := @Zmodule.Pack lmodType xclass.
+Monomorphic Definition lmod_countType := @Countable.Pack lmodType (fin_ xclass).
+Monomorphic Definition lmod_finType := @Finite.Pack lmodType (fin_ xclass).
+Monomorphic Definition lmod_baseFinGroupType := base_group lmodType zmodType finType.
+Monomorphic Definition lmod_finGroupType := fin_group lmod_baseFinGroupType zmodType.
+Monomorphic Definition lmod_countZmodType := @CountRing.Zmodule.Pack lmodType xclass.
+Monomorphic Definition lmod_finZmodType := @Zmodule.Pack lmodType xclass.
 
 End ClassDef.
 
@@ -1182,54 +1187,54 @@ Module Lalgebra.
 
 Section ClassDef.
 
-Variable R : ringType.
+Monomorphic Variable R : ringType.
 
-Record class_of M :=
+Monomorphic Record class_of M :=
   Class { base : GRing.Lalgebra.class_of R M; mixin : mixin_of M base }.
-Definition base2 M (c : class_of M) := Ring.Class (mixin c).
-Definition base3 M (c : class_of M) := @Lmodule.Class _ _ (base c) (mixin c).
+Monomorphic Definition base2 M (c : class_of M) := Ring.Class (mixin c).
+Monomorphic Definition base3 M (c : class_of M) := @Lmodule.Class _ _ (base c) (mixin c).
 Local Coercion base : class_of >-> GRing.Lalgebra.class_of.
 Local Coercion base2 : class_of >-> Ring.class_of.
 Local Coercion base3 : class_of >-> Lmodule.class_of.
 
-Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (phR : phant R) (cT : type phR).
-Definition pack := gen_pack (Pack phR) Class (@GRing.Lalgebra.class R phR).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (phR : phant R) (cT : type phR).
+Monomorphic Definition pack := gen_pack (Pack phR) Class (@GRing.Lalgebra.class R phR).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
-Definition finLmodType := @Lmodule.Pack R phR cT xclass.
-Definition lalgType := @GRing.Lalgebra.Pack R phR cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
+Monomorphic Definition finLmodType := @Lmodule.Pack R phR cT xclass.
+Monomorphic Definition lalgType := @GRing.Lalgebra.Pack R phR cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition lalg_countType := @Countable.Pack lalgType (fin_ xclass).
-Definition lalg_finType := @Finite.Pack lalgType (fin_ xclass).
-Definition lalg_baseFinGroupType := base_group lalgType zmodType finType.
-Definition lalg_finGroupType := fin_group lalg_baseFinGroupType zmodType.
-Definition lalg_countZmodType := @CountRing.Zmodule.Pack lalgType xclass.
-Definition lalg_finZmodType := @Zmodule.Pack lalgType xclass.
-Definition lalg_finLmodType := @Lmodule.Pack R phR lalgType xclass.
-Definition lalg_countRingType := @CountRing.Ring.Pack lalgType xclass.
-Definition lalg_finRingType := @Ring.Pack lalgType xclass.
-Definition lmod_countRingType := @CountRing.Ring.Pack lmodType xclass.
-Definition lmod_finRingType := @Ring.Pack lmodType xclass.
-Definition finLmod_ringType := @GRing.Ring.Pack finLmodType xclass.
-Definition finLmod_countRingType := @CountRing.Ring.Pack finLmodType xclass.
-Definition finLmod_finRingType := @Ring.Pack finLmodType xclass.
+Monomorphic Definition lalg_countType := @Countable.Pack lalgType (fin_ xclass).
+Monomorphic Definition lalg_finType := @Finite.Pack lalgType (fin_ xclass).
+Monomorphic Definition lalg_baseFinGroupType := base_group lalgType zmodType finType.
+Monomorphic Definition lalg_finGroupType := fin_group lalg_baseFinGroupType zmodType.
+Monomorphic Definition lalg_countZmodType := @CountRing.Zmodule.Pack lalgType xclass.
+Monomorphic Definition lalg_finZmodType := @Zmodule.Pack lalgType xclass.
+Monomorphic Definition lalg_finLmodType := @Lmodule.Pack R phR lalgType xclass.
+Monomorphic Definition lalg_countRingType := @CountRing.Ring.Pack lalgType xclass.
+Monomorphic Definition lalg_finRingType := @Ring.Pack lalgType xclass.
+Monomorphic Definition lmod_countRingType := @CountRing.Ring.Pack lmodType xclass.
+Monomorphic Definition lmod_finRingType := @Ring.Pack lmodType xclass.
+Monomorphic Definition finLmod_ringType := @GRing.Ring.Pack finLmodType xclass.
+Monomorphic Definition finLmod_countRingType := @CountRing.Ring.Pack finLmodType xclass.
+Monomorphic Definition finLmod_finRingType := @Ring.Pack finLmodType xclass.
 
 End ClassDef.
 
@@ -1295,50 +1300,50 @@ Module Algebra.
 
 Section ClassDef.
 
-Variable R : ringType.
+Monomorphic Variable R : ringType.
 
-Record class_of M :=
+Monomorphic Record class_of M :=
   Class { base : GRing.Algebra.class_of R M; mixin : mixin_of M base }.
-Definition base2 M (c : class_of M) := Lalgebra.Class (mixin c).
+Monomorphic Definition base2 M (c : class_of M) := Lalgebra.Class (mixin c).
 Local Coercion base : class_of >-> GRing.Algebra.class_of.
 Local Coercion base2 : class_of >->Lalgebra.class_of.
 
-Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (phR : phant R) (cT : type phR).
-Definition pack := gen_pack (Pack phR) Class (@GRing.Algebra.class R phR).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (phR : phant R) (cT : type phR).
+Monomorphic Definition pack := gen_pack (Pack phR) Class (@GRing.Algebra.class R phR).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
-Definition finLmodType := @Lmodule.Pack R phR cT xclass.
-Definition lalgType := @GRing.Lalgebra.Pack R phR cT xclass.
-Definition finLalgType := @Lalgebra.Pack R phR cT xclass.
-Definition algType := @GRing.Algebra.Pack R phR cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
+Monomorphic Definition finLmodType := @Lmodule.Pack R phR cT xclass.
+Monomorphic Definition lalgType := @GRing.Lalgebra.Pack R phR cT xclass.
+Monomorphic Definition finLalgType := @Lalgebra.Pack R phR cT xclass.
+Monomorphic Definition algType := @GRing.Algebra.Pack R phR cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition alg_countType := @Countable.Pack algType (fin_ xclass).
-Definition alg_finType := @Finite.Pack algType (fin_ xclass).
-Definition alg_baseFinGroupType := base_group algType zmodType finType.
-Definition alg_finGroupType := fin_group alg_baseFinGroupType zmodType.
-Definition alg_countZmodType := @CountRing.Zmodule.Pack algType xclass.
-Definition alg_finZmodType := @Zmodule.Pack algType xclass.
-Definition alg_countRingType := @CountRing.Ring.Pack algType xclass.
-Definition alg_finRingType := @Ring.Pack algType xclass.
-Definition alg_finLmodType := @Lmodule.Pack R phR algType xclass.
-Definition alg_finLalgType := @Lalgebra.Pack R phR algType xclass.
+Monomorphic Definition alg_countType := @Countable.Pack algType (fin_ xclass).
+Monomorphic Definition alg_finType := @Finite.Pack algType (fin_ xclass).
+Monomorphic Definition alg_baseFinGroupType := base_group algType zmodType finType.
+Monomorphic Definition alg_finGroupType := fin_group alg_baseFinGroupType zmodType.
+Monomorphic Definition alg_countZmodType := @CountRing.Zmodule.Pack algType xclass.
+Monomorphic Definition alg_finZmodType := @Zmodule.Pack algType xclass.
+Monomorphic Definition alg_countRingType := @CountRing.Ring.Pack algType xclass.
+Monomorphic Definition alg_finRingType := @Ring.Pack algType xclass.
+Monomorphic Definition alg_finLmodType := @Lmodule.Pack R phR algType xclass.
+Monomorphic Definition alg_finLalgType := @Lalgebra.Pack R phR algType xclass.
 
 End ClassDef.
 
@@ -1403,88 +1408,88 @@ Module UnitAlgebra.
 
 Section ClassDef.
 
-Variable R : unitRingType.
+Monomorphic Variable R : unitRingType.
 
-Record class_of M :=
+Monomorphic Record class_of M :=
   Class { base : GRing.UnitAlgebra.class_of R M; mixin : mixin_of M base }.
-Definition base2 M (c : class_of M) := Algebra.Class (mixin c).
-Definition base3 M (c : class_of M) := @UnitRing.Class _ (base c) (mixin c).
+Monomorphic Definition base2 M (c : class_of M) := Algebra.Class (mixin c).
+Monomorphic Definition base3 M (c : class_of M) := @UnitRing.Class _ (base c) (mixin c).
 
 Local Coercion base : class_of >-> GRing.UnitAlgebra.class_of.
 Local Coercion base2 : class_of >-> Algebra.class_of.
 Local Coercion base3 : class_of >-> UnitRing.class_of.
 
-Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (phR : phant R) (cT : type phR).
-Definition pack := gen_pack (Pack phR) Class (@GRing.UnitAlgebra.class R phR).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (phR : phant R) (cT : type phR).
+Monomorphic Definition pack := gen_pack (Pack phR) Class (@GRing.UnitAlgebra.class R phR).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition countType := @Countable.Pack cT (fin_ xclass).
-Definition finType := @Finite.Pack cT (fin_ xclass).
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
-Definition finZmodType := @Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition countRingType := @CountRing.Ring.Pack cT xclass.
-Definition finRingType := @Ring.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
-Definition finUnitRingType := @UnitRing.Pack cT xclass.
-Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
-Definition finLmodType := @Lmodule.Pack R phR cT xclass.
-Definition lalgType := @GRing.Lalgebra.Pack R phR cT xclass.
-Definition finLalgType := @Lalgebra.Pack R phR cT xclass.
-Definition algType := @GRing.Algebra.Pack R phR cT xclass.
-Definition finAlgType := @Algebra.Pack R phR cT xclass.
-Definition unitAlgType := @GRing.UnitAlgebra.Pack R phR cT xclass.
-Definition baseFinGroupType := base_group cT zmodType finType.
-Definition finGroupType := fin_group baseFinGroupType zmodType.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition countType := @Countable.Pack cT (fin_ xclass).
+Monomorphic Definition finType := @Finite.Pack cT (fin_ xclass).
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition countZmodType := @CountRing.Zmodule.Pack cT xclass.
+Monomorphic Definition finZmodType := @Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition countRingType := @CountRing.Ring.Pack cT xclass.
+Monomorphic Definition finRingType := @Ring.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition countUnitRingType := @CountRing.UnitRing.Pack cT xclass.
+Monomorphic Definition finUnitRingType := @UnitRing.Pack cT xclass.
+Monomorphic Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
+Monomorphic Definition finLmodType := @Lmodule.Pack R phR cT xclass.
+Monomorphic Definition lalgType := @GRing.Lalgebra.Pack R phR cT xclass.
+Monomorphic Definition finLalgType := @Lalgebra.Pack R phR cT xclass.
+Monomorphic Definition algType := @GRing.Algebra.Pack R phR cT xclass.
+Monomorphic Definition finAlgType := @Algebra.Pack R phR cT xclass.
+Monomorphic Definition unitAlgType := @GRing.UnitAlgebra.Pack R phR cT xclass.
+Monomorphic Definition baseFinGroupType := base_group cT zmodType finType.
+Monomorphic Definition finGroupType := fin_group baseFinGroupType zmodType.
 
-Definition unitAlg_countType := @Countable.Pack unitAlgType (fin_ xclass).
-Definition unitAlg_finType := @Finite.Pack unitAlgType (fin_ xclass).
-Definition unitAlg_baseFinGroupType := base_group unitAlgType zmodType finType.
-Definition unitAlg_finGroupType := fin_group unitAlg_baseFinGroupType zmodType.
-Definition unitAlg_countZmodType := @CountRing.Zmodule.Pack unitAlgType xclass.
-Definition unitAlg_finZmodType := @Zmodule.Pack unitAlgType xclass.
-Definition unitAlg_countRingType := @CountRing.Ring.Pack unitAlgType xclass.
-Definition unitAlg_finRingType := @Ring.Pack unitAlgType xclass.
-Definition unitAlg_countUnitRingType :=
+Monomorphic Definition unitAlg_countType := @Countable.Pack unitAlgType (fin_ xclass).
+Monomorphic Definition unitAlg_finType := @Finite.Pack unitAlgType (fin_ xclass).
+Monomorphic Definition unitAlg_baseFinGroupType := base_group unitAlgType zmodType finType.
+Monomorphic Definition unitAlg_finGroupType := fin_group unitAlg_baseFinGroupType zmodType.
+Monomorphic Definition unitAlg_countZmodType := @CountRing.Zmodule.Pack unitAlgType xclass.
+Monomorphic Definition unitAlg_finZmodType := @Zmodule.Pack unitAlgType xclass.
+Monomorphic Definition unitAlg_countRingType := @CountRing.Ring.Pack unitAlgType xclass.
+Monomorphic Definition unitAlg_finRingType := @Ring.Pack unitAlgType xclass.
+Monomorphic Definition unitAlg_countUnitRingType :=
   @CountRing.UnitRing.Pack unitAlgType xclass.
-Definition unitAlg_finUnitRingType := @UnitRing.Pack unitAlgType xclass.
-Definition unitAlg_finLmodType := @Lmodule.Pack R phR unitAlgType xclass.
-Definition unitAlg_finLalgType := @Lalgebra.Pack R phR unitAlgType xclass.
-Definition unitAlg_finAlgType := @Algebra.Pack R phR unitAlgType xclass.
-Definition unitRing_finLmodType := @Lmodule.Pack R phR unitRingType xclass.
-Definition unitRing_finLalgType := @Lalgebra.Pack R phR unitRingType xclass.
-Definition unitRing_finAlgType := @Algebra.Pack R phR unitRingType xclass.
-Definition countUnitRing_lmodType :=
+Monomorphic Definition unitAlg_finUnitRingType := @UnitRing.Pack unitAlgType xclass.
+Monomorphic Definition unitAlg_finLmodType := @Lmodule.Pack R phR unitAlgType xclass.
+Monomorphic Definition unitAlg_finLalgType := @Lalgebra.Pack R phR unitAlgType xclass.
+Monomorphic Definition unitAlg_finAlgType := @Algebra.Pack R phR unitAlgType xclass.
+Monomorphic Definition unitRing_finLmodType := @Lmodule.Pack R phR unitRingType xclass.
+Monomorphic Definition unitRing_finLalgType := @Lalgebra.Pack R phR unitRingType xclass.
+Monomorphic Definition unitRing_finAlgType := @Algebra.Pack R phR unitRingType xclass.
+Monomorphic Definition countUnitRing_lmodType :=
   @GRing.Lmodule.Pack R phR countUnitRingType xclass.
-Definition countUnitRing_finLmodType :=
+Monomorphic Definition countUnitRing_finLmodType :=
   @Lmodule.Pack R phR countUnitRingType xclass.
-Definition countUnitRing_lalgType :=
+Monomorphic Definition countUnitRing_lalgType :=
   @GRing.Lalgebra.Pack R phR countUnitRingType xclass.
-Definition countUnitRing_finLalgType :=
+Monomorphic Definition countUnitRing_finLalgType :=
   @Lalgebra.Pack R phR countUnitRingType xclass.
-Definition countUnitRing_algType :=
+Monomorphic Definition countUnitRing_algType :=
   @GRing.Algebra.Pack R phR countUnitRingType xclass.
-Definition countUnitRing_finAlgType :=
+Monomorphic Definition countUnitRing_finAlgType :=
   @Algebra.Pack R phR countUnitRingType xclass.
-Definition finUnitRing_lmodType :=
+Monomorphic Definition finUnitRing_lmodType :=
   @GRing.Lmodule.Pack R phR finUnitRingType xclass.
-Definition finUnitRing_finLmodType :=
+Monomorphic Definition finUnitRing_finLmodType :=
   @Lmodule.Pack R phR finUnitRingType xclass.
-Definition finUnitRing_lalgType :=
+Monomorphic Definition finUnitRing_lalgType :=
   @GRing.Lalgebra.Pack R phR finUnitRingType xclass.
-Definition finUnitRing_finLalgType :=
+Monomorphic Definition finUnitRing_finLalgType :=
   @Lalgebra.Pack R phR finUnitRingType xclass.
-Definition finUnitRing_algType :=
+Monomorphic Definition finUnitRing_algType :=
   @GRing.Algebra.Pack R phR finUnitRingType xclass.
-Definition finUnitRing_finAlgType :=
+Monomorphic Definition finUnitRing_finAlgType :=
   @Algebra.Pack R phR finUnitRingType xclass.
 
 End ClassDef.

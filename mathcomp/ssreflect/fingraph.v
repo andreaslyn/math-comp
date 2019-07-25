@@ -711,21 +711,22 @@ Proof. by move=> x; rewrite !inE order_finv. Qed.
 
 End FinvEq.
 
-Section RelAdjunction.
-
-Variables (T T' : finType) (h : T' -> T) (e : rel T) (e' : rel T').
-Hypotheses (sym_e : connect_sym e) (sym_e' : connect_sym e').
-
-Record rel_adjunction_mem m_a := RelAdjunction {
+Monomorphic Record rel_adjunction_mem (T T' : finType) (h : T' -> T) (e : rel T) (e' : rel T') m_a :=
+RelAdjunction {
   rel_unit x : in_mem x m_a -> {x' : T' | connect e x (h x')};
   rel_functor x' y' :
     in_mem (h x') m_a -> connect e' x' y' = connect e (h x') (h y')
 }.
 
+Section RelAdjunction.
+
+Variables (T T' : finType) (h : T' -> T) (e : rel T) (e' : rel T').
+Hypotheses (sym_e : connect_sym e) (sym_e' : connect_sym e').
+
 Variable a : {pred T}.
 Hypothesis cl_a : closed e a.
 
-Local Notation rel_adjunction := (rel_adjunction_mem (mem a)).
+Local Notation rel_adjunction := (rel_adjunction_mem h e e' (mem a)).
 
 Lemma intro_adjunction (h' : forall x, x \in a -> T') :
    (forall x a_x,

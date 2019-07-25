@@ -1492,6 +1492,19 @@ Print myb_finm.
 Print myb_cntm.
 *)
 
+Section CardSig.
+
+Monomorphic Variables (T : finType) (P : pred T).
+
+Monomorphic Definition sig_finMixin := [finMixin of {x | P x} by <:].
+Monomorphic Canonical sig_finType := Eval hnf in FinType {x | P x} sig_finMixin.
+Monomorphic Canonical sig_subFinType := Eval hnf in [subFinType of {x | P x}].
+
+Monomorphic Lemma card_sig : #|{: {x | P x}}| = #|[pred x | P x]|.
+Proof. exact: card_sub. Qed.
+
+End CardSig.
+
 (* Subtype for an explicit enumeration. *)
 Section SeqSubType.
 

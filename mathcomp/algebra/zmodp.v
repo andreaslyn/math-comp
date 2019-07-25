@@ -54,7 +54,7 @@ Unset Printing Implicit Defensive.
 
 Local Open Scope ring_scope.
 
-Section ZpDef.
+Section ZpDef1.
 
 (***********************************************************************)
 (*                                                                     *)
@@ -100,11 +100,33 @@ Qed.
 Lemma Zp_addC : commutative Zp_add.
 Proof. by move=> x y; apply: val_inj; rewrite /= addnC. Qed.
 
-Definition Zp_zmodMixin := ZmodMixin Zp_addA Zp_addC Zp_add0z Zp_addNz.
-Canonical Zp_zmodType := Eval hnf in ZmodType 'I_p Zp_zmodMixin.
-Canonical Zp_finZmodType := Eval hnf in [finZmodType of 'I_p].
-Canonical Zp_baseFinGroupType := Eval hnf in [baseFinGroupType of 'I_p for +%R].
-Canonical Zp_finGroupType := Eval hnf in [finGroupType of 'I_p for +%R].
+End ZpDef1.
+
+Section ZpDef2.
+
+Monomorphic Variable p' : nat.
+Local Notation p := p'.+1.
+
+Monomorphic Definition Zp_zmodMixin :=
+  ZmodMixin (@Zp_addA p') (@Zp_addC p') (@Zp_add0z p') (@Zp_addNz p').
+Monomorphic Canonical Zp_zmodType := Eval hnf in ZmodType 'I_p Zp_zmodMixin.
+Monomorphic Canonical Zp_finZmodType := Eval hnf in [finZmodType of 'I_p].
+Monomorphic Canonical Zp_baseFinGroupType := Eval hnf in [baseFinGroupType of 'I_p for +%R].
+Monomorphic Canonical Zp_finGroupType := Eval hnf in [finGroupType of 'I_p for +%R].
+
+End ZpDef2.
+
+Section ZpDef3.
+
+Variable p' : nat.
+
+Local Notation p := p'.+1.
+Local Notation Zp1 := (@Zp1 p').
+Local Notation Zp_mul := (@Zp_mul p').
+Local Notation Zp_add := (@Zp_add p').
+Local Notation inZp := (@inZp p').
+
+Implicit Types x y z : 'I_p.
 
 (* Ring operations *)
 
@@ -142,7 +164,7 @@ Proof. by move=> Ux; rewrite /= Zp_mulC Zp_mulVz. Qed.
 Lemma Zp_intro_unit x y : Zp_mul y x = Zp1 -> coprime p x.
 Proof.
 case=> yx1; have:= coprimen1 p.
-by rewrite -coprime_modr -yx1 coprime_modr coprime_mulr; case/andP.
+by rewrite -coprime_modr -{1}yx1 coprime_modr coprime_mulr; case/andP.
 Qed.
 
 Lemma Zp_inv_out x : ~~ coprime p x -> Zp_inv x = x.
@@ -174,7 +196,7 @@ Proof. by apply/setP=> x; rewrite -[x]Zp1_expgz inE groupX ?mem_gen ?set11. Qed.
 Lemma order_Zp1 : #[Zp1] = p.
 Proof. by rewrite orderE -Zp_cycle cardsT card_ord. Qed.
 
-End ZpDef.
+End ZpDef3.
 
 Arguments Zp0 {p'}.
 Arguments Zp1 {p'}.
@@ -206,27 +228,34 @@ Lemma big_ord1_cond R idx (op : @Monoid.law R idx) P F :
   \big[op/idx]_(i < 1 | P i) F i = if P 0 then F 0 else idx.
 Proof. by rewrite big_mkcond big_ord1. Qed.
 
-Section ZpRing.
+Section ZpRing1.
+
+Monomorphic Variable p' : nat.
+Local Notation p := p'.+2.
+
+Monomorphic Lemma Zp_nontrivial : Zp1 != 0 :> 'I_p. Proof. by []. Qed.
+
+Monomorphic Definition Zp_ringMixin :=
+  ComRingMixin (@Zp_mulA _) (@Zp_mulC _) (@Zp_mul1z _) (@Zp_mul_addl _)
+               Zp_nontrivial.
+Monomorphic Canonical Zp_ringType := Eval hnf in RingType 'I_p Zp_ringMixin.
+Monomorphic Canonical Zp_finRingType := Eval hnf in [finRingType of 'I_p].
+Monomorphic Canonical Zp_comRingType := Eval hnf in ComRingType 'I_p (@Zp_mulC _).
+Monomorphic Canonical Zp_finComRingType := Eval hnf in [finComRingType of 'I_p].
+
+Monomorphic Definition Zp_unitRingMixin :=
+  ComUnitRingMixin (@Zp_mulVz _) (@Zp_intro_unit _) (@Zp_inv_out _).
+Monomorphic Canonical Zp_unitRingType := Eval hnf in UnitRingType 'I_p Zp_unitRingMixin.
+Monomorphic Canonical Zp_finUnitRingType := Eval hnf in [finUnitRingType of 'I_p].
+Monomorphic Canonical Zp_comUnitRingType := Eval hnf in [comUnitRingType of 'I_p].
+Monomorphic Canonical Zp_finComUnitRingType := Eval hnf in [finComUnitRingType of 'I_p].
+
+End ZpRing1.
+
+Section ZpRing2.
 
 Variable p' : nat.
 Local Notation p := p'.+2.
-
-Lemma Zp_nontrivial : Zp1 != 0 :> 'I_p. Proof. by []. Qed.
-
-Definition Zp_ringMixin :=
-  ComRingMixin (@Zp_mulA _) (@Zp_mulC _) (@Zp_mul1z _) (@Zp_mul_addl _)
-               Zp_nontrivial.
-Canonical Zp_ringType := Eval hnf in RingType 'I_p Zp_ringMixin.
-Canonical Zp_finRingType := Eval hnf in [finRingType of 'I_p].
-Canonical Zp_comRingType := Eval hnf in ComRingType 'I_p (@Zp_mulC _).
-Canonical Zp_finComRingType := Eval hnf in [finComRingType of 'I_p].
-
-Definition Zp_unitRingMixin :=
-  ComUnitRingMixin (@Zp_mulVz _) (@Zp_intro_unit _) (@Zp_inv_out _).
-Canonical Zp_unitRingType := Eval hnf in UnitRingType 'I_p Zp_unitRingMixin.
-Canonical Zp_finUnitRingType := Eval hnf in [finUnitRingType of 'I_p].
-Canonical Zp_comUnitRingType := Eval hnf in [comUnitRingType of 'I_p].
-Canonical Zp_finComUnitRingType := Eval hnf in [finComUnitRingType of 'I_p].
 
 Lemma Zp_nat n : n%:R = inZp n :> 'I_p.
 Proof. by apply: val_inj; rewrite [n%:R]Zp_mulrn /= modnMml mul1n. Qed.
@@ -243,13 +272,13 @@ Lemma unit_Zp_mulgC : @commutative {unit 'I_p} _ mulg.
 Proof. by move=> u v; apply: val_inj; rewrite /= GRing.mulrC. Qed.
 
 Lemma unit_Zp_expg (u : {unit 'I_p}) n :
-  val (u ^+ n) = inZp (val u ^ n) :> 'I_p.
+  val (u ^+ n) = inZp (val u ** n) :> 'I_p.
 Proof.
 apply: val_inj => /=; elim: n => [|n IHn] //.
 by rewrite expgS /= IHn expnS modnMmr.
 Qed.
 
-End ZpRing.
+End ZpRing2.
 
 Definition Zp_trunc p := p.-2.
 
@@ -281,12 +310,11 @@ Proof. by move=> p_gt1; rewrite -Zp_nat_mod ?modnn. Qed.
 
 Lemma unitZpE x : p > 1 -> ((x%:R : 'Z_p) \is a GRing.unit) = coprime p x.
 Proof.
-by move=> p_gt1; rewrite qualifE /= val_Zp_nat ?Zp_cast ?coprime_modr.
+by move=> p_gt1; rewrite qualifE /= /in_mem /= val_Zp_nat ?Zp_cast ?coprime_modr.
 Qed.
 
 Lemma Zp_group_set : group_set Zp.
 Proof. by rewrite /Zp; case: (p > 1); apply: groupP. Qed.
-Canonical Zp_group := Group Zp_group_set.
 
 Lemma card_Zp : p > 0 -> #|Zp| = p.
 Proof.
@@ -295,8 +323,6 @@ by rewrite cardsT card_ord.
 Qed.
 
 Lemma mem_Zp x : p > 1 -> x \in Zp. Proof. by rewrite /Zp => ->. Qed.
-
-Canonical units_Zp_group := [group of units_Zp].
 
 Lemma card_units_Zp : p > 0 -> #|units_Zp| = totient p.
 Proof.
@@ -309,6 +335,9 @@ Lemma units_Zp_abelian : abelian units_Zp.
 Proof. by apply/centsP=> u _ v _; apply: unit_Zp_mulgC. Qed.
 
 End Groups.
+
+Monomorphic Canonical Zp_group (p : nat) := Group (@Zp_group_set p).
+Monomorphic Canonical units_Zp_group (p : nat) := [group of @units_Zp p].
 
 (* Field structure for primes. *)
 
@@ -348,29 +377,35 @@ Proof. by rewrite pdiv_id // unitZpE // prime_gt1. Qed.
 
 End F_prime.
 
-Lemma Fp_fieldMixin : GRing.Field.mixin_of [the unitRingType of 'F_p].
+End PrimeField.
+
+Section PrimeFieldCanon.
+
+Monomorphic Variable p : nat.
+
+Monomorphic Lemma Fp_fieldMixin : GRing.Field.mixin_of [the unitRingType of 'F_p].
 Proof.
-move=> x nzx; rewrite qualifE /= prime_coprime ?gtnNdvd ?lt0n //.
-case: (ltnP 1 p) => [lt1p | ]; last by case: p => [|[|p']].
+move=> x nzx; rewrite qualifE /= /in_mem /= prime_coprime ?gtnNdvd ?lt0n //.
+clear nzx x; case: (ltnP 1 p) => [lt1p | ]; last by case: p => [|[|p']].
 by rewrite Zp_cast ?prime_gt1 ?pdiv_prime.
 Qed.
 
-Definition Fp_idomainMixin := FieldIdomainMixin Fp_fieldMixin.
+Monomorphic Definition Fp_idomainMixin := FieldIdomainMixin Fp_fieldMixin.
 
-Canonical Fp_idomainType := Eval hnf in IdomainType 'F_p  Fp_idomainMixin.
-Canonical Fp_finIdomainType := Eval hnf in [finIdomainType of 'F_p].
-Canonical Fp_fieldType := Eval hnf in FieldType 'F_p Fp_fieldMixin.
-Canonical Fp_finFieldType := Eval hnf in [finFieldType of 'F_p].
-Canonical Fp_decFieldType :=
+Monomorphic Canonical Fp_idomainType := Eval hnf in IdomainType 'F_p  Fp_idomainMixin.
+Monomorphic Canonical Fp_finIdomainType := Eval hnf in [finIdomainType of 'F_p].
+Monomorphic Canonical Fp_fieldType := Eval hnf in FieldType 'F_p Fp_fieldMixin.
+Monomorphic Canonical Fp_finFieldType := Eval hnf in [finFieldType of 'F_p].
+Monomorphic Canonical Fp_decFieldType :=
   Eval hnf in [decFieldType of 'F_p for Fp_finFieldType].
 
-End PrimeField.
+End PrimeFieldCanon.
 
-Canonical Zp_countZmodType m := [countZmodType of 'I_m.+1].
-Canonical Zp_countRingType m := [countRingType of 'I_m.+2].
-Canonical Zp_countComRingType m := [countComRingType of 'I_m.+2].
-Canonical Zp_countUnitRingType m := [countUnitRingType of 'I_m.+2].
-Canonical Zp_countComUnitRingType m := [countComUnitRingType of 'I_m.+2].
-Canonical Fp_countIdomainType p := [countIdomainType of 'F_p].
-Canonical Fp_countFieldType p := [countFieldType of 'F_p].
-Canonical Fp_countDecFieldType p := [countDecFieldType of 'F_p].
+Monomorphic Canonical Zp_countZmodType m := [countZmodType of 'I_m.+1].
+Monomorphic Canonical Zp_countRingType m := [countRingType of 'I_m.+2].
+Monomorphic Canonical Zp_countComRingType m := [countComRingType of 'I_m.+2].
+Monomorphic Canonical Zp_countUnitRingType m := [countUnitRingType of 'I_m.+2].
+Monomorphic Canonical Zp_countComUnitRingType m := [countComUnitRingType of 'I_m.+2].
+Monomorphic Canonical Fp_countIdomainType p := [countIdomainType of 'F_p].
+Monomorphic Canonical Fp_countFieldType p := [countFieldType of 'F_p].
+Monomorphic Canonical Fp_countDecFieldType p := [countDecFieldType of 'F_p].

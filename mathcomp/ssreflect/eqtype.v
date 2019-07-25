@@ -827,6 +827,15 @@ Arguments val_eqP {T P sT x y}.
 Notation "[ 'eqMixin' 'of' T 'by' <: ]" := (SubEqMixin _ : Equality.class_of T)
   (at level 0, format "[ 'eqMixin'  'of'  T  'by'  <: ]") : form_scope.
 
+Section SigEqType.
+
+Monomorphic Variables (T : eqType) (P : pred T).
+
+Monomorphic Definition sig_eqMixin := Eval hnf in [eqMixin of {x | P x} by <:].
+Monomorphic Canonical sig_eqType := Eval hnf in EqType {x | P x} sig_eqMixin.
+
+End SigEqType.
+
 Section ProdEqType1.
 
 Variable T1 T2 : eqType.

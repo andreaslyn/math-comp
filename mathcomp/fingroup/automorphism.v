@@ -66,10 +66,13 @@ Definition autm A a (AutAa : a \in Aut A) := morphm (Aut_morphic AutAa).
 Lemma autmE A a (AutAa : a \in Aut A) : autm AutAa = a.
 Proof. by []. Qed.
 
-Canonical autm_morphism A a aM := Eval hnf in [morphism of @autm A a aM].
+End Automorphism.
 
-Section AutGroup.
+Monomorphic Canonical autm_morphism (gT : finGroupType) A a aM := Eval hnf in [morphism of @autm gT A a aM].
 
+Section AutGroup1.
+
+Variable gT : finGroupType.
 Variable G : {group gT}.
 
 Lemma Aut_group_set : group_set (Aut G).
@@ -80,9 +83,14 @@ rewrite !inE => /andP[Ga aM] /andP[Gb bM]; rewrite perm_onM //=.
 apply/morphicP=> x y Gx Gy; rewrite !permM (morphicP aM) //.
 by rewrite (morphicP bM) ?perm_closed.
 Qed.
+End AutGroup1.
 
-Canonical Aut_group := group Aut_group_set.
+Monomorphic Canonical Aut_group (gT : finGroupType) (G : {group gT}) := group (@Aut_group_set gT G).
 
+Section AutGroup2.
+
+Variable gT : finGroupType.
+Variable G : {group gT}.
 Variable (a : {perm gT}) (AutGa : a \in Aut G).
 Notation f := (autm AutGa).
 Notation fE := (autmE AutGa).
@@ -101,16 +109,14 @@ Qed.
 Lemma Aut_closed x : x \in G -> a x \in G.
 Proof. by move=> Gx; rewrite -im_autm; apply: mem_morphim. Qed.
 
-End AutGroup.
+End AutGroup2.
 
-Lemma Aut1 : Aut 1 = 1.
+Lemma Aut1 (gT : finGroupType) : @Aut gT 1 = 1.
 Proof.
 apply/trivgP/subsetP=> a /= AutGa; apply/set1P.
 apply: eq_Aut (AutGa) (group1 _) _ => _ /set1P->.
 by rewrite -(autmE AutGa) morph1 perm1.
 Qed.
-
-End Automorphism.
 
 Arguments Aut _ _%g.
 Notation "[ 'Aut' G ]" := (Aut_group G)
@@ -132,7 +138,9 @@ Hypotheses (injf : {in A &, injective f}) (sBf : f @: A \subset A).
 Lemma perm_in_inj : injective (fun x => if x \in A then f x else x).
 Proof.
 move=> x y /=; wlog Ay: x y / y \in A.
-  by move=> IH eqfxy; case: ifP (eqfxy); [symmetry | case: ifP => //]; auto.
+  move=> IH eqfxy; case: ifP (eqfxy); [symmetry | case: ifP => //].
+  - exact: IH y x i eqfxy^.
+  - auto.
 rewrite Ay; case: ifP => [Ax | nAx def_x]; first exact: injf.
 by case/negP: nAx; rewrite def_x (subsetP sBf) ?mem_imset.
 Qed.
@@ -236,15 +244,21 @@ apply: (eq_Aut (Aut_Aut_isom _)); rewrite ?groupM ?Aut_Aut_isom // => fx.
 case/morphimP=> x Dx Gx ->{fx}.
 by rewrite permM !Aut_isomE ?groupM /= ?permM ?Aut_closed.
 Qed.
-Canonical Aut_isom_morphism := Morphism Aut_isomM.
-
-Lemma injm_Aut_isom : 'injm Aut_isom.
-Proof.
-apply/injmP=> a b AutGa AutGb eq_ab'; apply: (eq_Aut AutGa AutGb) => x Gx.
-by apply: (injmP injf); rewrite ?domG ?Aut_closed // -!Aut_isomE //= eq_ab'.
-Qed.
 
 End AutIsom.
+
+Monomorphic Canonical Aut_isom_morphism (gT rT : finGroupType)
+  (G D : {group gT}) (f : {morphism D >-> rT}) (injf : 'injm f) (sGD : G \subset D)
+  := Morphism (@Aut_isomM gT rT G D f injf sGD).
+
+Lemma injm_Aut_isom (gT rT : finGroupType) (G D : {group gT})
+  (f : {morphism D >-> rT}) (injf : 'injm f) (sGD : G \subset D)
+  : 'injm (@Aut_isom gT rT G D f injf sGD).
+Proof.
+have domG := subsetP sGD.
+apply/injmP=> a b AutGa AutGb eq_ab'; apply: (eq_Aut AutGa AutGb) => x Gx.
+by apply: (injmP injf); rewrite ?domG ?Aut_closed // -!(@Aut_isomE gT rT G D f injf sGD) //= eq_ab'.
+Qed.
 
 Section InjmAut.
 
@@ -273,14 +287,14 @@ End InjmAut.
 
 (* conjugation automorphism *)
 
-Section ConjugationMorphism.
+Section ConjugationMorphism1.
 
 Variable gT : finGroupType.
 Implicit Type A : {set gT}.
 
-Definition conjgm of {set gT} := fun x y : gT => y ^ x.
+Definition conjgm of {set gT} := fun x y : gT => y ** x.
 
-Lemma conjgmE A x y : conjgm A x y = y ^ x. Proof. by []. Qed.
+Lemma conjgmE A x y : conjgm A x y = y ** x. Proof. by []. Qed.
 
 Canonical conjgm_morphism A x :=
   @Morphism _ _ A (conjgm A x) (in2W (fun y z => conjMg y z x)).
@@ -307,10 +321,10 @@ Proof. by move/norm_conjg_im/restr_isom_to/(_ (conj_isom x))->. Qed.
 
 Definition conj_aut x := aut (injm_conj _) (norm_conjg_im (subgP (subg _ x))).
 
-Lemma norm_conj_autE : {in 'N(G) & G, forall x y, conj_aut x y = y ^ x}.
+Lemma norm_conj_autE : {in 'N(G) & G, forall x y, conj_aut x y = y ** x}.
 Proof. by move=> x y nGx Gy; rewrite /= autE //= subgK. Qed.
 
-Lemma conj_autE : {in G &, forall x y, conj_aut x y = y ^ x}.
+Lemma conj_autE : {in G &, forall x y, conj_aut x y = y ** x}.
 Proof. by apply: sub_in11 norm_conj_autE => //; apply: subsetP (normG G). Qed.
 
 Lemma conj_aut_morphM : {in 'N(G) &, {morph conj_aut : x y / x * y}}.
@@ -320,22 +334,30 @@ case Gz: (z \in G); last by rewrite !permE /= !Gz.
 by rewrite !norm_conj_autE // (conjgM, memJ_norm, groupM).
 Qed.
 
-Canonical conj_aut_morphism := Morphism conj_aut_morphM.
+End ConjugationMorphism1.
 
-Lemma ker_conj_aut : 'ker conj_aut = 'C(G).
+Monomorphic Canonical conj_aut_morphism (gT : finGroupType) (G : {group gT})
+  := Morphism (@conj_aut_morphM gT G).
+
+Section ConjugationMorphism2.
+
+Variable gT : finGroupType.
+Variable G : {group gT}.
+
+Lemma ker_conj_aut : 'ker (@conj_aut gT G) = 'C(G).
 Proof.
 apply/setP=> x; rewrite inE; case nGx: (x \in 'N(G)); last first.
   by symmetry; apply/idP=> cGx; rewrite (subsetP (cent_sub G)) in nGx.
 rewrite 2!inE /=; apply/eqP/centP=> [cx1 y Gy | cGx].
-  by rewrite /commute (conjgC y) -norm_conj_autE // cx1 perm1.
+  by rewrite /commute (conjgC y) -(@norm_conj_autE gT G) // cx1 perm1.
 apply/permP=> y; case Gy: (y \in G); last by rewrite !permE Gy.
 by rewrite perm1 norm_conj_autE // conjgE -cGx ?mulKg.
 Qed.
 
-Lemma Aut_conj_aut A : conj_aut @* A \subset Aut G.
+Lemma Aut_conj_aut A : @conj_aut gT G @* A \subset Aut G.
 Proof. by apply/subsetP=> _ /imsetP[x _ ->]; apply: Aut_aut. Qed.
 
-End ConjugationMorphism.
+End ConjugationMorphism2.
 
 Arguments conjgm _ _%g.
 Prenex Implicits conjgm conj_aut.
@@ -360,7 +382,7 @@ Lemma charP H G :
   reflect [/\ H \subset G & forall f, fixH f] (H \char G).
 Proof.
 do [apply: (iffP andP) => -[sHG chHG]; split] => // [f injf Gf|].
-  by apply/morphim_fixP; rewrite // -imset_autE ?(forall_inP chHG) ?Aut_aut.
+  by apply/morphim_fixP; rewrite // -(@imset_autE gT G f injf Gf) ?(forall_inP chHG) ?Aut_aut.
 apply/forall_inP=> f Af; rewrite -(autmE Af) -morphimEsub //.
 by rewrite chHG ?injm_autm ?im_autm.
 Qed.

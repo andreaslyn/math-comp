@@ -37,42 +37,42 @@ Import GroupScope.
 
 Section PermDefSection.
 
-Variable T : finType.
+Monomorphic Variable T : finType.
 
-Inductive perm_type : predArgType :=
+Monomorphic Inductive perm_type : predArgType :=
   Perm (pval : {ffun T -> T}) & injectiveb pval.
-Definition pval p := let: Perm f _ := p in f.
-Definition perm_of of phant T := perm_type.
-Identity Coercion type_of_perm : perm_of >-> perm_type.
+Monomorphic Definition pval p := let: Perm f _ := p in f.
+Monomorphic Definition perm_of of phant T := perm_type.
+Monomorphic Identity Coercion type_of_perm : perm_of >-> perm_type.
 
 Notation pT := (perm_of (Phant T)).
 
-Canonical perm_subType := Eval hnf in [subType for pval].
-Definition perm_eqMixin := Eval hnf in [eqMixin of perm_type by <:].
-Canonical perm_eqType := Eval hnf in EqType perm_type perm_eqMixin.
-Definition perm_choiceMixin := [choiceMixin of perm_type by <:].
-Canonical perm_choiceType := Eval hnf in ChoiceType perm_type perm_choiceMixin.
-Definition perm_countMixin := [countMixin of perm_type by <:].
-Canonical perm_countType := Eval hnf in CountType perm_type perm_countMixin.
-Canonical perm_subCountType := Eval hnf in [subCountType of perm_type].
-Definition perm_finMixin := [finMixin of perm_type by <:].
-Canonical perm_finType := Eval hnf in FinType perm_type perm_finMixin.
-Canonical perm_subFinType := Eval hnf in [subFinType of perm_type].
+Monomorphic Canonical perm_subType := Eval hnf in [subType for pval].
+Monomorphic Definition perm_eqMixin := Eval hnf in [eqMixin of perm_type by <:].
+Monomorphic Canonical perm_eqType := Eval hnf in EqType perm_type perm_eqMixin.
+Monomorphic Definition perm_choiceMixin := [choiceMixin of perm_type by <:].
+Monomorphic Canonical perm_choiceType := Eval hnf in ChoiceType perm_type perm_choiceMixin.
+Monomorphic Definition perm_countMixin := [countMixin of perm_type by <:].
+Monomorphic Canonical perm_countType := Eval hnf in CountType perm_type perm_countMixin.
+Monomorphic Canonical perm_subCountType := Eval hnf in [subCountType of perm_type].
+Monomorphic Definition perm_finMixin := [finMixin of perm_type by <:].
+Monomorphic Canonical perm_finType := Eval hnf in FinType perm_type perm_finMixin.
+Monomorphic Canonical perm_subFinType := Eval hnf in [subFinType of perm_type].
 
-Canonical perm_for_subType := Eval hnf in [subType of pT].
-Canonical perm_for_eqType := Eval hnf in [eqType of pT].
-Canonical perm_for_choiceType := Eval hnf in [choiceType of pT].
-Canonical perm_for_countType := Eval hnf in [countType of pT].
-Canonical perm_for_subCountType := Eval hnf in [subCountType of pT].
-Canonical perm_for_finType := Eval hnf in [finType of pT].
-Canonical perm_for_subFinType := Eval hnf in [subFinType of pT].
+Monomorphic Canonical perm_for_subType := Eval hnf in [subType of pT].
+Monomorphic Canonical perm_for_eqType := Eval hnf in [eqType of pT].
+Monomorphic Canonical perm_for_choiceType := Eval hnf in [choiceType of pT].
+Monomorphic Canonical perm_for_countType := Eval hnf in [countType of pT].
+Monomorphic Canonical perm_for_subCountType := Eval hnf in [subCountType of pT].
+Monomorphic Canonical perm_for_finType := Eval hnf in [finType of pT].
+Monomorphic Canonical perm_for_subFinType := Eval hnf in [subFinType of pT].
 
-Lemma perm_proof (f : T -> T) : injective f -> injectiveb (finfun f).
+End PermDefSection.
+
+Lemma perm_proof (T : finType) (f : T -> T) : injective f -> injectiveb (finfun f).
 Proof.
 by move=> f_inj; apply/injectiveP; apply: eq_inj f_inj _ => x; rewrite ffunE.
 Qed.
-
-End PermDefSection.
 
 Notation "{ 'perm' T }" := (perm_of (Phant T))
   (at level 0, format "{ 'perm'  T }") : type_scope.
@@ -89,27 +89,27 @@ Local Notation fun_of_perm_def := (fun T (u : perm_type T) => val u : T -> T).
 Local Notation perm_def := (fun T f injf => Perm (@perm_proof T f injf)).
 
 Module Type PermDefSig.
-Parameter fun_of_perm : forall T, perm_type T -> T -> T.
-Parameter perm : forall (T : finType) (f : T -> T), injective f -> {perm T}.
-Axiom fun_of_permE : fun_of_perm = fun_of_perm_def.
-Axiom permE : perm = perm_def.
+Monomorphic Parameter fun_of_perm : forall T, perm_type T -> T -> T.
+Monomorphic Parameter perm : forall (T : finType) (f : T -> T), injective f -> {perm T}.
+Monomorphic Axiom fun_of_permE : fun_of_perm = fun_of_perm_def.
+Monomorphic Axiom permE : perm = perm_def.
 End PermDefSig.
 
 Module PermDef : PermDefSig.
-Definition fun_of_perm := fun_of_perm_def.
-Definition perm := perm_def.
-Lemma fun_of_permE : fun_of_perm = fun_of_perm_def. Proof. by []. Qed.
-Lemma permE : perm = perm_def. Proof. by []. Qed.
+Monomorphic Definition fun_of_perm := fun_of_perm_def.
+Monomorphic Definition perm := perm_def.
+Monomorphic Lemma fun_of_permE : fun_of_perm = fun_of_perm_def. Proof. by []. Qed.
+Monomorphic Lemma permE : perm = perm_def. Proof. by []. Qed.
 End PermDef.
 
 Notation fun_of_perm := PermDef.fun_of_perm.
 Notation "@ 'perm'" := (@PermDef.perm) (at level 10, format "@ 'perm'").
 Notation perm := (@PermDef.perm _ _).
-Canonical fun_of_perm_unlock := Unlockable PermDef.fun_of_permE.
-Canonical perm_unlock := Unlockable PermDef.permE.
+Monomorphic Canonical fun_of_perm_unlock := Unlockable PermDef.fun_of_permE.
+Monomorphic Canonical perm_unlock := Unlockable PermDef.permE.
 Coercion fun_of_perm : perm_type >-> Funclass.
 
-Section Theory.
+Section Theory1.
 
 Variable T : finType.
 Implicit Types (x y : T) (s t : {perm T}) (S : {set T}).
@@ -148,15 +148,28 @@ Proof. by move=> s; apply/permP=> x; rewrite !permE /= permE f_iinv. Qed.
 Lemma perm_mulP : associative perm_mul.
 Proof. by move=> s t u; apply/permP=> x; do !rewrite permE /=. Qed.
 
-Definition perm_of_baseFinGroupMixin : FinGroup.mixin_of (perm_type T) :=
-  FinGroup.Mixin perm_mulP perm_oneP perm_invP.
-Canonical perm_baseFinGroupType :=
-  Eval hnf in BaseFinGroupType (perm_type T) perm_of_baseFinGroupMixin.
-Canonical perm_finGroupType := @FinGroupType perm_baseFinGroupType perm_invP.
+End Theory1.
 
-Canonical perm_of_baseFinGroupType :=
+Monomorphic Definition perm_of_baseFinGroupMixin (T : finType) : FinGroup.mixin_of (perm_type T) :=
+  FinGroup.Mixin (@perm_mulP T) (@perm_oneP T) (@perm_invP T).
+Monomorphic Canonical perm_baseFinGroupType (T : finType) :=
+  Eval hnf in BaseFinGroupType (perm_type T) (@perm_of_baseFinGroupMixin T).
+Monomorphic Canonical perm_finGroupType (T : finType) :=
+  @FinGroupType (@perm_baseFinGroupType T) (@perm_invP T).
+
+Monomorphic Canonical perm_of_baseFinGroupType (T : finType) :=
   Eval hnf in [baseFinGroupType of {perm T}].
-Canonical perm_of_finGroupType := Eval hnf in [finGroupType of {perm T} ].
+Monomorphic Canonical perm_of_finGroupType (T : finType) := Eval hnf in [finGroupType of {perm T} ].
+
+Monomorphic Variant tperm_spec (T : finType) x y z : T -> Type :=
+  | TpermFirst of z = x          : tperm_spec x y z y
+  | TpermSecond of z = y         : tperm_spec x y z x
+  | TpermNone of z <> x & z <> y : tperm_spec x y z z.
+
+Section Theory2.
+
+Variable T : finType.
+Implicit Types (x y : T) (s t : {perm T}) (S : {set T}).
 
 Lemma perm1 x : (1 : {perm T}) x = x.
 Proof. by rewrite permE. Qed.
@@ -164,22 +177,22 @@ Proof. by rewrite permE. Qed.
 Lemma permM s t x : (s * t) x = t (s x).
 Proof. by rewrite permE. Qed.
 
-Lemma permK s : cancel s s^-1.
+Lemma permK s : cancel s (s^-1)%g.
 Proof. by move=> x; rewrite -permM mulgV perm1. Qed.
 
-Lemma permKV s : cancel s^-1 s.
+Lemma permKV s : cancel (s^-1)%g s.
 Proof. by have:= permK s^-1; rewrite invgK. Qed.
 
-Lemma permJ s t x : (s ^ t) (t x) = t (s x).
+Lemma permJ s t x : (s ** t) (t x) = t (s x).
 Proof. by rewrite !permM permK. Qed.
 
 Lemma permX s x n : (s ^+ n) x = iter n s x.
 Proof. by elim: n => [|n /= <-]; rewrite ?perm1 // -permM expgSr. Qed.
 
-Lemma im_permV s S : s^-1 @: S = s @^-1: S.
+Lemma im_permV s S : (s^-1)%g @: S = s @^-1: S.
 Proof. exact: can2_imset_pre (permKV s) (permK s). Qed.
 
-Lemma preim_permV s S : s^-1 @^-1: S = s @: S.
+Lemma preim_permV s S : (s^-1)%g @^-1: S = s @: S.
 Proof. by rewrite -im_permV invgK. Qed.
 
 Definition perm_on S : pred {perm T} := fun s => [pred x | s x != x] \subset S.
@@ -187,7 +200,7 @@ Definition perm_on S : pred {perm T} := fun s => [pred x | s x != x] \subset S.
 Lemma perm_closed S s x : perm_on S s -> (s x \in S) = (x \in S).
 Proof.
 move/subsetP=> s_on_S; have [-> // | nfix_s_x] := eqVneq (s x) x.
-by rewrite !s_on_S // inE /= ?(inj_eq perm_inj).
+by rewrite !s_on_S // inE /= (inj_eq (@perm_inj T s)).
 Qed.
 
 Lemma perm_on1 H : perm_on H 1.
@@ -215,11 +228,6 @@ by case: (z =P y) => [->| ne_zy]; [rewrite eqxx | do 2?case: eqP].
 Qed.
 
 Definition tperm x y := perm (can_inj (tperm_proof x y)).
-
-Variant tperm_spec x y z : T -> Type :=
-  | TpermFirst of z = x          : tperm_spec x y z y
-  | TpermSecond of z = y         : tperm_spec x y z x
-  | TpermNone of z <> x & z <> y : tperm_spec x y z z.
 
 Lemma tpermP x y z : tperm_spec x y z (tperm x y z).
 Proof. by rewrite permE /=; do 2?[case: eqP => /=]; constructor; auto. Qed.
@@ -276,7 +284,7 @@ case: insubP => [u _ <-|]; case: insubP => [v _ <-|] //=; first by move/f_inj->.
 by move=> Ax' def_x; rewrite def_x [_ \in A]onA in Ax'.
 Qed.
 
-End Theory.
+End Theory2.
 
 Prenex Implicits tperm permK permKV tpermK.
 Arguments perm_inj {T s} [x1 x2] eq_sx12.
@@ -289,7 +297,7 @@ Lemma inj_tperm (T T' : finType) (f : T -> T') x y z :
 Proof. by move=> injf; rewrite !permE /= !(inj_eq injf) !(fun_if f). Qed.
 
 Lemma tpermJ (T : finType) x y (s : {perm T}) :
-  (tperm x y) ^ s = tperm (s x) (s y).
+  (tperm x y) ** s = tperm (s x) (s y).
 Proof.
 by apply/permP => z; rewrite -(permKV s z) permJ; apply/inj_tperm/perm_inj.
 Qed.
@@ -496,7 +504,7 @@ Qed.
 Lemma odd_permV s : odd_perm s^-1 = odd_perm s.
 Proof. by rewrite -{2}(mulgK s s) !odd_permM -addbA addKb. Qed.
 
-Lemma odd_permJ s1 s2 : odd_perm (s1 ^ s2) = odd_perm s1.
+Lemma odd_permJ s1 s2 : odd_perm (s1 ** s2) = odd_perm s1.
 Proof. by rewrite !odd_permM odd_permV addbC addbK. Qed.
 
 End PermutationParity.
@@ -555,6 +563,7 @@ congr (_ (+) _); last first.
   congr (_ (+) _); transitivity (tperm (lift j t.1) (lift j t.2)); last first.
      by rewrite odd_tperm (inj_eq (pcan_inj (liftK j))).
   congr odd_perm; apply/permP=> k; case: (unliftP j k) => [k'|] ->.
+    have lift_inj : injective (lift j) by apply: lift_inj.
     by rewrite lift_perm_lift inj_tperm //; apply: lift_inj.
   by rewrite lift_perm_id tpermD // eq_sym neq_lift.
 suff{i j s} odd_lift0 (k : 'I_n.+1): lift_perm ord0 k 1 = odd k :> bool.

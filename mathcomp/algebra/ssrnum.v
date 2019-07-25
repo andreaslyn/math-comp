@@ -157,7 +157,7 @@ Reserved Notation "> y :> T" (at level 35, y at next level).
 Module Num.
 
 (* Principal mixin; further classes add axioms rather than operations. *)
-Record mixin_of (R : ringType) := Mixin {
+Monomorphic Record mixin_of (R : ringType) := Mixin {
   norm_op : R -> R;
   le_op : rel R;
   lt_op : rel R;
@@ -177,31 +177,31 @@ Module NumDomain.
 
 Section ClassDef.
 
-Record class_of T := Class {
+Monomorphic Record class_of T := Class {
   base : GRing.IntegralDomain.class_of T;
   mixin : mixin_of (ring_for T base)
 }.
 Local Coercion base : class_of >-> GRing.IntegralDomain.class_of.
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c  as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c  as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition clone c of phant_id class c := @Pack T c.
-Definition pack b0 (m0 : mixin_of (ring_for T b0)) :=
+Monomorphic Definition clone c of phant_id class c := @Pack T c.
+Monomorphic Definition pack b0 (m0 : mixin_of (ring_for T b0)) :=
   fun bT b & phant_id (GRing.IntegralDomain.class bT) b =>
   fun    m & phant_id m0 m => Pack (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
 
 End ClassDef.
 
@@ -277,16 +277,16 @@ Notation nneg := Rnneg.
 Notation real := Rreal.
 
 Module Keys. Section Keys.
-Variable R : numDomainType.
-Fact Rpos_key : pred_key (@pos R). Proof. by []. Qed.
-Definition Rpos_keyed := KeyedQualifier Rpos_key.
-Fact Rneg_key : pred_key (@real R). Proof. by []. Qed.
-Definition Rneg_keyed := KeyedQualifier Rneg_key.
-Fact Rnneg_key : pred_key (@nneg R). Proof. by []. Qed.
-Definition Rnneg_keyed := KeyedQualifier Rnneg_key.
-Fact Rreal_key : pred_key (@real R). Proof. by []. Qed.
-Definition Rreal_keyed := KeyedQualifier Rreal_key.
-Definition ler_of_leif x y C (le_xy : @lerif R x y C) := le_xy.1 : le x y.
+Monomorphic Variable R : numDomainType.
+Monomorphic Fact Rpos_key : pred_key (@pos R). Proof. by []. Qed.
+Monomorphic Definition Rpos_keyed := KeyedQualifier Rpos_key.
+Monomorphic Fact Rneg_key : pred_key (@real R). Proof. by []. Qed.
+Monomorphic Definition Rneg_keyed := KeyedQualifier Rneg_key.
+Monomorphic Fact Rnneg_key : pred_key (@nneg R). Proof. by []. Qed.
+Monomorphic Definition Rnneg_keyed := KeyedQualifier Rnneg_key.
+Monomorphic Fact Rreal_key : pred_key (@real R). Proof. by []. Qed.
+Monomorphic Definition Rreal_keyed := KeyedQualifier Rreal_key.
+Monomorphic Definition ler_of_leif x y C (le_xy : @lerif R x y C) := le_xy.1 : le x y.
 End Keys. End Keys.
 
 (* (Exported) symbolic syntax. *)
@@ -360,35 +360,35 @@ Module NumField.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : GRing.Field.class_of R; mixin : mixin_of (ring_for R base) }.
-Definition base2 R (c : class_of R) := NumDomain.Class (mixin c).
+Monomorphic Definition base2 R (c : class_of R) := NumDomain.Class (mixin c).
 Local Coercion base : class_of >-> GRing.Field.class_of.
 Local Coercion base2 : class_of >-> NumDomain.class_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition pack :=
+Monomorphic Definition pack :=
   fun bT b & phant_id (GRing.Field.class bT) (b : GRing.Field.class_of T) =>
   fun mT m & phant_id (NumDomain.class mT) (@NumDomain.Class T b m) =>
   Pack (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition numDomainType := @NumDomain.Pack cT xclass.
-Definition fieldType := @GRing.Field.Pack cT xclass.
-Definition join_numDomainType := @NumDomain.Pack fieldType xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition numDomainType := @NumDomain.Pack cT xclass.
+Monomorphic Definition fieldType := @GRing.Field.Pack cT xclass.
+Monomorphic Definition join_numDomainType := @NumDomain.Pack fieldType xclass.
 
 End ClassDef.
 
@@ -430,53 +430,53 @@ Module ClosedField.
 
 Section ClassDef.
 
-Record imaginary_mixin_of (R : numDomainType) := ImaginaryMixin {
+Monomorphic Record imaginary_mixin_of (R : numDomainType) := ImaginaryMixin {
   imaginary : R;
   conj_op : {rmorphism R -> R};
   _ : imaginary ^+ 2 = - 1;
   _ : forall x, x * conj_op x = `|x| ^+ 2;
 }.
 
-Record class_of R := Class {
+Monomorphic Record class_of R := Class {
   base : GRing.ClosedField.class_of R;
   mixin : mixin_of (ring_for R base);
   conj_mixin : imaginary_mixin_of (num_for R (NumDomain.Class mixin))
 }.
-Definition base2 R (c : class_of R) := NumField.Class (mixin c).
+Monomorphic Definition base2 R (c : class_of R) := NumField.Class (mixin c).
 Local Coercion base : class_of >-> GRing.ClosedField.class_of.
 Local Coercion base2 : class_of >-> NumField.class_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition pack :=
+Monomorphic Definition pack :=
   fun bT b & phant_id (GRing.ClosedField.class bT)
                       (b : GRing.ClosedField.class_of T) =>
   fun mT m & phant_id (NumField.class mT) (@NumField.Class T b m) =>
   fun mc => Pack (@Class T b m mc).
-Definition clone := fun b & phant_id class (b : class_of T) => Pack b.
+Monomorphic Definition clone := fun b & phant_id class (b : class_of T) => Pack b.
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition numDomainType := @NumDomain.Pack cT xclass.
-Definition fieldType := @GRing.Field.Pack cT xclass.
-Definition numFieldType := @NumField.Pack cT xclass.
-Definition decFieldType := @GRing.DecidableField.Pack cT xclass.
-Definition closedFieldType := @GRing.ClosedField.Pack cT xclass.
-Definition join_dec_numDomainType := @NumDomain.Pack decFieldType xclass.
-Definition join_dec_numFieldType := @NumField.Pack decFieldType xclass.
-Definition join_numDomainType := @NumDomain.Pack closedFieldType xclass.
-Definition join_numFieldType := @NumField.Pack closedFieldType xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition numDomainType := @NumDomain.Pack cT xclass.
+Monomorphic Definition fieldType := @GRing.Field.Pack cT xclass.
+Monomorphic Definition numFieldType := @NumField.Pack cT xclass.
+Monomorphic Definition decFieldType := @GRing.DecidableField.Pack cT xclass.
+Monomorphic Definition closedFieldType := @GRing.ClosedField.Pack cT xclass.
+Monomorphic Definition join_dec_numDomainType := @NumDomain.Pack decFieldType xclass.
+Monomorphic Definition join_dec_numFieldType := @NumField.Pack decFieldType xclass.
+Monomorphic Definition join_numDomainType := @NumDomain.Pack closedFieldType xclass.
+Monomorphic Definition join_numFieldType := @NumField.Pack closedFieldType xclass.
 
 End ClassDef.
 
@@ -531,31 +531,31 @@ Module RealDomain.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class {base : NumDomain.class_of R; _ : @real_axiom (num_for R base)}.
 Local Coercion base : class_of >-> NumDomain.class_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition clone c of phant_id class c := @Pack T c.
-Definition pack b0 (m0 : real_axiom (num_for T b0)) :=
+Monomorphic Definition clone c of phant_id class c := @Pack T c.
+Monomorphic Definition pack b0 (m0 : real_axiom (num_for T b0)) :=
   fun bT b & phant_id (NumDomain.class bT) b =>
   fun    m & phant_id m0 m => Pack (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition numDomainType := @NumDomain.Pack cT xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition numDomainType := @NumDomain.Pack cT xclass.
 
 End ClassDef.
 
@@ -596,38 +596,38 @@ Module RealField.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : NumField.class_of R; mixin : real_axiom (num_for R base) }.
-Definition base2 R (c : class_of R) := RealDomain.Class (@mixin R c).
+Monomorphic Definition base2 R (c : class_of R) := RealDomain.Class (@mixin R c).
 Local Coercion base : class_of >-> NumField.class_of.
 Local Coercion base2 : class_of >-> RealDomain.class_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition pack :=
+Monomorphic Definition pack :=
   fun bT b & phant_id (NumField.class bT) (b : NumField.class_of T) =>
   fun mT m & phant_id (RealDomain.class mT) (@RealDomain.Class T b m) =>
   Pack (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition numDomainType := @NumDomain.Pack cT xclass.
-Definition realDomainType := @RealDomain.Pack cT xclass.
-Definition fieldType := @GRing.Field.Pack cT xclass.
-Definition numFieldType := @NumField.Pack cT xclass.
-Definition join_fieldType := @GRing.Field.Pack realDomainType xclass.
-Definition join_numFieldType := @NumField.Pack realDomainType xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition numDomainType := @NumDomain.Pack cT xclass.
+Monomorphic Definition realDomainType := @RealDomain.Pack cT xclass.
+Monomorphic Definition fieldType := @GRing.Field.Pack cT xclass.
+Monomorphic Definition numFieldType := @NumField.Pack cT xclass.
+Monomorphic Definition join_fieldType := @GRing.Field.Pack realDomainType xclass.
+Monomorphic Definition join_numFieldType := @NumField.Pack realDomainType xclass.
 
 End ClassDef.
 
@@ -674,35 +674,35 @@ Module ArchimedeanField.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : RealField.class_of R; _ : archimedean_axiom (num_for R base) }.
 Local Coercion base : class_of >-> RealField.class_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition clone c of phant_id class c := @Pack T c.
-Definition pack b0 (m0 : archimedean_axiom (num_for T b0)) :=
+Monomorphic Definition clone c of phant_id class c := @Pack T c.
+Monomorphic Definition pack b0 (m0 : archimedean_axiom (num_for T b0)) :=
   fun bT b & phant_id (RealField.class bT) b =>
   fun    m & phant_id m0 m => Pack (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition numDomainType := @NumDomain.Pack cT xclass.
-Definition realDomainType := @RealDomain.Pack cT xclass.
-Definition fieldType := @GRing.Field.Pack cT xclass.
-Definition numFieldType := @NumField.Pack cT xclass.
-Definition realFieldType := @RealField.Pack cT xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition numDomainType := @NumDomain.Pack cT xclass.
+Monomorphic Definition realDomainType := @RealDomain.Pack cT xclass.
+Monomorphic Definition fieldType := @GRing.Field.Pack cT xclass.
+Monomorphic Definition numFieldType := @NumField.Pack cT xclass.
+Monomorphic Definition realFieldType := @RealField.Pack cT xclass.
 
 End ClassDef.
 
@@ -751,35 +751,35 @@ Module RealClosedField.
 
 Section ClassDef.
 
-Record class_of R :=
+Monomorphic Record class_of R :=
   Class { base : RealField.class_of R; _ : real_closed_axiom (num_for R base) }.
 Local Coercion base : class_of >-> RealField.class_of.
 
-Structure type := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (T : Type) (cT : type).
-Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (T : Type) (cT : type).
+Monomorphic Definition class := let: Pack _ c as cT' := cT return class_of cT' in c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
 
-Definition clone c of phant_id class c := @Pack T c.
-Definition pack b0 (m0 : real_closed_axiom (num_for T b0)) :=
+Monomorphic Definition clone c of phant_id class c := @Pack T c.
+Monomorphic Definition pack b0 (m0 : real_closed_axiom (num_for T b0)) :=
   fun bT b & phant_id (RealField.class bT) b =>
   fun    m & phant_id m0 m => Pack (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition ringType := @GRing.Ring.Pack cT xclass.
-Definition comRingType := @GRing.ComRing.Pack cT xclass.
-Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
-Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
-Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
-Definition numDomainType := @NumDomain.Pack cT xclass.
-Definition realDomainType := @RealDomain.Pack cT xclass.
-Definition fieldType := @GRing.Field.Pack cT xclass.
-Definition numFieldType := @NumField.Pack cT xclass.
-Definition realFieldType := @RealField.Pack cT xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition ringType := @GRing.Ring.Pack cT xclass.
+Monomorphic Definition comRingType := @GRing.ComRing.Pack cT xclass.
+Monomorphic Definition unitRingType := @GRing.UnitRing.Pack cT xclass.
+Monomorphic Definition comUnitRingType := @GRing.ComUnitRing.Pack cT xclass.
+Monomorphic Definition idomainType := @GRing.IntegralDomain.Pack cT xclass.
+Monomorphic Definition numDomainType := @NumDomain.Pack cT xclass.
+Monomorphic Definition realDomainType := @RealDomain.Pack cT xclass.
+Monomorphic Definition fieldType := @GRing.Field.Pack cT xclass.
+Monomorphic Definition numFieldType := @NumField.Pack cT xclass.
+Monomorphic Definition realFieldType := @RealField.Pack cT xclass.
 
 End ClassDef.
 
@@ -828,7 +828,7 @@ Import RealClosedField.Exports.
 (* operations for the extensions described above.                             *)
 Module Import Internals.
 
-Section Domain.
+Section Domain1.
 Variable R : numDomainType.
 Implicit Types x y : R.
 
@@ -904,34 +904,41 @@ Lemma posrE x : (x \is pos) = (0 < x). Proof. by []. Qed.
 Lemma nnegrE x : (x \is nneg) = (0 <= x). Proof. by []. Qed.
 Lemma realE x : (x \is real) = (0 <= x) || (x <= 0). Proof. by []. Qed.
 
-Fact pos_divr_closed : divr_closed (@pos R).
+End Domain1.
+
+Section Domain2.
+
+Monomorphic Variable R : numDomainType.
+Implicit Types x y : R.
+
+Monomorphic Fact pos_divr_closed : divr_closed (@pos R).
 Proof.
 split=> [|x y x_gt0 y_gt0]; rewrite posrE ?ltr01 //.
 have [Uy|/invr_out->] := boolP (y \is a GRing.unit); last by rewrite pmulr_rgt0.
 by rewrite -(pmulr_rgt0 _ y_gt0) mulrC divrK.
 Qed.
-Canonical pos_mulrPred := MulrPred pos_divr_closed.
-Canonical pos_divrPred := DivrPred pos_divr_closed.
+Monomorphic Canonical pos_mulrPred := MulrPred pos_divr_closed.
+Monomorphic Canonical pos_divrPred := DivrPred pos_divr_closed.
 
-Fact nneg_divr_closed : divr_closed (@nneg R).
+Monomorphic Fact nneg_divr_closed : divr_closed (@nneg R).
 Proof.
 split=> [|x y]; rewrite !nnegrE ?ler01 ?le0r // -!posrE.
 case/predU1P=> [-> _ | x_gt0]; first by rewrite mul0r eqxx.
 by case/predU1P=> [-> | y_gt0]; rewrite ?invr0 ?mulr0 ?eqxx // orbC rpred_div.
 Qed.
-Canonical nneg_mulrPred := MulrPred nneg_divr_closed.
-Canonical nneg_divrPred := DivrPred nneg_divr_closed.
+Monomorphic Canonical nneg_mulrPred := MulrPred nneg_divr_closed.
+Monomorphic Canonical nneg_divrPred := DivrPred nneg_divr_closed.
 
-Fact nneg_addr_closed : addr_closed (@nneg R).
+Monomorphic Fact nneg_addr_closed : addr_closed (@nneg R).
 Proof. by split; [apply: lerr | apply: addr_ge0]. Qed.
-Canonical nneg_addrPred := AddrPred nneg_addr_closed.
-Canonical nneg_semiringPred := SemiringPred nneg_divr_closed.
+Monomorphic Canonical nneg_addrPred := AddrPred nneg_addr_closed.
+Monomorphic Canonical nneg_semiringPred := SemiringPred nneg_divr_closed.
 
-Fact real_oppr_closed : oppr_closed (@real R).
+Monomorphic Fact real_oppr_closed : oppr_closed (@real R).
 Proof. by move=> x; rewrite /= !realE oppr_ge0 orbC -!oppr_ge0 opprK. Qed.
-Canonical real_opprPred := OpprPred real_oppr_closed.
+Monomorphic Canonical real_opprPred := OpprPred real_oppr_closed.
 
-Fact real_addr_closed : addr_closed (@real R).
+Monomorphic Fact real_addr_closed : addr_closed (@real R).
 Proof.
 split=> [|x y Rx Ry]; first by rewrite realE lerr.
 without loss{Rx} x_ge0: x y Ry / 0 <= x.
@@ -940,10 +947,10 @@ without loss{Rx} x_ge0: x y Ry / 0 <= x.
 case/orP: Ry => [y_ge0 | y_le0]; first by rewrite realE -nnegrE rpredD.
 by rewrite realE -[y]opprK orbC -oppr_ge0 opprB !subr_ge0 ger_leVge ?oppr_ge0.
 Qed.
-Canonical real_addrPred := AddrPred real_addr_closed.
-Canonical real_zmodPred := ZmodPred real_oppr_closed.
+Monomorphic Canonical real_addrPred := AddrPred real_addr_closed.
+Monomorphic Canonical real_zmodPred := ZmodPred real_oppr_closed.
 
-Fact real_divr_closed : divr_closed (@real R).
+Monomorphic Fact real_divr_closed : divr_closed (@real R).
 Proof.
 split=> [|x y Rx Ry]; first by rewrite realE ler01.
 without loss{Rx} x_ge0: x / 0 <= x.
@@ -953,15 +960,15 @@ without loss{Ry} y_ge0: y / 0 <= y; last by rewrite realE -nnegrE rpred_div.
 case/orP: Ry => [? | y_le0]; first exact.
 by rewrite -rpredN -mulrN -invrN; apply; rewrite ?oppr_ge0.
 Qed.
-Canonical real_mulrPred := MulrPred real_divr_closed.
-Canonical real_smulrPred := SmulrPred real_divr_closed.
-Canonical real_divrPred := DivrPred real_divr_closed.
-Canonical real_sdivrPred := SdivrPred real_divr_closed.
-Canonical real_semiringPred := SemiringPred real_divr_closed.
-Canonical real_subringPred := SubringPred real_divr_closed.
-Canonical real_divringPred := DivringPred real_divr_closed.
+Monomorphic Canonical real_mulrPred := MulrPred real_divr_closed.
+Monomorphic Canonical real_smulrPred := SmulrPred real_divr_closed.
+Monomorphic Canonical real_divrPred := DivrPred real_divr_closed.
+Monomorphic Canonical real_sdivrPred := SdivrPred real_divr_closed.
+Monomorphic Canonical real_semiringPred := SemiringPred real_divr_closed.
+Monomorphic Canonical real_subringPred := SubringPred real_divr_closed.
+Monomorphic Canonical real_divringPred := DivringPred real_divr_closed.
 
-End Domain.
+End Domain2.
 
 Lemma num_real (R : realDomainType) (x : R) : x \is real.
 Proof. by case: R x => T []. Qed.
@@ -1541,7 +1548,7 @@ End RToNat.
 
 End NumIntegralDomainMonotonyTheory.
 
-Section NumDomainOperationTheory.
+Section NumDomainOperationTheory1.
 
 Variable R : numDomainType.
 Implicit Types x y z t : R.
@@ -1655,24 +1662,52 @@ Proof. by rewrite -realN opprB. Qed.
 Lemma realD : {in real &, forall x y, x + y \is real}.
 Proof. exact: rpredD. Qed.
 
+End NumDomainOperationTheory1.
+
+Section NumDomainOperationTheory2.
+
+Monomorphic Variable R : numDomainType.
+Implicit Types x y z t : R.
+
 (* dichotomy and trichotomy *)
 
-Variant ler_xor_gt (x y : R) : R -> R -> bool -> bool -> Set :=
+Monomorphic Variant ler_xor_gt (x y : R) : R -> R -> bool -> bool -> Type :=
   | LerNotGt of x <= y : ler_xor_gt x y (y - x) (y - x) true false
   | GtrNotLe of y < x  : ler_xor_gt x y (x - y) (x - y) false true.
 
-Variant ltr_xor_ge (x y : R) : R -> R -> bool -> bool -> Set :=
+Monomorphic Variant ltr_xor_ge (x y : R) : R -> R -> bool -> bool -> Type :=
   | LtrNotGe of x < y  : ltr_xor_ge x y (y - x) (y - x) false true
   | GerNotLt of y <= x : ltr_xor_ge x y (x - y) (x - y) true false.
 
-Variant comparer x y : R -> R ->
-  bool -> bool -> bool -> bool -> bool -> bool -> Set :=
+Monomorphic Variant comparer x y : R -> R ->
+  bool -> bool -> bool -> bool -> bool -> bool -> Type :=
   | ComparerLt of x < y : comparer x y (y - x) (y - x)
     false false true false true false
   | ComparerGt of x > y : comparer x y (x - y) (x - y)
     false false false true false true
   | ComparerEq of x = y : comparer x y 0 0
     true true true true false false.
+
+Monomorphic Variant ger0_xor_lt0 (x : R) : R -> bool -> bool -> Type :=
+  | Ger0NotLt0 of 0 <= x : ger0_xor_lt0 x x false true
+  | Ltr0NotGe0 of x < 0  : ger0_xor_lt0 x (- x) true false.
+
+Monomorphic Variant ler0_xor_gt0 (x : R) : R -> bool -> bool -> Type :=
+  | Ler0NotLe0 of x <= 0 : ler0_xor_gt0 x (- x) false true
+  | Gtr0NotGt0 of 0 < x  : ler0_xor_gt0 x x true false.
+
+Monomorphic Variant comparer0 x :
+               R -> bool -> bool -> bool -> bool -> bool -> bool -> Type :=
+  | ComparerGt0 of 0 < x : comparer0 x x false false false true false true
+  | ComparerLt0 of x < 0 : comparer0 x (- x) false false true false true false
+  | ComparerEq0 of x = 0 : comparer0 x 0 true true true true false false.
+
+End NumDomainOperationTheory2.
+
+Section NumDomainOperationTheory3.
+
+Variable R : numDomainType.
+Implicit Types x y z t : R.
 
 Lemma real_lerP x y :
     x \is real -> y \is real ->
@@ -1710,19 +1745,8 @@ have /eqP ->: x == y by rewrite eqr_le le_yx le_xy.
 by rewrite subrr eqxx; constructor.
 Qed.
 
-Variant ger0_xor_lt0 (x : R) : R -> bool -> bool -> Set :=
-  | Ger0NotLt0 of 0 <= x : ger0_xor_lt0 x x false true
-  | Ltr0NotGe0 of x < 0  : ger0_xor_lt0 x (- x) true false.
-
-Variant ler0_xor_gt0 (x : R) : R -> bool -> bool -> Set :=
-  | Ler0NotLe0 of x <= 0 : ler0_xor_gt0 x (- x) false true
-  | Gtr0NotGt0 of 0 < x  : ler0_xor_gt0 x x true false.
-
-Variant comparer0 x :
-               R -> bool -> bool -> bool -> bool -> bool -> bool -> Set :=
-  | ComparerGt0 of 0 < x : comparer0 x x false false false true false true
-  | ComparerLt0 of x < 0 : comparer0 x (- x) false false true false true false
-  | ComparerEq0 of x = 0 : comparer0 x 0 true true true true false false.
+Hint Extern 0 (is_true (0 \is @real _)) => apply: real0 : core.
+Hint Extern 0 (is_true (1 \is @real _)) => apply: real1 : core.
 
 Lemma real_ger0P x : x \is real -> ger0_xor_lt0 x `|x| (x < 0) (0 <= x).
 Proof.
@@ -2776,7 +2800,7 @@ Proof. by rewrite -[y]opprK normrN ler_dist_dist. Qed.
 Lemma real_ler_norml x y : x \is real -> (`|x| <= y) = (- y <= x <= y).
 Proof.
 move=> xR; wlog x_ge0 : x xR / 0 <= x => [hwlog|].
-  move: (xR) => /(@real_leVge 0) /orP [|/hwlog->|hx] //.
+  move: (xR) => /(@real_leVge R 0) /orP [|/hwlog->|hx] //.
   by rewrite -[x]opprK normrN ler_opp2 andbC ler_oppl hwlog ?realN ?oppr_ge0.
 rewrite ger0_norm //; have [le_xy|] := boolP (x <= y); last by rewrite andbF.
 by rewrite (ler_trans _ x_ge0) // oppr_le0 (ler_trans x_ge0).
@@ -2809,7 +2833,7 @@ Qed.
 Lemma real_ltr_norml x y : x \is real -> (`|x| < y) = (- y < x < y).
 Proof.
 move=> Rx; wlog x_ge0 : x Rx / 0 <= x => [hwlog|].
-  move: (Rx) => /(@real_leVge 0) /orP [|/hwlog->|hx] //.
+  move: (Rx) => /(@real_leVge R 0) /orP [|/hwlog->|hx] //.
   by rewrite -[x]opprK normrN ltr_opp2 andbC ltr_oppl hwlog ?realN ?oppr_ge0.
 rewrite ger0_norm //; have [le_xy|] := boolP (x < y); last by rewrite andbF.
 by rewrite (ltr_le_trans _ x_ge0) // oppr_lt0 (ler_lt_trans x_ge0).
@@ -3147,7 +3171,7 @@ Lemma lerif_nmul x1 x2 y1 y2 C1 C2 :
   y1 * y2 <= x1 * x2 ?= iff (x1 * x2 == 0) || C1 && C2.
 Proof.
 rewrite -!oppr_ge0 -mulrNN -[x1 * x2]mulrNN => y1le0 y2le0 le_xy1 le_xy2.
-by apply: lerif_pmul => //; rewrite (nmono_lerif _ ler_opp2).
+by apply: lerif_pmul => //; rewrite (nmono_lerif _ (@ler_opp2 R)).
 Qed.
 
 Lemma lerif_pprod (I : finType) (P C : pred I) (E1 E2 : I -> R) :
@@ -3243,7 +3267,7 @@ rewrite normrM normrX ler_wpmul2l ?ler_expn2r ?unfold_in ?normr_ge0 //.
 exact: ler_trans (normr_ge0 x) le_x_b.
 Qed.
 
-End NumDomainOperationTheory.
+End NumDomainOperationTheory3.
 
 Hint Resolve ler_opp2 ltr_opp2 real0 real1 normr_real : core.
 Arguments ler_sqr {R} [x y].
@@ -3523,8 +3547,10 @@ move=> n mu Ege0; have [n0 | n_gt0] := posnP n.
 pose E' i := E i / n%:R.
 have defE' i: E' i *+ n = E i by rewrite -mulr_natr divfK ?pnatr_eq0 -?lt0n.
 have /lerif_AGM_scaled (i): i \in A -> 0 <= E' i *+ n by rewrite defE' => /Ege0.
-rewrite -/n -mulr_suml (eq_bigr _ (in1W defE')); congr (_ <= _ ?= iff _).
+rewrite -/n -mulr_suml (eq_bigr _ (in1W defE')).
+have: [forall i in A, forall j in A, E' i == E' j] = [forall i in A, forall j in A, E i == E j].
 by do 2![apply: eq_forallb_in => ? _]; rewrite -(eqr_pmuln2r n_gt0) !defE'.
+by move=>->.
 Qed.
 
 Implicit Type p : {poly F}.
@@ -3764,6 +3790,27 @@ Notation "[ 'arg' 'maxr_' ( i > i0 ) F ]" := [arg maxr_(i > i0 | true) F]
   (at level 0, i, i0 at level 10,
    format "[ 'arg'  'maxr_' ( i  >  i0 ) F ]") : form_scope.
 
+Monomorphic Variant sgr_val (R : realDomainType) (x:R) : R -> bool -> bool -> bool -> bool -> bool -> bool
+  -> bool -> bool -> bool -> bool -> bool -> bool -> R -> Type :=
+  | SgrNull of x = 0 : sgr_val x 0 true true true true false false
+    true false false true false false 0
+  | SgrPos of x > 0 : sgr_val x x false false true false false true
+    false false true false false true 1
+  | SgrNeg of x < 0 : sgr_val x (- x) false true false false true false
+    false true false false true false (-1).
+
+Monomorphic Variant minr_spec (R : realDomainType) (x y : R) : bool -> bool -> R -> Type :=
+| Minr_r of x <= y : minr_spec x y true false x
+| Minr_l of y < x : minr_spec x y false true y.
+
+Monomorphic Variant maxr_spec (R : realDomainType) (x y : R) : bool -> bool -> R -> Type :=
+| Maxr_r of y <= x : maxr_spec x y true false x
+| Maxr_l of x < y : maxr_spec x y false true y.
+
+Monomorphic Variant sqrtr_spec (R : realDomainType) (a:R) : R -> bool -> bool -> R -> Type :=
+| IsNoSqrtr of a < 0 : sqrtr_spec a a false true 0
+| IsSqrtr b of 0 <= b : sqrtr_spec a (b ^+ 2) true false b.
+
 Section RealDomainOperations.
 
 (* sgr section *)
@@ -3781,15 +3828,6 @@ rewrite -[1]/((-1) ^+ false) -signrN lt0r lerNgt sgr_def.
 case: (x =P 0) => [-> | _]; first by rewrite !(eq_sym 0) !signr_eq0 ltrr eqxx.
 by rewrite !(inj_eq signr_inj) eqb_id eqbF_neg signr_eq0 //.
 Qed.
-
-Variant sgr_val x : R -> bool -> bool -> bool -> bool -> bool -> bool
-  -> bool -> bool -> bool -> bool -> bool -> bool -> R -> Set :=
-  | SgrNull of x = 0 : sgr_val x 0 true true true true false false
-    true false false true false false 0
-  | SgrPos of x > 0 : sgr_val x x false false true false false true
-    false false true false false true 1
-  | SgrNeg of x < 0 : sgr_val x (- x) false true false false true false
-    false true false false true false (-1).
 
 Lemma sgrP x :
   sgr_val x `|x| (0 == x) (x <= 0) (0 <= x) (x == 0) (x < 0) (0 < x)
@@ -3968,10 +4006,6 @@ Proof. by move=> x y z; rewrite !minrA [minr x y]minrC. Qed.
 Lemma minrAC : @right_commutative R R min.
 Proof. by move=> x y z; rewrite -!minrA [minr y z]minrC. Qed.
 
-Variant minr_spec x y : bool -> bool -> R -> Type :=
-| Minr_r of x <= y : minr_spec x y true false x
-| Minr_l of y < x : minr_spec x y false true y.
-
 Lemma minrP x y : minr_spec x y (x <= y) (y < x) (min x y).
 Proof.
 case: lerP=> hxy; first by rewrite minr_l //; constructor.
@@ -3995,10 +4029,6 @@ Proof. by move=> x y z; rewrite !maxrA [maxr x y]maxrC. Qed.
 
 Lemma maxrAC : @right_commutative R R max.
 Proof. by move=> x y z; rewrite -!maxrA [maxr y z]maxrC. Qed.
-
-Variant maxr_spec x y : bool -> bool -> R -> Type :=
-| Maxr_r of y <= x : maxr_spec x y true false x
-| Maxr_l of x < y : maxr_spec x y false true y.
 
 Lemma maxrP x y : maxr_spec x y (y <= x) (x < y) (maxr x y).
 Proof.
@@ -4249,10 +4279,6 @@ Qed.
 Lemma ltr0_sqrtr a : a < 0 -> sqrt a = 0.
 Proof. by move=> /ltrW; apply: ler0_sqrtr. Qed.
 
-Variant sqrtr_spec a : R -> bool -> bool -> R -> Type :=
-| IsNoSqrtr of a < 0 : sqrtr_spec a a false true 0
-| IsSqrtr b of 0 <= b : sqrtr_spec a (b ^+ 2) true false b.
-
 Lemma sqrtrP a : sqrtr_spec a a (0 <= a) (a < 0) (sqrt a).
 Proof.
 have [a_ge0|a_lt0] := ger0P a.
@@ -4330,13 +4356,13 @@ End RealClosedFieldTheory.
 
 Definition conjC {C : numClosedFieldType} : {rmorphism C -> C} :=
  ClosedField.conj_op (ClosedField.conj_mixin (ClosedField.class C)).
-Notation "z ^*" := (@conjC _ z) (at level 2, format "z ^*") : ring_scope.
+Notation "z ^*" := (@conjC _ z) (at level 2, left associativity, format "z ^*") : ring_scope.
 
 Definition imaginaryC {C : numClosedFieldType} : C :=
  ClosedField.imaginary (ClosedField.conj_mixin (ClosedField.class C)).
 Notation "'i" := (@imaginaryC _) (at level 0) : ring_scope.
 
-Section ClosedFieldTheory.
+Section ClosedFieldTheory1.
 
 Variable C : numClosedFieldType.
 Implicit Types a x y z : C.
@@ -4362,9 +4388,22 @@ Let Re2 z := z + z^*.
 Definition nnegIm z := (0 <= imaginaryC * (z^* - z)).
 Definition argCle y z := nnegIm z ==> nnegIm y && (Re2 z <= Re2 y).
 
-Variant rootC_spec n (x : C) : Type :=
+End ClosedFieldTheory1.
+
+Monomorphic Variant rootC_spec (C : numClosedFieldType) n (x : C) : Type :=
   RootCspec (y : C) of if (n > 0)%N then y ^+ n = x else y = 0
                         & forall z, (n > 0)%N -> z ^+ n = x -> argCle y z.
+
+Declare Scope ring_core_scope.
+
+Section ClosedFieldTheory2.
+
+Variable C : numClosedFieldType.
+Implicit Types a x y z : C.
+
+Let Re2 z := z + z^*.
+
+Local Notation argCle := (@argCle C).
 
 Fact rootC_subproof n x : rootC_spec n x.
 Proof.
@@ -4373,7 +4412,7 @@ have realRe2 u : Re2 u \is Num.real.
   by rewrite exprn_ge0 ?normr_ge0.
 have argCle_total : total argCle.
   move=> u v; rewrite /total /argCle.
-  by do 2!case: (nnegIm _) => //; rewrite ?orbT //= real_leVge.
+  do 2!case: (nnegIm _) => //; rewrite ?orbT //= real_leVge //; try apply: realRe2.
 have argCle_trans : transitive argCle.
   move=> u v w /implyP geZuv /implyP geZvw; apply/implyP.
   by case/geZvw/andP=> /geZuv/andP[-> geRuv] /ler_trans->.
@@ -4527,25 +4566,47 @@ by rewrite conjCi -opprB mulrNN.
 Qed.
 Hint Resolve Creal_Re Creal_Im : core.
 
-Fact Re_is_additive : additive Re.
-Proof. by move=> x y; rewrite /Re rmorphB addrACA -opprD mulrBl. Qed.
-Canonical Re_additive := Additive Re_is_additive.
+End ClosedFieldTheory2.
 
-Fact Im_is_additive : additive Im.
+Section ClosedFieldTheory3.
+
+Monomorphic Variable C : numClosedFieldType.
+Implicit Types a x y z : C.
+
+Monomorphic Fact Re_is_additive : additive (@Re C).
+Proof. by move=> x y; rewrite /Re rmorphB addrACA -opprD mulrBl. Qed.
+Monomorphic Canonical Re_additive := Additive Re_is_additive.
+
+Monomorphic Fact Im_is_additive : additive (@Im C).
 Proof.
 by move=> x y; rewrite /Im rmorphB opprD addrACA -opprD mulrBr mulrBl.
 Qed.
-Canonical Im_additive := Additive Im_is_additive.
+Monomorphic Canonical Im_additive := Additive Im_is_additive.
+
+End ClosedFieldTheory3.
+
+Section ClosedFieldTheory4.
+
+Variable C : numClosedFieldType.
+Implicit Types a x y z : C.
+
+Local Notation Re := (@Re C).
+Local Notation Im := (@Im C).
+
+Notation "'Re z" := (Re z) (at level 10, z at level 8) : ring_scope.
+Notation "'Im z" := (Im z) (at level 10, z at level 8) : ring_scope.
+
+Let nz2 : 2%:R != 0 :> C. Proof. by rewrite pnatr_eq0. Qed.
 
 Lemma Creal_ImP z : reflect ('Im z = 0) (z \is real).
 Proof.
-rewrite CrealE -subr_eq0 -(can_eq (mulKf neq0Ci)) mulr0.
+rewrite CrealE -subr_eq0 -(can_eq (mulKf (@neq0Ci C))) mulr0.
 by rewrite -(can_eq (divfK nz2)) mul0r; apply: eqP.
 Qed.
 
 Lemma Creal_ReP z : reflect ('Re z = z) (z \in real).
 Proof.
-rewrite (sameP (Creal_ImP z) eqP) -(can_eq (mulKf neq0Ci)) mulr0.
+rewrite (sameP (Creal_ImP z) eqP) -(can_eq (mulKf (@neq0Ci C))) mulr0.
 by rewrite -(inj_eq (addrI ('Re z))) addr0 -Crect eq_sym; apply: eqP.
 Qed.
 
@@ -4622,6 +4683,9 @@ move=> x y Rx Ry; rewrite /= normCK rmorphD rmorphM conjCi !conj_Creal //.
 by rewrite mulrC mulNr -subr_sqr exprMn sqrCi mulN1r opprK.
 Qed.
 
+Hint Extern 0 (is_true (Re _ \is @real _)) => apply: Creal_Re : core.
+Hint Extern 0 (is_true (Im _ \is @real _)) => apply: Creal_Im : core.
+
 Lemma normC2_Re_Im z : `|z| ^+ 2 = 'Re z ^+ 2 + 'Im z ^+ 2.
 Proof. by rewrite -normC2_rect -?Crect. Qed.
 
@@ -4677,6 +4741,10 @@ Qed.
 (* rewrite rmorphN conj_v opprK -opprD mulrNN mulNr -mulr2n mulrnAr -expr2 v2n1. *)
 (* by rewrite mulNrn opprK ler0n oppr_ge0 (ler_nat _ 2 0). *)
 
+Notation "n .-root" := (@nthroot C n) (at level 2, format "n .-root") : ring_core_scope.
+Notation "n .-root" := (@nthroot C n) (only parsing) : ring_scope.
+
+Ltac case_rootC := rewrite /nthroot; case: (rootC_subproof _ _).
 
 Lemma rootC_Re_max n x y :
   (n > 0)%N -> y ^+ n = x -> 0 <= 'Im y -> 'Re y <= 'Re (n.-root x).
@@ -4686,7 +4754,7 @@ Qed.
 
 Let neg_unity_root n : (n > 1)%N -> exists2 w : C, w ^+ n = 1 & 'Re w < 0.
 Proof.
-move=> n_gt1; have [|w /eqP pw_0] := closed_rootP (\poly_(i < n) (1 : C)) _.
+move=> n_gt1; have [w /eqP pw_0|] := closed_rootP (\poly_(i < n) (1 : C)) _; last first.
   by rewrite size_poly_eq ?oner_eq0 // -(subnKC n_gt1).
 rewrite horner_poly (eq_bigr _ (fun _ _ => mul1r _)) in pw_0.
 have wn1: w ^+ n = 1 by apply/eqP; rewrite -subr_eq0 subrX1 pw_0 mulr0.
@@ -4698,6 +4766,8 @@ rewrite (Creal_ReP _ _) ?rpred1 // gtr_eqF ?ltr_paddr ?ltr01 //=.
 by apply: sumr_ge0 => i _; rewrite real_lerNgt ?rpred0.
 Qed.
 
+Let Creal := (Creal_Re, Creal_Im).
+
 Lemma Im_rootC_ge0 n x : (n > 1)%N -> 0 <= 'Im (n.-root x).
 Proof.
 set y := n.-root x => n_gt1; have n_gt0 := ltnW n_gt1.
@@ -4706,13 +4776,14 @@ suffices [z zn_x leI0z]: exists2 z, z ^+ n = x & 'Im z >= 0.
   by rewrite /y; case_rootC => /= y1 _ /(_ z n_gt0 zn_x)/argCleP[].
 have [w wn1 ltRw0] := neg_unity_root n_gt1.
 wlog leRI0yw: w wn1 ltRw0 / 0 <= 'Re y * 'Im w.
-  move=> IHw; have: 'Re y * 'Im w \is real by rewrite rpredM.
+  move=> IHw; have: 'Re y * 'Im w \is real.
+  by rewrite rpredM ?Creal.
   case/real_ger0P=> [|/ltrW leRIyw0]; first exact: IHw.
   apply: (IHw w^*); rewrite ?Re_conj ?Im_conj ?mulrN ?oppr_ge0 //.
   by rewrite -rmorphX wn1 rmorph1.
 exists (w * y); first by rewrite exprMn wn1 mul1r rootCK.
 rewrite [w]Crect [y]Crect mulC_rect.
-by rewrite Im_rect ?rpredD ?rpredN 1?rpredM // addr_ge0 // ltrW ?nmulr_rgt0.
+by rewrite Im_rect ?rpredD ?rpredN 1?rpredM ?Creal // addr_ge0 // ltrW ?nmulr_rgt0.
 Qed.
 
 Lemma rootC_lt0 n x : (1 < n)%N -> (n.-root x < 0) = false.
@@ -4839,6 +4910,8 @@ Qed.
 
 Lemma rootCMr n x z : 0 <= x -> n.-root (z * x) = n.-root z * n.-root x.
 Proof. by move=> x_ge0; rewrite mulrC rootCMl // mulrC. Qed.
+
+Local Notation sqrtC := 2.-root.
 
 Lemma imaginaryCE : 'i = sqrtC (-1).
 Proof.
@@ -4995,7 +5068,7 @@ rewrite -{-1}(subrK y x) => /(canLR (subrK _))/esym-Dx; rewrite Dx.
 by have [t ? [Dxy Dy]] := normC_add_eq Dx; exists t; rewrite // mulrDl -Dxy -Dy.
 Qed.
 
-End ClosedFieldTheory.
+End ClosedFieldTheory4.
 
 Notation "n .-root" := (@nthroot _ n)
   (at level 2, format "n .-root") : ring_scope.

@@ -342,10 +342,13 @@ by rewrite eqn_leq minQn ?minPm.
 Qed.
 
 Lemma sigW P : (exists x, P x) -> {x | P x}.
-Proof. exact idfun. Qed.
+Proof. by move=> exP; exists (xchoose exP); apply: xchooseP. Qed.
 
 Lemma sig2W P Q : (exists2 x, P x & Q x) -> {x | P x & Q x}.
-Proof. exact idfun. Qed.
+Proof.
+move=> exPQ; have [x /andP[]|] := @sigW (predI P Q); first by exists x.
+by have [x Px Qx] := exPQ; exists x; apply/andP.
+Qed.
 
 Lemma sig_eqW (vT : eqType) (lhs rhs : T -> vT) :
   (exists x, lhs x = rhs x) -> {x | lhs x = rhs x}.
@@ -489,6 +492,11 @@ Monomorphic Canonical unit_choiceType := Eval hnf in ChoiceType unit unit_choice
 Monomorphic Definition option_choiceMixin T := CanChoiceMixin (@seq_of_optK T).
 Monomorphic Canonical option_choiceType T :=
   Eval hnf in ChoiceType (option T) (option_choiceMixin T).
+
+Monomorphic Definition sig_choiceMixin T (P : pred T) : choiceMixin {x | P x} :=
+   sub_choiceMixin _.
+Monomorphic Canonical sig_choiceType T (P : pred T) :=
+ Eval hnf in ChoiceType {x | P x} (sig_choiceMixin P).
 
 Monomorphic Definition prod_choiceMixin T1 T2 := CanChoiceMixin (@tag_of_pairK T1 T2).
 Monomorphic Canonical prod_choiceType T1 T2 :=
@@ -680,6 +688,12 @@ Monomorphic Canonical unit_countType := Eval hnf in CountType unit unit_countMix
 Monomorphic Definition option_countMixin T := CanCountMixin (@seq_of_optK T).
 Monomorphic Canonical option_countType T :=
   Eval hnf in CountType (option T) (option_countMixin T).
+
+Monomorphic Definition sig_countMixin T (P : pred T) := [countMixin of {x | P x} by <:].
+Monomorphic Canonical sig_countType T (P : pred T) :=
+  Eval hnf in CountType {x | P x} (sig_countMixin P).
+Monomorphic Canonical sig_subCountType T (P : pred T) :=
+  Eval hnf in [subCountType of {x | P x}].
 
 Monomorphic Definition prod_countMixin T1 T2 := CanCountMixin (@tag_of_pairK T1 T2).
 Monomorphic Canonical prod_countType T1 T2 :=

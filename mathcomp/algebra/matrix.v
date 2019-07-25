@@ -195,43 +195,50 @@ Local Notation simp := (Monoid.Theory.simpm, oppr0).
 (****************************Type Definition**********************************)
 (*****************************************************************************)
 
-Section MatrixDef.
+Section MatrixDef1.
 
-Variable R : Type.
-Variables m n : nat.
+Monomorphic Variable R : Type.
+Monomorphic Variables m n : nat.
 
 (* Basic linear algebra (matrices).                                       *)
 (* We use dependent types (ordinals) for the indices so that ranges are   *)
 (* mostly inferred automatically                                          *)
 
-Inductive matrix : predArgType := Matrix of {ffun 'I_m * 'I_n -> R}.
+Monomorphic Inductive matrix : predArgType := Matrix of {ffun 'I_m * 'I_n -> R}.
 
-Definition mx_val A := let: Matrix g := A in g.
+Monomorphic Definition mx_val A := let: Matrix g := A in g.
 
-Canonical matrix_subType := Eval hnf in [newType for mx_val].
+Monomorphic Canonical matrix_subType := Eval hnf in [newType for mx_val].
 
-Fact matrix_key : unit. Proof. by []. Qed.
-Definition matrix_of_fun_def F := Matrix [ffun ij => F ij.1 ij.2].
-Definition matrix_of_fun k := locked_with k matrix_of_fun_def.
-Canonical matrix_unlockable k := [unlockable fun matrix_of_fun k].
+Monomorphic Fact matrix_key : unit. Proof. by []. Qed.
+Monomorphic Definition matrix_of_fun_def F := Matrix [ffun ij => F ij.1 ij.2].
+Monomorphic Definition matrix_of_fun k := locked_with k matrix_of_fun_def.
+Monomorphic Canonical matrix_unlockable k := [unlockable fun matrix_of_fun k].
 
-Definition fun_of_matrix A (i : 'I_m) (j : 'I_n) := mx_val A (i, j).
+Monomorphic Definition fun_of_matrix A (i : 'I_m) (j : 'I_n) := mx_val A (i, j).
 
 Coercion fun_of_matrix : matrix >-> Funclass.
 
-Lemma mxE k F : matrix_of_fun k F =2 F.
+End MatrixDef1.
+
+Section MatrixDef2.
+
+Variable R : Type.
+Variables m n : nat.
+
+Lemma mxE k F : @matrix_of_fun R m n k F =2 F.
 Proof. by move=> i j; rewrite unlock /fun_of_matrix /= ffunE. Qed.
 
-Lemma matrixP (A B : matrix) : A =2 B <-> A = B.
+Lemma matrixP (A B : matrix R m n) : A =2 B <-> A = B.
 Proof.
 rewrite /fun_of_matrix; split=> [/= eqAB | -> //].
 by apply/val_inj/ffunP=> [[i j]]; apply: eqAB.
 Qed.
 
-Lemma eq_mx k F1 F2 : (F1 =2 F2) -> matrix_of_fun k F1 = matrix_of_fun k F2.
+Lemma eq_mx k F1 F2 : (F1 =2 F2) -> @matrix_of_fun R m n k F1 = matrix_of_fun k F2.
 Proof. by move=> eq_F; apply/matrixP => i j; rewrite !mxE eq_F. Qed.
 
-End MatrixDef.
+End MatrixDef2.
 
 Arguments eq_mx {R m n k} [F1] F2 eq_F12.
 
@@ -272,35 +279,35 @@ Notation "\row_ ( j < n ) E" := (@matrix_of_fun _ 1 n matrix_key (fun _ j => E))
   (only parsing) : ring_scope.
 Notation "\row_ j E" := (\row_(j < _) E) : ring_scope.
 
-Definition matrix_eqMixin (R : eqType) m n :=
+Monomorphic Definition matrix_eqMixin (R : eqType) m n :=
   Eval hnf in [eqMixin of 'M[R]_(m, n) by <:].
-Canonical matrix_eqType (R : eqType) m n:=
+Monomorphic Canonical matrix_eqType (R : eqType) m n:=
   Eval hnf in EqType 'M[R]_(m, n) (matrix_eqMixin R m n).
-Definition matrix_choiceMixin (R : choiceType) m n :=
+Monomorphic Definition matrix_choiceMixin (R : choiceType) m n :=
   [choiceMixin of 'M[R]_(m, n) by <:].
-Canonical matrix_choiceType (R : choiceType) m n :=
+Monomorphic Canonical matrix_choiceType (R : choiceType) m n :=
   Eval hnf in ChoiceType 'M[R]_(m, n) (matrix_choiceMixin R m n).
-Definition matrix_countMixin (R : countType) m n :=
+Monomorphic Definition matrix_countMixin (R : countType) m n :=
   [countMixin of 'M[R]_(m, n) by <:].
-Canonical matrix_countType (R : countType) m n :=
+Monomorphic Canonical matrix_countType (R : countType) m n :=
   Eval hnf in CountType 'M[R]_(m, n) (matrix_countMixin R m n).
-Canonical matrix_subCountType (R : countType) m n :=
+Monomorphic Canonical matrix_subCountType (R : countType) m n :=
   Eval hnf in [subCountType of 'M[R]_(m, n)].
-Definition matrix_finMixin (R : finType) m n :=
+Monomorphic Definition matrix_finMixin (R : finType) m n :=
   [finMixin of 'M[R]_(m, n) by <:].
-Canonical matrix_finType (R : finType) m n :=
+Monomorphic Canonical matrix_finType (R : finType) m n :=
   Eval hnf in FinType 'M[R]_(m, n) (matrix_finMixin R m n).
-Canonical matrix_subFinType (R : finType) m n :=
+Monomorphic Canonical matrix_subFinType (R : finType) m n :=
   Eval hnf in [subFinType of 'M[R]_(m, n)].
 
-Lemma card_matrix (F : finType) m n : (#|{: 'M[F]_(m, n)}| = #|F| ^ (m * n))%N.
+Lemma card_matrix (F : finType) m n : (#|{: 'M[F]_(m, n)}| = #|F| ** (m * n))%N.
 Proof. by rewrite card_sub card_ffun card_prod !card_ord. Qed.
 
 (*****************************************************************************)
 (****** Matrix structural operations (transpose, permutation, blocks) ********)
 (*****************************************************************************)
 
-Section MatrixStructural.
+Section MatrixStructural1.
 
 Variable R : Type.
 
@@ -854,14 +861,16 @@ Lemma block_mxA m1 m2 m3 n1 n2 n3
   block_mx A11 row1 col1 (block_mx A22 A23 A32 A33)
     = castmx cast (block_mx (block_mx A11 A12 A21 A22) col3 row3 A33).
 Proof.
-rewrite /= block_mxEh !col_mxA -cast_row_mx -block_mxEv -block_mxEh.
+Unset Printing Universes.
+rewrite /=. rewrite -/(castmx (esym _, esym _) _).
+rewrite block_mxEh. rewrite !col_mxA. rewrite -cast_row_mx -block_mxEv -block_mxEh.
 rewrite block_mxEv block_mxEh !row_mxA -cast_col_mx -block_mxEh -block_mxEv.
-by rewrite castmx_comp etrans_id.
+by rewrite castmx_comp etrans_id /etrans /trans_eq /= PathGroupoids.concat_p1.
 Qed.
 Definition block_mxAx := block_mxA. (* Bypass Prenex Implicits *)
 
 (* Bijections mxvec : 'M_(m, n) <----> 'rV_(m * n) : vec_mx *)
-Section VecMatrix.
+Section VecMatrix1.
 
 Variables m n : nat.
 
@@ -871,8 +880,23 @@ Proof. by rewrite card_prod !card_ord. Qed.
 Definition mxvec_index (i : 'I_m) (j : 'I_n) :=
   cast_ord mxvec_cast (enum_rank (i, j)).
 
-Variant is_mxvec_index : 'I_(m * n) -> Type :=
+End VecMatrix1.
+End MatrixStructural1.
+
+Monomorphic Variant is_mxvec_index (m n : nat) : 'I_(m * n) -> Type :=
   IsMxvecIndex i j : is_mxvec_index (mxvec_index i j).
+
+Section MatrixStructural2.
+
+Variable R : Type.
+
+Section VecMatrix2.
+
+Variables m n : nat.
+
+Local Notation is_mxvec_index := (@is_mxvec_index m n).
+Local Notation mxvec_index := (@mxvec_index m n).
+Local Notation mxvec_cast := (@mxvec_cast m n).
 
 Lemma mxvec_indexP k : is_mxvec_index k.
 Proof.
@@ -908,9 +932,9 @@ exists (enum_val \o cast_ord (esym mxvec_cast)) => [[i j] _ | k _] /=.
 by case/mxvec_indexP: k => i j /=; rewrite cast_ordK enum_rankK.
 Qed.
 
-End VecMatrix.
+End VecMatrix2.
 
-End MatrixStructural.
+End MatrixStructural2.
 
 Arguments const_mx {R m n}.
 Arguments row_mxA {R m n1 n2 n3 A1 A2 A3}.
@@ -1039,13 +1063,9 @@ Arguments map_mx {aT rT} f {m n} A.
 (********************* Matrix Zmodule (additive) structure *******************)
 (*****************************************************************************)
 
-Section MatrixZmodule.
+Section MatrixZmoduleFixedDim1.
 
-Variable V : zmodType.
-
-Section FixedDim.
-
-Variables m n : nat.
+Variables (V : zmodType) (m n : nat).
 Implicit Types A B : 'M[V]_(m, n).
 
 Fact oppmx_key : unit. Proof. by []. Qed.
@@ -1068,22 +1088,36 @@ Proof. by move=> A; apply/matrixP=> i j; rewrite !mxE add0r. Qed.
 Lemma addNmx : left_inverse (const_mx 0) oppmx addmx.
 Proof. by move=> A; apply/matrixP=> i j; rewrite !mxE addNr. Qed.
 
-Definition matrix_zmodMixin := ZmodMixin addmxA addmxC add0mx addNmx.
+End MatrixZmoduleFixedDim1.
 
-Canonical matrix_zmodType := Eval hnf in ZmodType 'M[V]_(m, n) matrix_zmodMixin.
+Section MatrixZmoduleFixedDim2.
 
-Lemma mulmxnE A d i j : (A *+ d) i j = A i j *+ d.
+Monomorphic Variables (V : zmodType) (m n : nat).
+Implicit Types A B : 'M[V]_(m, n).
+
+Monomorphic Definition matrix_zmodMixin  :=
+  ZmodMixin (@addmxA V m n) (@addmxC V m n) (@add0mx V m n) (@addNmx V m n).
+
+Monomorphic Canonical matrix_zmodType :=
+  Eval hnf in ZmodType 'M[V]_(m, n) matrix_zmodMixin.
+
+Monomorphic Lemma mulmxnE A d i j : (A *+ d) i j = A i j *+ d.
 Proof. by elim: d => [|d IHd]; rewrite ?mulrS mxE ?IHd. Qed.
 
-Lemma summxE I r (P : pred I) (E : I -> 'M_(m, n)) i j :
+Monomorphic Lemma summxE I r (P : pred I) (E : I -> 'M_(m, n)) i j :
   (\sum_(k <- r | P k) E k) i j = \sum_(k <- r | P k) E k i j.
 Proof. by apply: (big_morph (fun A => A i j)) => [A B|]; rewrite mxE. Qed.
 
-Lemma const_mx_is_additive : additive const_mx.
+Monomorphic Lemma const_mx_is_additive : additive const_mx.
 Proof. by move=> a b; apply/matrixP=> i j; rewrite !mxE. Qed.
-Canonical const_mx_additive := Additive const_mx_is_additive.
 
-End FixedDim.
+Monomorphic Canonical const_mx_additive := Additive const_mx_is_additive.
+
+End MatrixZmoduleFixedDim2.
+
+Section MatrixZmodule1.
+
+Variables (V : zmodType).
 
 Section Additive.
 
@@ -1098,24 +1132,39 @@ Canonical swizzle_mx_additive k := Additive (swizzle_mx_is_additive k).
 
 End Additive.
 
+End MatrixZmodule1.
+
+Section MatrixZmodule2.
+
+Monomorphic Variable (V : zmodType).
+
 Local Notation SwizzleAdd op := [additive of op as swizzle_mx _ _ _].
 
-Canonical trmx_additive m n := SwizzleAdd (@trmx V m n).
-Canonical row_additive m n i := SwizzleAdd (@row V m n i).
-Canonical col_additive m n j := SwizzleAdd (@col V m n j).
-Canonical row'_additive m n i := SwizzleAdd (@row' V m n i).
-Canonical col'_additive m n j := SwizzleAdd (@col' V m n j).
-Canonical row_perm_additive m n s := SwizzleAdd (@row_perm V m n s).
-Canonical col_perm_additive m n s := SwizzleAdd (@col_perm V m n s).
-Canonical xrow_additive m n i1 i2 := SwizzleAdd (@xrow V m n i1 i2).
-Canonical xcol_additive m n j1 j2 := SwizzleAdd (@xcol V m n j1 j2).
-Canonical lsubmx_additive m n1 n2 := SwizzleAdd (@lsubmx V m n1 n2).
-Canonical rsubmx_additive m n1 n2 := SwizzleAdd (@rsubmx V m n1 n2).
-Canonical usubmx_additive m1 m2 n := SwizzleAdd (@usubmx V m1 m2 n).
-Canonical dsubmx_additive m1 m2 n := SwizzleAdd (@dsubmx V m1 m2 n).
-Canonical vec_mx_additive m n := SwizzleAdd (@vec_mx V m n).
-Canonical mxvec_additive m n :=
+Monomorphic Canonical trmx_additive m n := SwizzleAdd (@trmx V m n).
+Monomorphic Canonical row_additive m n i := SwizzleAdd (@row V m n i).
+Monomorphic Canonical col_additive m n j := SwizzleAdd (@col V m n j).
+Monomorphic Canonical row'_additive m n i := SwizzleAdd (@row' V m n i).
+Monomorphic Canonical col'_additive m n j := SwizzleAdd (@col' V m n j).
+Monomorphic Canonical row_perm_additive m n s := SwizzleAdd (@row_perm V m n s).
+Monomorphic Canonical col_perm_additive m n s := SwizzleAdd (@col_perm V m n s).
+Monomorphic Canonical xrow_additive m n i1 i2 := SwizzleAdd (@xrow V m n i1 i2).
+Monomorphic Canonical xcol_additive m n j1 j2 := SwizzleAdd (@xcol V m n j1 j2).
+Monomorphic Canonical lsubmx_additive m n1 n2 := SwizzleAdd (@lsubmx V m n1 n2).
+Monomorphic Canonical rsubmx_additive m n1 n2 := SwizzleAdd (@rsubmx V m n1 n2).
+Monomorphic Canonical usubmx_additive m1 m2 n := SwizzleAdd (@usubmx V m1 m2 n).
+Monomorphic Canonical dsubmx_additive m1 m2 n := SwizzleAdd (@dsubmx V m1 m2 n).
+Monomorphic Canonical vec_mx_additive m n := SwizzleAdd (@vec_mx V m n).
+Monomorphic Canonical mxvec_additive m n :=
   Additive (can2_additive (@vec_mxK V m n) mxvecK).
+
+End MatrixZmodule2.
+
+Section MatrixZmodule3.
+
+Variable (V : zmodType).
+
+Local Notation "''M_' ( m , n )" := 'M[V]_(m, n) : type_scope.
+Local Notation vec_mx := (@vec_mx V).
 
 Lemma flatmx0 n : all_equal_to (0 : 'M_(0, n)).
 Proof. by move=> A; apply/matrixP=> [] []. Qed.
@@ -1201,16 +1250,16 @@ rewrite /nz_row; symmetry; case: pickP => [i /= nzAi | Ai0].
 by rewrite eqxx; apply/eqP/row_matrixP=> i; move/eqP: (Ai0 i) ->; rewrite row0.
 Qed.
 
-End MatrixZmodule.
+End MatrixZmodule3.
 
 Section FinZmodMatrix.
-Variables (V : finZmodType) (m n : nat).
+Monomorphic Variables (V : finZmodType) (m n : nat).
 Local Notation MV := 'M[V]_(m, n).
 
-Canonical matrix_finZmodType := Eval hnf in [finZmodType of MV].
-Canonical matrix_baseFinGroupType :=
+Monomorphic Canonical matrix_finZmodType := Eval hnf in [finZmodType of MV].
+Monomorphic Canonical matrix_baseFinGroupType :=
   Eval hnf in [baseFinGroupType of MV for +%R].
-Canonical matrix_finGroupType := Eval hnf in [finGroupType of MV for +%R].
+Monomorphic Canonical matrix_finGroupType := Eval hnf in [finGroupType of MV for +%R].
 End FinZmodMatrix.
 
 (* Parametricity over the additive structure. *)
@@ -1234,19 +1283,20 @@ Proof. by rewrite map_mxD map_mxN. Qed.
 
 Definition map_mx_sum := big_morph _ map_mxD map_mx0.
 
-Canonical map_mx_additive := Additive map_mx_sub.
-
 End MapZmodMatrix.
+
+Monomorphic Canonical map_mx_additive (aR rR : zmodType) (f : {additive aR -> rR}) (m n : nat)
+  := Additive (@map_mx_sub aR rR f m n).
 
 (*****************************************************************************)
 (*********** Matrix ring module, graded ring, and ring structures ************)
 (*****************************************************************************)
 
-Section MatrixAlgebra.
+Section MatrixAlgebra1.
 
 Variable R : ringType.
 
-Section RingModule.
+Section RingModule1.
 
 (* The ring module/vector space structure *)
 
@@ -1275,13 +1325,26 @@ Proof. by apply/matrixP=> i j; rewrite !mxE mulrDr. Qed.
 Lemma scalemxA x y A : x *m: (y *m: A) = (x * y) *m: A.
 Proof. by apply/matrixP=> i j; rewrite !mxE mulrA. Qed.
 
+End RingModule1.
+
+Section RingModule2.
+
+Variables m n : nat.
+
 Definition matrix_lmodMixin := 
-  LmodMixin scalemxA scale1mx scalemxDr scalemxDl.
+  LmodMixin (@scalemxA m n) (@scale1mx m n) (@scalemxDr m n) (@scalemxDl m n).
 
 Canonical matrix_lmodType :=
   Eval hnf in LmodType R 'M[R]_(m, n) matrix_lmodMixin.
 
-Lemma scalemx_const a b : a *: const_mx b = const_mx (a * b).
+End RingModule2.
+
+Section RingModule3.
+
+Variables m n : nat.
+Implicit Type A : 'M[R]_(m, n).
+
+Lemma scalemx_const a b : a *: @const_mx _ m n b = @const_mx _ m n (a * b).
 Proof. by apply/matrixP=> i j; rewrite !mxE. Qed.
 
 Lemma matrix_sum_delta A :
@@ -1294,36 +1357,47 @@ rewrite !big1 ?addr0 //= => [i' | j']; rewrite eq_sym => /negbTE diff.
 by rewrite !mxE eqxx diff mulr0.
 Qed.
 
-End RingModule.
+End RingModule3.
+
+End MatrixAlgebra1.
 
 Section StructuralLinear.
 
-Lemma swizzle_mx_is_scalable m n p q f g k :
+Monomorphic Variable R : ringType.
+
+Monomorphic Lemma swizzle_mx_is_scalable m n p q f g k :
   scalable (@swizzle_mx R m n p q f g k).
 Proof. by move=> a A; apply/matrixP=> i j; rewrite !mxE. Qed.
-Canonical swizzle_mx_scalable m n p q f g k :=
+Monomorphic Canonical swizzle_mx_scalable m n p q f g k :=
   AddLinear (@swizzle_mx_is_scalable m n p q f g k).
 
 Local Notation SwizzleLin op := [linear of op as swizzle_mx _ _ _].
 
-Canonical trmx_linear m n := SwizzleLin (@trmx R m n).
-Canonical row_linear m n i := SwizzleLin (@row R m n i).
-Canonical col_linear m n j := SwizzleLin (@col R m n j).
-Canonical row'_linear m n i := SwizzleLin (@row' R m n i).
-Canonical col'_linear m n j := SwizzleLin (@col' R m n j).
-Canonical row_perm_linear m n s := SwizzleLin (@row_perm R m n s).
-Canonical col_perm_linear m n s := SwizzleLin (@col_perm R m n s).
-Canonical xrow_linear m n i1 i2 := SwizzleLin (@xrow R m n i1 i2).
-Canonical xcol_linear m n j1 j2 := SwizzleLin (@xcol R m n j1 j2).
-Canonical lsubmx_linear m n1 n2 := SwizzleLin (@lsubmx R m n1 n2).
-Canonical rsubmx_linear m n1 n2 := SwizzleLin (@rsubmx R m n1 n2).
-Canonical usubmx_linear m1 m2 n := SwizzleLin (@usubmx R m1 m2 n).
-Canonical dsubmx_linear m1 m2 n := SwizzleLin (@dsubmx R m1 m2 n).
-Canonical vec_mx_linear m n := SwizzleLin (@vec_mx R m n).
-Definition mxvec_is_linear m n := can2_linear (@vec_mxK R m n) mxvecK.
-Canonical mxvec_linear m n := AddLinear (@mxvec_is_linear m n).
+Monomorphic Canonical trmx_linear m n := SwizzleLin (@trmx R m n).
+Monomorphic Canonical row_linear m n i := SwizzleLin (@row R m n i).
+Monomorphic Canonical col_linear m n j := SwizzleLin (@col R m n j).
+Monomorphic Canonical row'_linear m n i := SwizzleLin (@row' R m n i).
+Monomorphic Canonical col'_linear m n j := SwizzleLin (@col' R m n j).
+Monomorphic Canonical row_perm_linear m n s := SwizzleLin (@row_perm R m n s).
+Monomorphic Canonical col_perm_linear m n s := SwizzleLin (@col_perm R m n s).
+Monomorphic Canonical xrow_linear m n i1 i2 := SwizzleLin (@xrow R m n i1 i2).
+Monomorphic Canonical xcol_linear m n j1 j2 := SwizzleLin (@xcol R m n j1 j2).
+Monomorphic Canonical lsubmx_linear m n1 n2 := SwizzleLin (@lsubmx R m n1 n2).
+Monomorphic Canonical rsubmx_linear m n1 n2 := SwizzleLin (@rsubmx R m n1 n2).
+Monomorphic Canonical usubmx_linear m1 m2 n := SwizzleLin (@usubmx R m1 m2 n).
+Monomorphic Canonical dsubmx_linear m1 m2 n := SwizzleLin (@dsubmx R m1 m2 n).
+Monomorphic Canonical vec_mx_linear m n := SwizzleLin (@vec_mx R m n).
+Monomorphic Definition mxvec_is_linear m n := can2_linear (@vec_mxK R m n) mxvecK.
+Monomorphic Canonical mxvec_linear m n := AddLinear (@mxvec_is_linear m n).
 
 End StructuralLinear.
+
+Section MatrixAlgebra2.
+
+Variable R : ringType.
+
+Local Notation delta_mx := (@delta_mx R).
+Local Notation "''M_' ( m , n )" := 'M[R]_(m, n) : type_scope.
 
 Lemma trmx_delta m n i j : (delta_mx i j)^T = delta_mx j i :> 'M[R]_(n, m).
 Proof. by apply/matrixP=> i' j'; rewrite !mxE andbC. Qed.
@@ -1398,8 +1472,6 @@ Lemma diag_mx_is_linear n : linear (@diag_mx n).
 Proof.
 by move=> a A B; apply/matrixP=> i j; rewrite !mxE mulrnAr mulrnDl.
 Qed.
-Canonical diag_mx_additive n := Additive (@diag_mx_is_linear n).
-Canonical diag_mx_linear n := Linear (@diag_mx_is_linear n).
 
 Lemma diag_mx_sum_delta n (d : 'rV_n) :
   diag_mx d = \sum_i d 0 i *: delta_mx i i.
@@ -1409,8 +1481,21 @@ rewrite eq_sym mulr_natr big1 ?addr0 // => i' ne_i'i.
 by rewrite !mxE eq_sym (negbTE ne_i'i) mulr0.
 Qed.
 
+End MatrixAlgebra2.
+
+Monomorphic Canonical diag_mx_additive (R : ringType) n :=
+  Additive (@diag_mx_is_linear R n).
+Monomorphic Canonical diag_mx_linear (R : ringType) n :=
+  Linear (@diag_mx_is_linear R n).
+
+Section MatrixAlgebra3.
+
+Variable R : ringType.
+
+Local Notation delta_mx := (@delta_mx R).
+
 (* Scalar matrix : a diagonal matrix with a constant on the diagonal *)
-Section ScalarMx.
+Section ScalarMx1.
 
 Variable n : nat.
 
@@ -1429,7 +1514,23 @@ Lemma trmx1 : (1%:M)^T = 1%:M. Proof. exact: tr_scalar_mx. Qed.
 
 Lemma scalar_mx_is_additive : additive scalar_mx.
 Proof. by move=> a b; rewrite -!diag_const_mx !raddfB. Qed.
-Canonical scalar_mx_additive := Additive scalar_mx_is_additive.
+
+End ScalarMx1.
+End MatrixAlgebra3.
+
+Monomorphic Canonical scalar_mx_additive (R : ringType) (n : nat) :=
+  Additive (@scalar_mx_is_additive R n).
+
+Section MatrixAlgebra4.
+
+Variable R : ringType.
+
+Section ScalarMx2.
+
+Variable n : nat.
+
+Local Notation "x %:M" := (@scalar_mx R n x) : ring_scope.
+Local Notation delta_mx := (@delta_mx R).
 
 Lemma scale_scalar_mx a1 a2 : a1 *: a2%:M = (a1 * a2)%:M :> 'M_n.
 Proof. by apply/matrixP=> i j; rewrite !mxE mulrnAr. Qed.
@@ -1465,9 +1566,12 @@ Proof. by apply/is_scalar_mxP; exists a. Qed.
 Lemma mx0_is_scalar : is_scalar_mx 0.
 Proof. by apply/is_scalar_mxP; exists 0; rewrite raddf0. Qed.
 
-End ScalarMx.
+End ScalarMx2.
 
-Notation "x %:M" := (scalar_mx _ x) : ring_scope.
+Local Notation "x %:M" := (scalar_mx _ x) : ring_scope.
+Local Notation delta_mx := (@delta_mx R).
+Local Notation "''M_' n" := 'M[R]_(n, n) : type_scope.
+Local Notation "''M_' ( n )" := 'M[R]_n (only parsing) : type_scope.
 
 Lemma mx11_scalar (A : 'M_1) : A = (A 0 0)%:M.
 Proof. by apply/rowP=> j; rewrite ord1 mxE. Qed.
@@ -1879,14 +1983,22 @@ Lemma mx_vec_lin A : vec_mx (mxvec A *m lin_mx f) = f A.
 Proof. by rewrite mul_rV_lin !mxvecK. Qed.
 
 End LinMatrix.
+End MatrixAlgebra4.
 
-Canonical mulmx_additive m n p A := Additive (@mulmxBr m n p A).
+Monomorphic Canonical mulmx_additive R m n p A :=
+  Additive (@mulmxBr R m n p A).
 
-Section Mulmxr.
+Section MatrixAlgebra5.
+
+Variable R : ringType.
+
+Section Mulmxr1.
 
 Variables m n p : nat.
 Implicit Type A : 'M[R]_(m, n).
 Implicit Type B : 'M[R]_(n, p).
+
+Local Notation "A *m B" := (@mulmx R m n p A B) : ring_scope.
 
 Definition mulmxr_head t B A := let: tt := t in A *m B.
 Local Notation mulmxr := (mulmxr_head tt).
@@ -1895,10 +2007,26 @@ Definition lin_mulmxr B := lin_mx (mulmxr B).
 
 Lemma mulmxr_is_linear B : linear (mulmxr B).
 Proof. by move=> a A1 A2; rewrite /= mulmxDl scalemxAl. Qed.
-Canonical mulmxr_additive B := Additive (mulmxr_is_linear B).
-Canonical mulmxr_linear B := Linear (mulmxr_is_linear B).
 
-Lemma lin_mulmxr_is_linear : linear lin_mulmxr.
+End Mulmxr1.
+End MatrixAlgebra5.
+
+Monomorphic Canonical mulmxr_additive R m n p B :=
+  Additive (@mulmxr_is_linear R m n p B).
+Monomorphic Canonical mulmxr_linear R m n p B :=
+  Linear (@mulmxr_is_linear R m n p B).
+
+Section MatrixAlgebra6.
+
+Variable R : ringType.
+
+Section Mulmxr2.
+
+Variables m n p : nat.
+Implicit Type A : 'M[R]_(m, n).
+Implicit Type B : 'M[R]_(n, p).
+
+Lemma lin_mulmxr_is_linear : linear (@lin_mulmxr R m n p).
 Proof.
 move=> a A B; apply/row_matrixP; case/mxvec_indexP=> i j.
 rewrite linearP /= !rowE !mul_rV_lin /= vec_mx_delta -linearP mulmxDr.
@@ -1906,13 +2034,21 @@ congr (mxvec (_ + _)); apply/row_matrixP=> k.
 rewrite linearZ /= !row_mul rowE mul_delta_mx_cond.
 by case: (k == i); [rewrite -!rowE linearZ | rewrite !mul0mx raddf0].
 Qed.
-Canonical lin_mulmxr_additive := Additive lin_mulmxr_is_linear.
-Canonical lin_mulmxr_linear := Linear lin_mulmxr_is_linear.
 
-End Mulmxr.
+End Mulmxr2.
+End MatrixAlgebra6.
+
+Monomorphic Canonical lin_mulmxr_additive R m n p :=
+  Additive (@lin_mulmxr_is_linear R m n p).
+Monomorphic Canonical lin_mulmxr_linear R m n p :=
+  Linear (@lin_mulmxr_is_linear R m n p).
+
+Section MatrixAlgebra7.
+
+Variable R : ringType.
 
 (* The trace. *)
-Section Trace.
+Section Trace1.
 
 Variable n : nat.
 
@@ -1927,8 +2063,24 @@ Proof.
 move=> a A B; rewrite mulr_sumr -big_split /=; apply: eq_bigr=> i _.
 by rewrite !mxE.
 Qed.
-Canonical mxtrace_additive := Additive mxtrace_is_scalar.
-Canonical mxtrace_linear := Linear mxtrace_is_scalar.
+End Trace1.
+End MatrixAlgebra7.
+
+Monomorphic Canonical mxtrace_additive R n :=
+  Additive (@mxtrace_is_scalar R n).
+Monomorphic Canonical mxtrace_linear R n :=
+  Linear (@mxtrace_is_scalar R n).
+
+Section MatrixAlgebra8.
+
+Variable R : ringType.
+
+Section Trace2.
+
+Variable n : nat.
+
+Local Notation "'\tr' A" := (@mxtrace R n A) : ring_scope.
+Local Notation "x %:M" := (@scalar_mx R _ x) : ring_scope.
 
 Lemma mxtrace0 : \tr 0 = 0. Proof. exact: raddf0. Qed.
 Lemma mxtraceD A B : \tr (A + B) = \tr A + \tr B. Proof. exact: raddfD. Qed.
@@ -1945,8 +2097,12 @@ Qed.
 
 Lemma mxtrace1 : \tr 1%:M = n%:R. Proof. exact: mxtrace_scalar. Qed.
 
-End Trace.
+End Trace2.
 Local Notation "'\tr' A" := (mxtrace A) : ring_scope.
+Local Notation "''M_' n" := 'M[R]_(n, n) : type_scope.
+Local Notation "''M_' ( n )" := 'M[R]_n (only parsing) : type_scope.
+Local Notation "x %:M" := (@scalar_mx R _ x) : ring_scope.
+Local Notation mulmx := (@mulmx R).
 
 Lemma trace_mx11 (A : 'M_1) : \tr A = A 0 0.
 Proof. by rewrite {1}[A]mx11_scalar mxtrace_scalar. Qed.
@@ -1960,7 +2116,7 @@ Qed.
 
 (* The matrix ring structure requires a strutural condition (dimension of the *)
 (* form n.+1) to statisfy the nontriviality condition we have imposed.        *)
-Section MatrixRing.
+Section MatrixRing1.
 
 Variable n' : nat.
 Local Notation n := n'.+1.
@@ -1968,21 +2124,45 @@ Local Notation n := n'.+1.
 Lemma matrix_nonzero1 : 1%:M != 0 :> 'M_n.
 Proof. by apply/eqP=> /matrixP/(_ 0 0)/eqP; rewrite !mxE oner_eq0. Qed.
 
-Definition matrix_ringMixin :=
-  RingMixin (@mulmxA n n n n) (@mul1mx n n) (@mulmx1 n n)
-            (@mulmxDl n n n) (@mulmxDr n n n) matrix_nonzero1.
+End MatrixRing1.
+End MatrixAlgebra8.
 
-Canonical matrix_ringType := Eval hnf in RingType 'M[R]_n matrix_ringMixin.
-Canonical matrix_lAlgType := Eval hnf in LalgType R 'M[R]_n (@scalemxAl n n n).
+Section MatrixRing2.
+
+Monomorphic Variables (R : ringType) (n' : nat).
+Local Notation n := n'.+1.
+
+Monomorphic Definition matrix_ringMixin :=
+  RingMixin (@mulmxA R n n n n) (@mul1mx R n n) (@mulmx1 R n n)
+            (@mulmxDl R n n n) (@mulmxDr R n n n) (@matrix_nonzero1 R n').
+
+Monomorphic Canonical matrix_ringType := Eval hnf in RingType 'M[R]_n matrix_ringMixin.
+Monomorphic Canonical matrix_lAlgType := Eval hnf in LalgType R 'M[R]_n (@scalemxAl R n n n).
+
+End MatrixRing2.
+
+Section MatrixRing3.
+
+Variables (R : ringType) (n' : nat).
+Local Notation n := n'.+1.
+
+Local Notation mulmx := (@mulmx R n).
+Local Notation "x %:M" := (@scalar_mx R _ x) : ring_scope.
 
 Lemma mulmxE : mulmx = *%R. Proof. by []. Qed.
 Lemma idmxE : 1%:M = 1 :> 'M_n. Proof. by []. Qed.
 
-Lemma scalar_mx_is_multiplicative : multiplicative (@scalar_mx n).
+Lemma scalar_mx_is_multiplicative : multiplicative (@scalar_mx R n).
 Proof. by split=> //; apply: scalar_mxM. Qed.
-Canonical scalar_mx_rmorphism := AddRMorphism scalar_mx_is_multiplicative.
 
-End MatrixRing.
+End MatrixRing3.
+
+Monomorphic Canonical scalar_mx_rmorphism R n' :=
+  AddRMorphism (@scalar_mx_is_multiplicative R n').
+
+Section MatrixAlgebra9.
+
+Variable R : ringType.
 
 Section LiftPerm.
 
@@ -2009,9 +2189,9 @@ Proof. by rewrite (canF_eq (lift0_permK s)) lift0_perm0. Qed.
 
 (* Block expresssion of a lifted permutation matrix *)
 
-Definition lift0_mx A : 'M_(1 + n) := block_mx 1 0 0 A.
+Definition lift0_mx A : 'M[R]_(1 + n) := block_mx 1 0 0 A.
 
-Lemma lift0_mx_perm s : lift0_mx (perm_mx s) = perm_mx (lift0_perm s).
+Lemma lift0_mx_perm s : lift0_mx (@perm_mx R n s) = @perm_mx R n.+1 (lift0_perm s).
 Proof.
 apply/matrixP=> /= i j; rewrite !mxE split1 /=; case: unliftP => [i'|] -> /=.
   rewrite lift0_perm_lift !mxE split1 /=.
@@ -2020,7 +2200,7 @@ rewrite lift0_perm0 !mxE split1 /=.
 by case: unliftP => [j'|] ->; rewrite /= mxE.
 Qed.
 
-Lemma lift0_mx_is_perm s : is_perm_mx (lift0_mx (perm_mx s)).
+Lemma lift0_mx_is_perm s : is_perm_mx (lift0_mx (@perm_mx R n s)).
 Proof. by rewrite lift0_mx_perm perm_mx_is_perm. Qed.
 
 End LiftPerm.
@@ -2041,7 +2221,7 @@ Definition cofactor n A (i j : 'I_n) : R :=
 Fact adjugate_key : unit. Proof. by []. Qed.
 Definition adjugate n (A : 'M_n) := \matrix[adjugate_key]_(i, j) cofactor A j i.
 
-End MatrixAlgebra.
+End MatrixAlgebra9.
 
 Arguments delta_mx {R m n}.
 Arguments scalar_mx {R n}.
@@ -2070,15 +2250,15 @@ Proof.
 by apply/matrixP=> k i; rewrite !mxE; apply: eq_bigr => j _; rewrite !mxE.
 Qed.
 
-Canonical matrix_countZmodType (M : countZmodType) m n :=
+Monomorphic Canonical matrix_countZmodType (M : countZmodType) m n :=
   [countZmodType of 'M[M]_(m, n)].
-Canonical matrix_countRingType (R : countRingType) n :=
+Monomorphic Canonical matrix_countRingType (R : countRingType) n :=
   [countRingType of 'M[R]_n.+1].
-Canonical matrix_finLmodType (R : finRingType) m n :=
+Monomorphic Canonical matrix_finLmodType (R : finRingType) m n :=
   [finLmodType R of 'M[R]_(m, n)].
-Canonical matrix_finRingType (R : finRingType) n' :=
+Monomorphic Canonical matrix_finRingType (R : finRingType) n' :=
   Eval hnf in [finRingType of 'M[R]_n'.+1].
-Canonical matrix_finLalgType (R : finRingType) n' :=
+Monomorphic Canonical matrix_finLalgType (R : finRingType) n' :=
   [finLalgType R of 'M[R]_n'.+1].
 
 (* Parametricity over the algebra structure. *)
@@ -2147,8 +2327,6 @@ Lemma map_mx_is_multiplicative n' (n := n'.+1) :
   multiplicative (map_mx f : 'M_n -> 'M_n).
 Proof. by split; [apply: map_mxM | apply: map_mx1]. Qed.
 
-Canonical map_mx_rmorphism n' := AddRMorphism (map_mx_is_multiplicative n').
-
 Lemma map_lin1_mx m n (g : 'rV_m -> 'rV_n) gf :
   (forall v, (g v)^f = gf v^f) -> (lin1_mx g)^f = lin1_mx gf.
 Proof.
@@ -2164,11 +2342,14 @@ Qed.
 
 End MapRingMatrix.
 
-Section ComMatrix.
+Monomorphic Canonical map_mx_rmorphism aR rR f n' :=
+  AddRMorphism (@map_mx_is_multiplicative aR rR f n').
+
+Section ComMatrix1.
 (* Lemmas for matrices with coefficients in a commutative ring *)
 Variable R : comRingType.
 
-Section AssocLeft.
+Section AssocLeft1.
 
 Variables m n p : nat.
 Implicit Type A : 'M[R]_(m, n).
@@ -2185,7 +2366,22 @@ Proof. by apply: trmx_inj; rewrite trmx_mul !linearZ /= trmx_mul scalemxAl. Qed.
 
 Lemma mulmx_is_scalable A : scalable (@mulmx _ m n p A).
 Proof. by move=> a B; rewrite scalemxAr. Qed.
-Canonical mulmx_linear A := AddLinear (mulmx_is_scalable A).
+
+End AssocLeft1.
+End ComMatrix1.
+
+Monomorphic Canonical mulmx_linear R m n p A :=
+  AddLinear (@mulmx_is_scalable R m n p A).
+
+Section ComMatrix2.
+
+Variable R : comRingType.
+
+Section AssocLeft2.
+
+Variables m n p : nat.
+Implicit Type A : 'M[R]_(m, n).
+Implicit Type B : 'M[R]_(n, p).
 
 Definition lin_mulmx A : 'M[R]_(n * p, m * p) := lin_mx (mulmx A).
 
@@ -2194,10 +2390,18 @@ Proof.
 move=> a A B; apply/row_matrixP=> i; rewrite linearP /= !rowE !mul_rV_lin /=.
 by rewrite [_ *m _](linearP (mulmxr_linear _ _)) linearP.
 Qed.
-Canonical lin_mulmx_additive := Additive lin_mulmx_is_linear.
-Canonical lin_mulmx_linear := Linear lin_mulmx_is_linear.
 
-End AssocLeft.
+End AssocLeft2.
+End ComMatrix2.
+
+Canonical lin_mulmx_additive R m n p :=
+  Additive (@lin_mulmx_is_linear R m n p).
+Canonical lin_mulmx_linear R m n p :=
+  Linear (@lin_mulmx_is_linear R m n p).
+
+Section ComMatrix3.
+
+Variable R : comRingType.
 
 Section LinMulRow.
 
@@ -2210,13 +2414,21 @@ Proof.
 move=> a u v; apply/row_matrixP=> i; rewrite linearP /= !rowE !mul_rV_lin1 /=.
 by rewrite [_ *m _](linearP (mulmxr_linear _ _)).
 Qed.
-Canonical lin_mul_row_additive := Additive lin_mul_row_is_linear.
-Canonical lin_mul_row_linear := Linear lin_mul_row_is_linear.
 
 Lemma mul_vec_lin_row A u : mxvec A *m lin_mul_row u = u *m A.
 Proof. by rewrite mul_rV_lin1 /= mxvecK. Qed.
 
 End LinMulRow.
+End ComMatrix3.
+
+Monomorphic Canonical lin_mul_row_additive R m n :=
+  Additive (@lin_mul_row_is_linear R m n).
+Monomorphic Canonical lin_mul_row_linear R m n :=
+  Linear (@lin_mul_row_is_linear R m n).
+
+Section ComMatrix4.
+
+Variable R : comRingType.
 
 Lemma mxvec_dotmul m n (A : 'M[R]_(m, n)) u v :
   mxvec (u^T *m v) *m (mxvec A)^T = u *m A *m v^T.
@@ -2229,15 +2441,22 @@ rewrite mulmx_sum_row exchange_big; apply: eq_bigr => j _ /=.
 by rewrite mxE -scaler_suml.
 Qed.
 
+End ComMatrix4.
+
 Section MatrixAlgType.
 
-Variable n' : nat.
+Monomorphic Variable R : comRingType.
+Monomorphic Variable n' : nat.
 Local Notation n := n'.+1.
 
-Canonical matrix_algType :=
+Monomorphic Canonical matrix_algType :=
   Eval hnf in AlgType R 'M[R]_n (fun k => scalemxAr k).
 
 End MatrixAlgType.
+
+Section ComMatrix5.
+
+Variable R : comRingType.
 
 Lemma diag_mxC n (d e : 'rV[R]_n) :
   diag_mx d *m diag_mx e = diag_mx e *m diag_mx d.
@@ -2338,7 +2557,7 @@ Proof. exact: det_scalar. Qed.
 Lemma det_mulmx n (A B : 'M[R]_n) : \det (A *m B) = \det A * \det B.
 Proof.
 rewrite big_distrl /=.
-pose F := ('I_n ^ n)%type; pose AB s i j := A i j * B j (s i).
+pose F := ('I_n ** n)%type; pose AB s i j := A i j * B j (s i).
 transitivity (\sum_(f : F) \sum_(s : 'S_n) (-1) ^+ s * \prod_i AB s i (f i)).
   rewrite exchange_big; apply: eq_bigr => /= s _; rewrite -big_distrr /=.
   congr (_ * _); rewrite -(bigA_distr_bigA (AB s)) /=.
@@ -2497,19 +2716,19 @@ Lemma det_lblock n1 n2 Aul (Adl : 'M[R]_(n2, n1)) Adr :
   \det (block_mx Aul 0 Adl Adr) = \det Aul * \det Adr.
 Proof. by rewrite -det_tr tr_block_mx trmx0 det_ublock !det_tr. Qed.
 
-End ComMatrix.
+End ComMatrix5.
 
 Arguments lin_mul_row {R m n} u.
 Arguments lin_mulmx {R m n p} A.
 
-Canonical matrix_finAlgType (R : finComRingType) n' :=
+Monomorphic Canonical matrix_finAlgType (R : finComRingType) n' :=
   [finAlgType R of 'M[R]_n'.+1].
 
 (*****************************************************************************)
 (********************** Matrix unit ring and inverse matrices ****************)
 (*****************************************************************************)
 
-Section MatrixInv.
+Section MatrixInv1.
 
 Variables R : comUnitRingType.
 
@@ -2608,15 +2827,27 @@ Lemma invmx_out : {in [predC unitmx], invmx =1 id}.
 Proof. by move=> A; rewrite inE /= /invmx -if_neg => ->. Qed.
 
 End Defs.
+End MatrixInv1.
 
-Variable n' : nat.
+Section MatrixInv2.
+
+Monomorphic Variables (R : comUnitRingType) (n' : nat).
 Local Notation n := n'.+1.
 
-Definition matrix_unitRingMixin :=
-  UnitRingMixin (@mulVmx n) (@mulmxV n) (@intro_unitmx n) (@invmx_out n).
-Canonical matrix_unitRing :=
+Monomorphic Definition matrix_unitRingMixin :=
+  UnitRingMixin (@mulVmx R n) (@mulmxV R n) (@intro_unitmx R n) (@invmx_out R n).
+Monomorphic Canonical matrix_unitRing :=
   Eval hnf in UnitRingType 'M[R]_n matrix_unitRingMixin.
-Canonical matrix_unitAlg := Eval hnf in [unitAlgType R of 'M[R]_n].
+Monomorphic Canonical matrix_unitAlg := Eval hnf in [unitAlgType R of 'M[R]_n].
+
+End MatrixInv2.
+
+Section MatrixInv3.
+
+Variables (R : comUnitRingType) (n' : nat).
+Local Notation n := n'.+1.
+Local Notation "'\det' A" := (@determinant R n A) : ring_scope.
+Local Notation "A ^T" := (@trmx R n n A) : ring_scope.
 
 (* Lemmas requiring that the coefficients are in a unit ring *)
 
@@ -2629,37 +2860,37 @@ Proof. exact: unitmx_tr. Qed.
 Lemma trmxV (A : 'M_n) : A^-1^T = (A^T)^-1.
 Proof. exact: trmx_inv. Qed.
 
-Lemma perm_mxV (s : 'S_n) : perm_mx s^-1 = (perm_mx s)^-1.
+Lemma perm_mxV (s : 'S_n) : @perm_mx R _ s^-1 = (perm_mx s)^-1.
 Proof.
-rewrite -[_^-1]mul1r; apply: (canRL (mulmxK (unitmx_perm s))).
+rewrite -[_^-1]mul1r; apply (canRL (@mulmxK R n n _ (@unitmx_perm R n s))).
 by rewrite -perm_mxM mulVg perm_mx1.
 Qed.
 
-Lemma is_perm_mxV (A : 'M_n) : is_perm_mx A^-1 = is_perm_mx A.
+Lemma is_perm_mxV (A : 'M_n) : @is_perm_mx R _ A^-1 = is_perm_mx A.
 Proof.
 apply/is_perm_mxP/is_perm_mxP=> [] [s defA]; exists s^-1%g.
   by rewrite -(invrK A) defA perm_mxV.
 by rewrite defA perm_mxV.
 Qed.
 
-End MatrixInv.
+End MatrixInv3.
 
 Prenex Implicits unitmx invmx invmxK.
 
-Canonical matrix_countUnitRingType (R : countComUnitRingType) n :=
+Monomorphic Canonical matrix_countUnitRingType (R : countComUnitRingType) n :=
   [countUnitRingType of 'M[R]_n.+1].
 
 (* Finite inversible matrices and the general linear group. *)
 Section FinUnitMatrix.
 
-Variables (n : nat) (R : finComUnitRingType).
+Monomorphic Variables (n : nat) (R : finComUnitRingType).
 
-Canonical matrix_finUnitRingType n' :=
+Monomorphic Canonical matrix_finUnitRingType n' :=
   Eval hnf in [finUnitRingType of 'M[R]_n'.+1].
 
-Definition GLtype of phant R := {unit 'M[R]_n.-1.+1}.
+Monomorphic Definition GLtype of phant R := {unit 'M[R]_n.-1.+1}.
 
-Coercion GLval ph (u : GLtype ph) : 'M[R]_n.-1.+1 :=
+Monomorphic Coercion GLval ph (u : GLtype ph) : 'M[R]_n.-1.+1 :=
   let: FinRing.Unit A _ := u in A.
 
 End FinUnitMatrix.
@@ -2673,22 +2904,30 @@ Notation "{ ''GL_' n ( p ) }" := {'GL_n['F_p]}
   (at level 0, n at level 2, p at level 10,
     format "{ ''GL_' n ( p ) }") : type_scope.
 
-Section GL_unit.
+Section GL_unit1.
+
+Monomorphic Variables (n : nat) (R : finComUnitRingType).
+
+Monomorphic Canonical GL_subType := [subType of {'GL_n[R]} for GLval].
+Monomorphic Definition GL_eqMixin := Eval hnf in [eqMixin of {'GL_n[R]} by <:].
+Monomorphic Canonical GL_eqType := Eval hnf in EqType {'GL_n[R]} GL_eqMixin.
+Monomorphic Canonical GL_choiceType := Eval hnf in [choiceType of {'GL_n[R]}].
+Monomorphic Canonical GL_countType := Eval hnf in [countType of {'GL_n[R]}].
+Monomorphic Canonical GL_subCountType := Eval hnf in [subCountType of {'GL_n[R]}].
+Monomorphic Canonical GL_finType := Eval hnf in [finType of {'GL_n[R]}].
+Monomorphic Canonical GL_subFinType := Eval hnf in [subFinType of {'GL_n[R]}].
+Monomorphic Canonical GL_baseFinGroupType := Eval hnf in [baseFinGroupType of {'GL_n[R]}].
+Monomorphic Canonical GL_finGroupType := Eval hnf in [finGroupType of {'GL_n[R]}].
+Monomorphic Definition GLgroup of phant R := [set: {'GL_n[R]}].
+Monomorphic Canonical GLgroup_group ph := Eval hnf in [group of GLgroup ph].
+
+End GL_unit1.
+
+Section GL_unit2.
 
 Variables (n : nat) (R : finComUnitRingType).
 
-Canonical GL_subType := [subType of {'GL_n[R]} for GLval].
-Definition GL_eqMixin := Eval hnf in [eqMixin of {'GL_n[R]} by <:].
-Canonical GL_eqType := Eval hnf in EqType {'GL_n[R]} GL_eqMixin.
-Canonical GL_choiceType := Eval hnf in [choiceType of {'GL_n[R]}].
-Canonical GL_countType := Eval hnf in [countType of {'GL_n[R]}].
-Canonical GL_subCountType := Eval hnf in [subCountType of {'GL_n[R]}].
-Canonical GL_finType := Eval hnf in [finType of {'GL_n[R]}].
-Canonical GL_subFinType := Eval hnf in [subFinType of {'GL_n[R]}].
-Canonical GL_baseFinGroupType := Eval hnf in [baseFinGroupType of {'GL_n[R]}].
-Canonical GL_finGroupType := Eval hnf in [finGroupType of {'GL_n[R]}].
-Definition GLgroup of phant R := [set: {'GL_n[R]}].
-Canonical GLgroup_group ph := Eval hnf in [group of GLgroup ph].
+Local Notation GLval := (@GLval n R).
 
 Implicit Types u v : {'GL_n[R]}.
 
@@ -2705,7 +2944,7 @@ Proof.
 by apply: contraL (GL_unitmx u); rewrite unitmxE => /eqP->; rewrite unitr0.
 Qed.
 
-End GL_unit.
+End GL_unit2.
 
 Notation "''GL_' n [ R ]" := (GLgroup n (Phant R))
   (at level 8, n at level 2, format "''GL_' n [ R ]") : group_scope.
@@ -2740,6 +2979,8 @@ rewrite -[A == B]subr_eq0 -[a == 0]orbF => /negPf<-.
 by rewrite -scalemx_eq0 linearB subr_eq0 /= eq_aAB.
 Qed.
 
+Axiom any: forall A, A.
+
 Lemma det0P n (A : 'M[R]_n) :
   reflect (exists2 v : 'rV[R]_n, v != 0 & v *m A = 0) (\det A == 0).
 Proof.
@@ -2765,7 +3006,7 @@ have{IHn} w_ j : exists w : 'rV_n.+1, [/\ w != 0, w 0 j = 0 & w *m A' = 0].
     by move/rowP/(_ (lift j k')): w0; rewrite !mxE liftK.
   apply/rowP=> k; rewrite !mxE (bigD1 j) //= mxE unlift_none mul0r add0r.
   rewrite (reindex_onto (lift j) (odflt k \o unlift j)) /= => [|k'].
-    by apply: eq_big => k'; rewrite ?mxE liftK eq_sym neq_lift eqxx.
+    by apply: eq_big => k'; rewrite ?mxE; rewrite -> liftK, eq_sym, neq_lift, eqxx.
   by rewrite eq_sym; case/unlift_some=> ? ? ->.
 have [w0 [nz_w0 w00_0 w0A']] := w_ 0; pose a0 := (w0 *m vA) 0 0.
 have [j {nz_w0}/= nz_w0j | w00] := pickP [pred j | w0 0 j != 0]; last first.

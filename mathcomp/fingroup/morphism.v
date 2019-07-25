@@ -71,11 +71,11 @@ Import GroupScope.
 
 Reserved Notation "x \isog y" (at level 70).
 
-Section MorphismStructure.
+Section MorphismStructure1.
 
-Variables aT rT : finGroupType.
+Monomorphic Variables aT rT : finGroupType.
 
-Structure morphism (D : {set aT}) : Type := Morphism {
+Monomorphic Structure morphism (D : {set aT}) : Type := Morphism {
   mfun :> aT -> FinGroup.sort rT;
   _ : {in D &, {morph mfun : x y / x * y}}
 }.
@@ -85,13 +85,18 @@ Structure morphism (D : {set aT}) : Type := Morphism {
 (* for the 'textbook' notion of morphism, when the required structures are    *)
 (* available (e.g. its domain is a group).                                    *)
 
-Definition morphism_for D of phant rT := morphism D.
+Monomorphic Definition morphism_for D of phant rT := morphism D.
 
-Definition clone_morphism D f :=
+Monomorphic Definition clone_morphism D f :=
   let: Morphism _ fM := f
     return {type of @Morphism D for f} -> morphism_for D (Phant rT)
   in fun k => k fM.
 
+End MorphismStructure1.
+
+Section MorphismStructure2.
+
+Variables aT rT : finGroupType.
 Variables (D A : {set aT}) (R : {set rT}) (x : aT) (y : rT) (f : aT -> rT).
 
 Variant morphim_spec : Prop := MorphimSpec z & z \in D & z \in A & y = f z.
@@ -105,7 +110,7 @@ Qed.
 Lemma morphpreP : reflect (x \in D /\ f x \in R) (x \in D :&: f @^-1: R).
 Proof. by rewrite !inE; apply: andP. Qed.
 
-End MorphismStructure.
+End MorphismStructure2.
 
 Notation "{ 'morphism' D >-> T }" := (morphism_for D (Phant T))
   (at level 0, format "{ 'morphism'  D  >->  T }") : group_scope.
@@ -154,15 +159,15 @@ Notation "''ker_' H f" := (H :&: 'ker f)
   : group_scope.
 
 Notation "f @* A" := (morphim (MorPhantom f) A)
-  (at level 24, format "f  @*  A") : group_scope.
+  (at level 30, format "f  @*  A") : group_scope.
 
 Notation "f @*^-1 R" := (morphpre (MorPhantom f) R)
-  (at level 24, format "f  @*^-1  R") : group_scope.
+  (at level 30, format "f  @*^-1  R") : group_scope.
 
 Notation "''injm' f" := (pred_of_set ('ker f) \subset pred_of_set 1)
   (at level 10, f at level 8, format "''injm'  f") : group_scope.
 
-Section MorphismTheory.
+Section MorphismTheory1.
 
 Variables aT rT : finGroupType.
 Implicit Types A B : {set aT}.
@@ -191,7 +196,7 @@ move=> x Dx; apply: (mulgI (f x)).
 by rewrite -morphM ?groupV // !mulgV morph1.
 Qed.
 
-Lemma morphJ : {in D &, {morph f : x y / x ^ y}}.
+Lemma morphJ : {in D &, {morph f : x y / x ** y}}.
 Proof. by move=> * /=; rewrite !morphM ?morphV // ?groupM ?groupV. Qed.
 
 Lemma morphX n : {in D, {morph f : x / x ^+ n}}.
@@ -446,15 +451,35 @@ apply/group_setP; split=> [|_ _ /morphimP[x Dx Gx ->] /morphimP[y Dy Gy ->]].
 by rewrite -morphM ?mem_imset ?inE ?groupM.
 Qed.
 
-Canonical morphpre_group fPh M :=
-  @group _ (morphpre fPh M) (morphpre_groupset M).
-Canonical morphim_group fPh G := @group _ (morphim fPh G) (morphim_groupset G).
-Canonical ker_group fPh : {group aT} := Eval hnf in [group of ker fPh].
+End MorphismTheory1.
 
-Lemma morph_dom_groupset : group_set (f @: D).
+Section MorphismTheory2.
+
+Monomorphic Variables aT rT : finGroupType.
+Monomorphic Variables (D : {group aT}) (f : {morphism D >-> rT}).
+
+Monomorphic Canonical morphpre_group fPh (M : {group rT}) :=
+  @group _ (@morphpre aT rT D f fPh M) (@morphpre_groupset aT rT D f M).
+Monomorphic Canonical morphim_group fPh (G : {group aT}) :=
+  @group _ (@morphim aT rT D f fPh G) (@morphim_groupset aT rT D f G).
+Monomorphic Canonical ker_group fPh : {group aT} := Eval hnf in [group of ker fPh].
+
+Monomorphic Lemma morph_dom_groupset : group_set (f @: D).
 Proof. by rewrite -morphimEdom groupP. Qed.
 
-Canonical morph_dom_group := group morph_dom_groupset.
+Monomorphic Canonical morph_dom_group := group morph_dom_groupset.
+
+End MorphismTheory2.
+
+Section MorphismTheory3.
+
+Variables aT rT : finGroupType.
+Implicit Types A B : {set aT}.
+Implicit Types G H : {group aT}.
+Implicit Types R S : {set rT}.
+Implicit Types M : {group rT}.
+
+Variables (D : {group aT}) (f : {morphism D >-> rT}).
 
 Lemma morphpreMr R S :
   S \subset f @* D -> f @*^-1 (R * S) = f @*^-1 R * f @*^-1 S.
@@ -469,7 +494,7 @@ move=> sAD; apply/setP=> x; rewrite !inE.
 apply/idP/idP=> [/andP[Dx /morphimP[y Dy Ay eqxy]] | /imset2P[z y Kz Ay ->{x}]].
   rewrite -(mulgKV y x) mem_mulg // !inE !(groupM, morphM, groupV) //.
   by rewrite morphV //= eqxy mulgV.
-have [Dy Dz]: y \in D /\ z \in D by rewrite (subsetP sAD) // dom_ker.
+have [Dy Dz]: y \in D /\ z \in D by rewrite (subsetP sAD) // (@dom_ker aT rT D f).
 by rewrite groupM // morphM // mker // mul1g mem_imset // inE Dy.
 Qed.
 
@@ -625,13 +650,13 @@ by move=> nBA; apply: subset_trans (morphim_norm B); apply: morphimS.
 Qed.
 
 Lemma morphim_subnorm A B : f @* 'N_A(B) \subset 'N_(f @* A)(f @* B).
-Proof. exact: subset_trans (morphimI A _) (setIS _ (morphim_norm B)). Qed.
+Proof. exact: subset_trans (@morphimI aT rT D f A _) (setIS _ (morphim_norm B)). Qed.
 
 Lemma morphim_normal A B : A <| B -> f @* A <| f @* B.
 Proof. by case/andP=> sAB nAB; rewrite /(_ <| _) morphimS // morphim_norms. Qed.
 
 Lemma morphim_cent1 x : x \in D -> f @* 'C[x] \subset 'C[f x].
-Proof. by move=> Dx; rewrite -(morphim_set1 Dx) morphim_norm. Qed.
+Proof. by move=> Dx; rewrite -(morphim_set1 f Dx) morphim_norm. Qed.
 
 Lemma morphim_cent1s A x : x \in D -> A \subset 'C[x] -> f @* A \subset 'C[f x].
 Proof.
@@ -639,7 +664,7 @@ by move=> Dx cAx; apply: subset_trans (morphim_cent1 Dx); apply: morphimS.
 Qed.
 
 Lemma morphim_subcent1 A x : x \in D -> f @* 'C_A[x] \subset 'C_(f @* A)[f x].
-Proof. by move=> Dx; rewrite -(morphim_set1 Dx) morphim_subnorm. Qed.
+Proof. by move=> Dx; rewrite -(morphim_set1 f Dx) morphim_subnorm. Qed.
 
 Lemma morphim_cent A : f @* 'C(A) \subset 'C(f @* A).
 Proof.
@@ -653,7 +678,7 @@ by move=> cBA; apply: subset_trans (morphim_cent B); apply: morphimS.
 Qed.
 
 Lemma morphim_subcent A B : f @* 'C_A(B) \subset 'C_(f @* A)(f @* B).
-Proof. exact: subset_trans (morphimI A _) (setIS _ (morphim_cent B)). Qed.
+Proof. exact: subset_trans (morphimI f A _) (setIS _ (morphim_cent B)). Qed.
 
 Lemma morphim_abelian A : abelian A -> abelian (f @* A).
 Proof. exact: morphim_cents. Qed.
@@ -766,10 +791,10 @@ by move=> Dx; rewrite orderE -morphim_cycle // card_injm ?cycle_subG.
 Qed.
 
 Lemma injm1 x : x \in D -> f x = 1 -> x = 1.
-Proof. by move=> Dx; move/(kerP Dx); rewrite ker_injm; move/set1P. Qed.
+Proof. by move=> Dx; move/(kerP f Dx); rewrite ker_injm; move/set1P. Qed.
 
 Lemma morph_injm_eq1 x : x \in D -> (f x == 1) = (x == 1).
-Proof. by move=> Dx; rewrite -morph1 (inj_in_eq (injmP injf)) ?group1. Qed.
+Proof. by move=> Dx; rewrite -(morph1 f) (inj_in_eq (injmP injf)) ?group1. Qed.
 
 Lemma injmSK A B :
   A \subset D -> (f @* A \subset f @* B) = (A \subset B).
@@ -784,7 +809,7 @@ Lemma injm_eq A B : A \subset D -> B \subset D -> (f @* A == f @* B) = (A == B).
 Proof. by move=> sAD sBD; rewrite !eqEsubset !injmSK. Qed.
 
 Lemma morphim_injm_eq1 A : A \subset D -> (f @* A == 1) = (A == 1).
-Proof. by move=> sAD; rewrite -morphim1 injm_eq ?sub1G. Qed.
+Proof. by move=> sAD; rewrite -(morphim1 f) injm_eq ?sub1G. Qed.
 
 Lemma injmI A B : f @* (A :&: B) = f @* A :&: f @* B.
 Proof.
@@ -861,7 +886,7 @@ move=> eqDBA eqAfg; rewrite /morphim /= eqDBA.
 by apply: eq_in_imset => x /setIP[_]/eqAfg.
 Qed.
 
-End MorphismTheory.
+End MorphismTheory3.
 
 Notation "''ker' f" := (ker_group (MorPhantom f)) : Group_scope.
 Notation "''ker_' G f" := (G :&: 'ker f)%G : Group_scope.
@@ -872,18 +897,26 @@ Notation "f @: D" := (morph_dom_group f D) : Group_scope.
 Arguments injmP {aT rT D f}.
 Arguments morphpreK {aT rT D f} [R] sRf.
 
-Section IdentityMorphism.
+Section IdentityMorphism1.
 
 Variable gT : finGroupType.
-Implicit Types A B : {set gT}.
-Implicit Type G : {group gT}.
+Implicit Types A : {set gT}.
 
 Definition idm of {set gT} := fun x : gT => x : FinGroup.sort gT.
 
 Lemma idm_morphM A : {in A & , {morph idm A : x y / x * y}}.
 Proof. by []. Qed.
 
-Canonical idm_morphism A := Morphism (@idm_morphM A).
+End IdentityMorphism1.
+
+Monomorphic Canonical idm_morphism (gT : finGroupType) (A : {set gT}) :=
+  Morphism (@idm_morphM gT A).
+
+Section IdentityMorphism2.
+
+Variable gT : finGroupType.
+Implicit Types A B : {set gT}.
+Implicit Type G : {group gT}.
 
 Lemma injm_idm G : 'injm (idm G).
 Proof. by apply/injmP=> x y _ _. Qed.
@@ -903,9 +936,14 @@ Proof. by apply/setP=> x; rewrite !inE. Qed.
 Lemma im_idm A : idm A @* A = A.
 Proof. exact: morphim_idm. Qed.
 
-End IdentityMorphism.
+End IdentityMorphism2.
 
 Arguments idm {_} _%g _%g.
+
+Definition restrm (aT rT : finGroupType) (A D : {set aT}) of A \subset D := @id (aT -> FinGroup.sort rT).
+
+Monomorphic Canonical restrm_morphism (aT rT : finGroupType) (A D : {set aT}) (sAD : A \subset D) (f : {morphism D >-> rT}) :=
+  @Morphism aT rT A (restrm sAD (mfun f)) (sub_in2 (subsetP sAD) (morphM f)).
 
 Section RestrictedMorphism.
 
@@ -914,16 +952,11 @@ Variables A D : {set aT}.
 Implicit Type B : {set aT}.
 Implicit Type R : {set rT}.
 
-Definition restrm of A \subset D := @id (aT -> FinGroup.sort rT).
-
 Section Props.
 
 Hypothesis sAD : A \subset D.
 Variable f : {morphism D >-> rT}.
 Local Notation fA := (restrm sAD (mfun f)).
-
-Canonical restrm_morphism :=
-  @Morphism aT rT A fA (sub_in2 (subsetP sAD) (morphM f)).
 
 Lemma morphim_restrm B : fA @* B = f @* (A :&: B).
 Proof. by rewrite {2}/morphim setIA (setIidPr sAD). Qed.
@@ -967,7 +1000,7 @@ Arguments restrm {_ _ _%g _%g} _ _%g.
 Arguments restrmP {aT rT A D}.
 Arguments domP {aT rT A D}.
 
-Section TrivMorphism.
+Section TrivMorphism1.
 
 Variables aT rT : finGroupType.
 
@@ -976,23 +1009,29 @@ Definition trivm of {set aT} & aT := 1 : FinGroup.sort rT.
 Lemma trivm_morphM (A : {set aT}) : {in A &, {morph trivm A : x y / x * y}}.
 Proof. by move=> x y /=; rewrite mulg1. Qed.
 
-Canonical triv_morph A := Morphism (@trivm_morphM A).
+End TrivMorphism1.
 
-Lemma morphim_trivm (G H : {group aT}) : trivm G @* H = 1.
+Monomorphic Canonical triv_morph (aT rT : finGroupType) A := Morphism (@trivm_morphM aT rT A).
+
+Section TrivMorphism2.
+
+Variables aT rT : finGroupType.
+
+Lemma morphim_trivm (G H : {group aT}) : @trivm aT rT G @* H = 1.
 Proof.
 apply/setP=> /= y; rewrite inE; apply/idP/eqP=> [|->]; first by case/morphimP.
 by apply/morphimP; exists (1 : aT); rewrite /= ?group1.
 Qed.
 
-Lemma ker_trivm (G : {group aT}) : 'ker (trivm G) = G.
+Lemma ker_trivm (G : {group aT}) : 'ker (@trivm aT rT G) = G.
 Proof. by apply/setIidPl/subsetP=> x _; rewrite !inE /=. Qed.
 
-End TrivMorphism.
+End TrivMorphism2.
 
 Arguments trivm {aT rT} _%g _%g.
 
 (* The composition of two morphisms is a Canonical morphism instance. *)
-Section MorphismComposition.
+Section MorphismComposition1.
 
 Variables gT hT rT : finGroupType.
 Variables (G : {group gT}) (H : {group hT}).
@@ -1007,7 +1046,29 @@ Proof.
 by move=> x y; rewrite /= !inE => /andP[? ?] /andP[? ?]; rewrite !morphM.
 Qed.
 
-Canonical comp_morphism := Morphism comp_morphM.
+End MorphismComposition1.
+
+Section MorphismComposition2.
+
+Monomorphic Variables gT hT rT : finGroupType.
+Monomorphic Variables (G : {group gT}) (H : {group hT}).
+
+Monomorphic Variable f : {morphism G >-> hT}.
+Monomorphic Variable g : {morphism H >-> rT}.
+
+Monomorphic Canonical comp_morphism := Morphism (@comp_morphM gT hT rT G H f g).
+
+End MorphismComposition2.
+
+Section MorphismComposition3.
+
+Variables gT hT rT : finGroupType.
+Variables (G : {group gT}) (H : {group hT}).
+
+Variable f : {morphism G >-> hT}.
+Variable g : {morphism H >-> rT}.
+
+Local Notation gof := (mfun g \o mfun f).
 
 Lemma ker_comp : 'ker gof = f @*^-1 'ker g.
 Proof. by apply/setP=> x; rewrite !inE andbA. Qed.
@@ -1026,10 +1087,10 @@ Qed.
 Lemma morphpre_comp (C : {set rT}) : gof @*^-1 C = f @*^-1 (g @*^-1 C).
 Proof. by apply/setP=> z; rewrite !inE andbA. Qed.
 
-End MorphismComposition.
+End MorphismComposition3.
 
 (* The factor morphism *)
-Section FactorMorphism.
+Section FactorMorphism1.
 
 Variables aT qT rT : finGroupType.
 
@@ -1059,7 +1120,33 @@ move=> _ _ /morphimP[x Hx Gx ->] /morphimP[y Hy Gy ->].
 by rewrite -morphM ?factmE ?groupM // morphM.
 Qed.
 
-Canonical factm_morphism := Morphism factm_morphM.
+End FactorMorphism1.
+
+Section FactorMorphism2.
+
+Monomorphic Variables aT qT rT : finGroupType.
+
+Monomorphic Variables G H : {group aT}.
+Monomorphic Variable f : {morphism G >-> rT}.
+Monomorphic Variable q : {morphism H >-> qT}.
+Monomorphic Hypothesis sKqKf : 'ker q \subset 'ker f.
+Monomorphic Hypothesis sGH : G \subset H.
+
+Monomorphic Canonical factm_morphism := Morphism (@factm_morphM aT qT rT G H f q sKqKf sGH).
+
+End FactorMorphism2.
+
+Section FactorMorphism3.
+
+Variables aT qT rT : finGroupType.
+
+Variables G H : {group aT}.
+Variable f : {morphism G >-> rT}.
+Variable q : {morphism H >-> qT}.
+Hypothesis sKqKf : 'ker q \subset 'ker f.
+Hypothesis sGH : G \subset H.
+
+Notation ff := (factm sKqKf sGH).
 
 Lemma morphim_factm (A : {set aT}) : ff @* (q @* A) = f @* A.
 Proof.
@@ -1093,7 +1180,7 @@ Qed.
 Lemma ker_factm_loc (K : {group aT}) : 'ker_(q @* K) ff = q @* 'ker_K f.
 Proof. by rewrite ker_factm -morphimIG. Qed.
 
-End FactorMorphism.
+End FactorMorphism3.
 
 Prenex Implicits factm.
 
@@ -1109,8 +1196,6 @@ Lemma invm_subker : 'ker f \subset 'ker (idm G).
 Proof. by rewrite ker_idm. Qed.
 
 Definition invm := factm invm_subker (subxx _).
-
-Canonical invm_morphism := Eval hnf in [morphism of invm].
 
 Lemma invmE : {in G, cancel f invm}.
 Proof. exact: factmE. Qed.
@@ -1147,6 +1232,10 @@ Lemma im_invm : invm @* (f @* G) = G.
 Proof. exact: morphim_invm. Qed.
 
 End InverseMorphism.
+
+Monomorphic Canonical invm_morphism (aT rT : finGroupType) (G : {group aT})
+  (f : {morphism G >-> rT}) (injf : 'injm f)
+  := Eval hnf in [morphism of @invm aT rT G f injf].
 
 Prenex Implicits invm.
 
@@ -1190,11 +1279,11 @@ End InjFactm.
 
 (* Reflected (boolean) form of morphism and isomorphism properties. *)
 
-Section ReflectProp.
+Section ReflectProp1.
 
 Variables aT rT : finGroupType.
 
-Section Defs.
+Section Defs1.
 
 Variables (A : {set aT}) (B : {set rT}).
 
@@ -1223,14 +1312,25 @@ Definition morphm of morphic f := f : aT -> FinGroup.sort rT.
 
 Lemma morphmE fM : morphm fM = f. Proof. by []. Qed.
 
-Canonical morphm_morphism fM := @Morphism _ _ A (morphm fM) (morphicP fM).
-
 End MorphicProps.
+End Defs1.
+End ReflectProp1.
 
-Lemma misomP f : reflect {fM : morphic f & isom (morphm fM)} (misom f).
+Monomorphic Canonical morphm_morphism (aT rT : finGroupType) (A : {set aT}) (f : aT -> rT) fM :=
+  @Morphism _ _ A (@morphm aT rT A f fM) (@morphicP aT rT A f fM).
+
+Section ReflectProp2.
+
+Variables aT rT : finGroupType.
+
+Section Defs2.
+
+Variables (A : {set aT}) (B : {set rT}).
+
+Lemma misomP f : reflect {fM : @morphic aT rT A f & isom A B (@morphm aT rT A f fM)} (misom A B f).
 Proof. by apply: (iffP andP) => [] [fM fiso] //; exists fM. Qed.
 
-Lemma misom_isog f : misom f -> isog.
+Lemma misom_isog f : misom A B f -> isog A B.
 Proof.
 case/andP=> fM iso_f; apply/existsP; exists (finfun f).
 apply/andP; split; last by rewrite /misom /isom !(eq_imset _ (ffunE f)).
@@ -1238,18 +1338,18 @@ by apply/forallP=> u; rewrite !ffunE; apply: forallP fM u.
 Qed.
 
 Lemma isom_isog (D : {group aT}) (f : {morphism D >-> rT}) :
-  A \subset D -> isom f -> isog.
+  A \subset D -> isom A B f -> isog A B.
 Proof.
 move=> sAD isof; apply: (@misom_isog f); rewrite /misom isof andbT.
 by apply/morphicP; apply: (sub_in2 (subsetP sAD) (morphM f)).
 Qed.
 
-Lemma isog_isom : isog -> {f : {morphism A >-> rT} | isom f}.
+Lemma isog_isom : isog A B -> {f : {morphism A >-> rT} | isom A B f}.
 Proof.
 by case/existsP/sigW=> f /misomP[fM isom_f]; exists (morphm_morphism fM).
 Qed.
 
-End Defs.
+End Defs2.
 
 Infix "\isog" := isog.
 
@@ -1317,7 +1417,7 @@ Lemma restr_isom (A : {group aT}) (R : {group rT}) (sAG : A \subset G) :
   isom G R f -> isom A (f @* A) (restrm sAG f).
 Proof. exact: restr_isom_to. Qed.
 
-End ReflectProp.
+End ReflectProp2.
 
 Arguments isom {_ _} _%g _%g _.
 Arguments morphic {_ _} _%g _.
@@ -1479,23 +1579,25 @@ Notation "G \homg H" := (homg G H)
 
 Arguments homgP {rT aT C D}.
 
+Monomorphic Canonical sgval_morphism (gT : finGroupType) (G : {group gT})
+  := Morphism (@sgvalM _ G).
+Monomorphic Canonical subg_morphism (gT : finGroupType) (G : {group gT})
+  := Morphism (@subgM _ G).
+
 (* Isomorphism between a group and its subtype. *)
 
 Section SubMorphism.
 
 Variables (gT : finGroupType) (G : {group gT}).
 
-Canonical sgval_morphism := Morphism (@sgvalM _ G).
-Canonical subg_morphism := Morphism (@subgM _ G).
-
-Lemma injm_sgval : 'injm sgval.
+Lemma injm_sgval : 'injm (@sgval gT G).
 Proof. exact/injmP/(in2W subg_inj). Qed.
 
 Lemma injm_subg : 'injm (subg G).
 Proof. exact/injmP/(can_in_inj subgK). Qed.
 Hint Resolve injm_sgval injm_subg : core.
 
-Lemma ker_sgval : 'ker sgval = 1. Proof. exact/trivgP. Qed.
+Lemma ker_sgval : 'ker (@sgval gT G) = 1. Proof. exact/trivgP. Qed.
 Lemma ker_subg : 'ker (subg G) = 1. Proof. exact/trivgP. Qed.
 
 Lemma im_subg : subg G @* G = [subg G].
@@ -1504,7 +1606,7 @@ apply/eqP; rewrite -subTset morphimEdom.
 by apply/subsetP=> u _; rewrite -(sgvalK u) mem_imset ?subgP.
 Qed.
 
-Lemma sgval_sub A : sgval @* A \subset G.
+Lemma sgval_sub A : @sgval gT G @* A \subset G.
 Proof. by apply/subsetP=> x; case/imsetP=> u _ ->; apply: subgP. Qed.
 
 Lemma sgvalmK A : subg G @* (sgval @* A) = A.

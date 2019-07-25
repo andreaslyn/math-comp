@@ -103,8 +103,8 @@ From mathcomp Require Import div prime binomial ssralg finalg zmodp matrix.
 (* The next set of definitions let us represent F-algebras using matrices:   *)
 (*   'A[F]_(m, n) == the type of matrices encoding (sub)algebras of square   *)
 (*                   n x n matrices, via mxvec; as in the matrix type        *)
-(*                   notation, m and F can be omitted (m defaults to n ^ 2). *)
-(*                := 'M[F]_(m, n ^ 2).                                       *)
+(*                   notation, m and F can be omitted (m defaults to n ** 2). *)
+(*                := 'M[F]_(m, n ** 2).                                       *)
 (*   (A \in R)%MS <=> the square matrix A belongs to the linear set of       *)
 (*                    matrices (most often, a sub-algebra) encoded by the    *)
 (*                    row space of R. This is simply notation, so all the    *)
@@ -136,24 +136,25 @@ Local Open Scope ring_scope.
 Reserved Notation "\rank A" (at level 10, A at level 8, format "\rank  A").
 Reserved Notation "A ^C"    (at level 8, format "A ^C").
 
-Notation "''A_' ( m , n )" := 'M_(m, n ^ 2)
+Notation "''A_' ( m , n )" := 'M_(m, n ** 2)
   (at level 8, format "''A_' ( m ,  n )") : type_scope.
 
-Notation "''A_' ( n )" := 'A_(n ^ 2, n)
+Notation "''A_' ( n )" := 'A_(n ** 2, n)
   (at level 8, only parsing) : type_scope.
 
 Notation "''A_' n" := 'A_(n)
   (at level 8, n at next level, format "''A_' n") : type_scope.
 
-Notation "''A' [ F ]_ ( m , n )" := 'M[F]_(m, n ^ 2)
+Notation "''A' [ F ]_ ( m , n )" := 'M[F]_(m, n ** 2)
   (at level 8, only parsing) : type_scope.
 
-Notation "''A' [ F ]_ ( n )" := 'A[F]_(n ^ 2, n)
+Notation "''A' [ F ]_ ( n )" := 'A[F]_(n ** 2, n)
   (at level 8, only parsing) : type_scope.
 
 Notation "''A' [ F ]_ n" := 'A[F]_(n)
   (at level 8, n at level 2, only parsing) : type_scope.
 
+Declare Scope matrix_set_scope.
 Delimit Scope matrix_set_scope with MS.
 
 Local Notation simp := (Monoid.Theory.simpm, oppr0).
@@ -162,9 +163,9 @@ Local Notation simp := (Monoid.Theory.simpm, oppr0).
 (******************** Rank and row-space theory ******************************)
 (*****************************************************************************)
 
-Section RowSpaceTheory.
+Section RowSpaceTheory1.
 
-Variable F : fieldType.
+Monomorphic Variable F : fieldType.
 Implicit Types m n p r : nat.
 
 Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
@@ -173,7 +174,7 @@ Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
 (* Decomposition with double pivoting; computes the rank, row and column  *)
 (* images, kernels, and complements of a matrix.                          *)
 
-Fixpoint Gaussian_elimination {m n} : 'M_(m, n) -> 'M_m * 'M_n * nat :=
+Monomorphic Fixpoint Gaussian_elimination {m n} : 'M_(m, n) -> 'M_m * 'M_n * nat :=
   match m, n with
   | _.+1, _.+1 => fun A : 'M_(1 + _, 1 + _) =>
     if [pick ij | A ij.1 ij.2 != 0] is Some (i, j) then
@@ -187,27 +188,27 @@ Fixpoint Gaussian_elimination {m n} : 'M_(m, n) -> 'M_m * 'M_n * nat :=
 
 Section Defs.
 
-Variables (m n : nat) (A : 'M_(m, n)).
+Monomorphic Variables (m n : nat) (A : 'M_(m, n)).
 
-Fact Gaussian_elimination_key : unit. Proof. by []. Qed.
+Monomorphic Fact Gaussian_elimination_key : unit. Proof. by []. Qed.
 
-Let LUr := locked_with Gaussian_elimination_key (@Gaussian_elimination) m n A.
+Monomorphic Let LUr := locked_with Gaussian_elimination_key (@Gaussian_elimination) m n A.
 
-Definition col_ebase := LUr.1.1.
-Definition row_ebase := LUr.1.2.
-Definition mxrank := if [|| m == 0 | n == 0]%N then 0%N else LUr.2.
+Monomorphic Definition col_ebase := LUr.1.1.
+Monomorphic Definition row_ebase := LUr.1.2.
+Monomorphic Definition mxrank := if [|| m == 0 | n == 0]%N then 0%N else LUr.2.
 
-Definition row_free := mxrank == m.
-Definition row_full := mxrank == n.
+Monomorphic Definition row_free := mxrank == m.
+Monomorphic Definition row_full := mxrank == n.
 
-Definition row_base : 'M_(mxrank, n) := pid_mx mxrank *m row_ebase.
-Definition col_base : 'M_(m, mxrank) := col_ebase *m pid_mx mxrank.
+Monomorphic Definition row_base : 'M_(mxrank, n) := pid_mx mxrank *m row_ebase.
+Monomorphic Definition col_base : 'M_(m, mxrank) := col_ebase *m pid_mx mxrank.
 
-Definition complmx : 'M_n := copid_mx mxrank *m row_ebase.
-Definition kermx : 'M_m := copid_mx mxrank *m invmx col_ebase.
-Definition cokermx : 'M_n := invmx row_ebase *m copid_mx mxrank.
+Monomorphic Definition complmx : 'M_n := copid_mx mxrank *m row_ebase.
+Monomorphic Definition kermx : 'M_m := copid_mx mxrank *m invmx col_ebase.
+Monomorphic Definition cokermx : 'M_n := invmx row_ebase *m copid_mx mxrank.
 
-Definition pinvmx : 'M_(n, m) :=
+Monomorphic Definition pinvmx : 'M_(n, m) :=
   invmx row_ebase *m pid_mx mxrank *m invmx col_ebase.
 
 End Defs.
@@ -217,16 +218,29 @@ Local Notation "\rank A" := (mxrank A) : nat_scope.
 Arguments complmx {m%N n%N} A%MS.
 Local Notation "A ^C" := (complmx A) : matrix_set_scope.
 
-Definition submx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
+Monomorphic Definition submx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
   A *m cokermx B == 0).
-Fact submx_key : unit. Proof. by []. Qed.
-Definition submx := locked_with submx_key submx_def.
-Canonical submx_unlockable := [unlockable fun submx].
+Monomorphic Fact submx_key : unit. Proof. by []. Qed.
 
-Arguments submx {m1%N m2%N n%N} A%MS B%MS : rename.
-Local Notation "A <= B" := (submx A B) : matrix_set_scope.
+End RowSpaceTheory1.
+
+Monomorphic Definition submx (F : fieldType) :=
+  locked_with submx_key (@submx_def F).
+Monomorphic Canonical submx_unlockable (F :fieldType) := [unlockable fun @submx F].
+
+Section RowSpaceTheory2.
+
+Variable F : fieldType.
+Implicit Types m n p r : nat.
+
+Arguments submx {F m1%N m2%N n%N} A%MS B%MS : rename.
+Local Notation "A <= B" := (@submx F _ _ _ A B) : matrix_set_scope.
 Local Notation "A <= B <= C" := ((A <= B) && (B <= C))%MS : matrix_set_scope.
 Local Notation "A == B" := (A <= B <= A)%MS : matrix_set_scope.
+Local Notation "\rank A" := (@mxrank F _ _ A) : nat_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
+Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
 
 Definition ltmx m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :=
   (A <= B)%MS && ~~ (B <= A)%MS.
@@ -256,6 +270,19 @@ Proof. by rewrite -andb_orr orbN andbT. Qed.
 
 End LtmxIdentities.
 
+End RowSpaceTheory2.
+
+Section RowSpaceTheory3.
+
+Monomorphic Variable F : fieldType.
+Implicit Types m n p r : nat.
+
+Local Notation "A <= B" := (@submx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A <= B <= C" := ((A <= B) && (B <= C))%MS : matrix_set_scope.
+Local Notation "A == B" := (A <= B <= A)%MS : matrix_set_scope.
+Local Notation "A :=: B" := (eqmx A B) : matrix_set_scope.
+Local Notation "\rank A" := (@mxrank F _ _ A) : nat_scope.
+
 (* The definition of the row-space operator is rigged to return the identity  *)
 (* matrix for full matrices. To allow for further tweaks that will make the   *)
 (* row-space intersection operator strictly commutative and monoidal, we      *)
@@ -267,36 +294,46 @@ End LtmxIdentities.
 (* (this does not affect genmx, which chooses a square matrix).               *)
 (*   The choice witness for genmx A is either 1%:M for a row-full A, or else  *)
 (* row_base A padded with null rows.                                          *)
-Let qidmx m n (A : 'M_(m, n)) :=
-  if m == n then A == pid_mx n else row_full A.
-Let equivmx m n (A : 'M_(m, n)) idA (B : 'M_n) :=
+Local Monomorphic Definition qidmx m n (A : 'M_(m, n)) :=
+  if m == n then A == @pid_mx F _ _ n else row_full A.
+Local Monomorphic Definition equivmx m n (A : 'M_(m, n)) idA (B : 'M_n) :=
   (B == A)%MS && (qidmx B == idA).
-Let equivmx_spec m n (A : 'M_(m, n)) idA (B : 'M_n) :=
+Local Monomorphic Definition equivmx_spec m n (A : 'M_(m, n)) idA (B : 'M_n) :=
   prod (B :=: A)%MS (qidmx B = idA).
-Definition genmx_witness m n (A : 'M_(m, n)) : 'M_n :=
+Monomorphic Definition genmx_witness m n (A : 'M_(m, n)) : 'M_n :=
   if row_full A then 1%:M else pid_mx (\rank A) *m row_ebase A.
-Definition genmx_def := idfun (fun m n (A : 'M_(m, n)) =>
+Monomorphic Definition genmx_def := idfun (fun m n (A : 'M_(m, n)) =>
    choose (equivmx A (row_full A)) (genmx_witness A) : 'M_n).
-Fact genmx_key : unit. Proof. by []. Qed.
-Definition genmx := locked_with genmx_key genmx_def.
-Canonical genmx_unlockable := [unlockable fun genmx].
+Monomorphic Fact genmx_key : unit. Proof. by []. Qed.
+Monomorphic Definition genmx := locked_with genmx_key genmx_def.
 Local Notation "<< A >>" := (genmx A) : matrix_set_scope.
 
 (* The setwise sum is tweaked so that 0 is a strict identity element for      *)
 (* square matrices, because this lets us use the bigop component. As a result *)
 (* setwise sum is not quite strictly extensional.                             *)
-Let addsmx_nop m n (A : 'M_(m, n)) := conform_mx <<A>>%MS A.
-Definition addsmx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
+Local Monomorphic Definition addsmx_nop m n (A : 'M_(m, n)) := conform_mx <<A>>%MS A.
+Monomorphic Definition addsmx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
   if A == 0 then addsmx_nop B else if B == 0 then addsmx_nop A else
   <<col_mx A B>>%MS : 'M_n).
-Fact addsmx_key : unit. Proof. by []. Qed.
-Definition addsmx := locked_with addsmx_key addsmx_def.
-Canonical addsmx_unlockable := [unlockable fun addsmx].
+Monomorphic Fact addsmx_key : unit. Proof. by []. Qed.
+
+Monomorphic Definition addsmx := locked_with addsmx_key addsmx_def.
+Monomorphic Canonical addsmx_unlockable := [unlockable fun addsmx].
+Monomorphic Canonical genmx_unlockable := [unlockable fun genmx].
+
+Arguments submx {F m1%N m2%N n%N} A%MS B%MS : rename.
+
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
+Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
+Local Notation "<< A >>" := (genmx A) : matrix_set_scope.
+
 Arguments addsmx {m1%N m2%N n%N} A%MS B%MS : rename.
-Local Notation "A + B" := (addsmx A B) : matrix_set_scope.
-Local Notation "\sum_ ( i | P ) B" := (\big[addsmx/0]_(i | P) B%MS)
+
+Local Notation "A + B" := (@addsmx F _ _ A B) : matrix_set_scope.
+Local Notation "\sum_ ( i | P ) B" := (\big[(@addsmx F _ _)/0]_(i | P) B%MS)
   : matrix_set_scope.
-Local Notation "\sum_ ( i <- r | P ) B" := (\big[addsmx/0]_(i <- r | P) B%MS)
+Local Notation "\sum_ ( i <- r | P ) B" := (\big[(@addsmx F _ _)/0]_(i <- r | P) B%MS)
   : matrix_set_scope.
 
 (* The set intersection is similarly biased so that the identity matrix is a  *)
@@ -312,36 +349,67 @@ Local Notation "\sum_ ( i <- r | P ) B" := (\big[addsmx/0]_(i <- r | P) B%MS)
 (* and choosing a normal representative that preserves the qidmx property.    *)
 (* Thus A :&: B = 1%:M iff A and B are both identities, and this suffices for *)
 (* showing that associativity is strict.                                      *)
-Let capmx_witness m n (A : 'M_(m, n)) :=
+Local Monomorphic Definition capmx_witness m n (A : 'M_(m, n)) :=
   if row_full A then conform_mx 1%:M A else <<A>>%MS.
-Let capmx_norm m n (A : 'M_(m, n)) :=
+Local Monomorphic Definition capmx_norm m n (A : 'M_(m, n)) :=
   choose (equivmx A (qidmx A)) (capmx_witness A).
-Let capmx_nop m n (A : 'M_(m, n)) := conform_mx (capmx_norm A) A.
-Definition capmx_gen m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :=
+Local Monomorphic Definition capmx_nop m n (A : 'M_(m, n)) := conform_mx (capmx_norm A) A.
+Monomorphic Definition capmx_gen m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :=
   lsubmx (kermx (col_mx A B)) *m A.
-Definition capmx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
+Monomorphic Definition capmx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
   if qidmx A then capmx_nop B else
   if qidmx B then capmx_nop A else
   if row_full B then capmx_norm A else capmx_norm (capmx_gen A B) : 'M_n).
-Fact capmx_key : unit. Proof. by []. Qed.
-Definition capmx := locked_with capmx_key capmx_def.
-Canonical capmx_unlockable := [unlockable fun capmx].
-Arguments capmx {m1%N m2%N n%N} A%MS B%MS : rename.
+Monomorphic Fact capmx_key : unit. Proof. by []. Qed.
+
+Monomorphic Definition capmx := locked_with capmx_key capmx_def.
+
 Local Notation "A :&: B" := (capmx A B) : matrix_set_scope.
 Local Notation "\bigcap_ ( i | P ) B" := (\big[capmx/1%:M]_(i | P) B)
   : matrix_set_scope.
 
-Definition diffmx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
+Monomorphic Definition diffmx_def := idfun (fun m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) =>
   <<capmx_gen A (capmx_gen A B)^C>>%MS : 'M_n).
-Fact diffmx_key : unit. Proof. by []. Qed.
-Definition diffmx := locked_with diffmx_key diffmx_def.
-Canonical diffmx_unlockable := [unlockable fun diffmx].
-Arguments diffmx {m1%N m2%N n%N} A%MS B%MS : rename.
-Local Notation "A :\: B" := (diffmx A B) : matrix_set_scope.
+Monomorphic Fact diffmx_key : unit. Proof. by []. Qed.
+Monomorphic Definition diffmx := locked_with diffmx_key diffmx_def.
 
-Definition proj_mx n (U V : 'M_n) : 'M_n := pinvmx (col_mx U V) *m col_mx U 0.
+End RowSpaceTheory3.
+
+Monomorphic Canonical capmx_unlockable F := [unlockable fun @capmx F].
+Monomorphic Canonical diffmx_unlockable F := [unlockable fun @diffmx F].
+
+Arguments capmx {F m1%N m2%N n%N} A%MS B%MS : rename.
+Arguments diffmx {F m1%N m2%N n%N} A%MS B%MS : rename.
+
+Section RowSpaceTheory4.
+
+Variable F : fieldType.
+Implicit Types m n p r : nat.
+
+Arguments submx {F m1%N m2%N n%N} A%MS B%MS : rename.
+Local Notation "A <= B" := (@submx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A <= B <= C" := ((A <= B) && (B <= C))%MS : matrix_set_scope.
+Local Notation "A == B" := (A <= B <= A)%MS : matrix_set_scope.
+Local Notation "\rank A" := (@mxrank F _ _ A) : nat_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
+Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
+Local Notation "<< A >>" := (@genmx F _ _ A) : matrix_set_scope.
+Local Notation "A :&: B" := (@capmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\bigcap_ ( i | P ) B" := (\big[(@capmx F _ _ _)/1%:M]_(i | P) B)
+  : matrix_set_scope.
+Local Notation "A :\: B" := (@diffmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A < B" := (@ltmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A :=: B" := (@eqmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A + B" := (@addsmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\sum_ ( i | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i | P) B%MS)
+  : matrix_set_scope.
+Local Notation "\sum_ ( i <- r | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i <- r | P) B%MS)
+  : matrix_set_scope.
 
 Local Notation GaussE := Gaussian_elimination.
+
+Definition proj_mx n (U V : 'M_n) : 'M_n := pinvmx (col_mx U V) *m col_mx U 0.
 
 Fact mxrankE m n (A : 'M_(m, n)) : \rank A = (GaussE A).2.
 Proof. by rewrite /mxrank unlock /=; case: m n A => [|m] [|n]. Qed.
@@ -389,17 +457,26 @@ Hint Resolve rank_leq_row rank_leq_col row_ebase_unit col_ebase_unit : core.
 Lemma mulmx_ebase m n (A : 'M_(m, n)) :
   col_ebase A *m pid_mx (\rank A) *m row_ebase A = A.
 Proof.
-rewrite mxrankE /col_ebase /row_ebase unlock.
+rewrite mxrankE /col_ebase /row_ebase !unlock.
 elim: m n A => [n A | m IHm]; first by rewrite [A]flatmx0 [_ *m _]flatmx0.
 case=> [A | n]; first by rewrite [_ *m _]thinmx0 [A]thinmx0.
 rewrite -(add1n m) -?(add1n n) => A /=.
 case: pickP => [[i0 j0] | A0] /=; last first.
   apply/matrixP=> i j; rewrite pid_mx_0 mulmx0 mul0mx mxE.
   by move/eqP: (A0 (i, j)).
-set a := A i0 j0 => nz_a; set A1 := xrow _ _ _.
+set a := A i0 j0 => nz_a; set A1 := xrow i0 0 (xcol j0 0 A).
 set u := ursubmx _; set v := _ *: _; set B : 'M_(m, n) := _ - _.
-move: (rank_leq_col B) (rank_leq_row B) {IHm}(IHm n B); rewrite mxrankE.
-case: (GaussE B) => [[L U] r] /= r_m r_n defB.
+move: (rank_leq_col B) (rank_leq_row B) {IHm}(IHm n B); rewrite -> mxrankE.
+refine (
+  match GaussE B as G return
+    G.2 <= n ->
+    G.2 <= m ->
+    G.1.1 *m pid_mx G.2 *m G.1.2 = B ->
+    xrow i0 0 (block_mx 1 0 v G.1.1)
+      *m pid_mx (succn G.2) *m xcol j0 0 (block_mx a%:M u 0 G.1.2) = A
+  with (L, U, r) => _ end
+).
+move=> /= r_m r_n defB.
 have ->: pid_mx (1 + r) = block_mx 1 0 0 (pid_mx r) :> 'M[F]_(1 + m, 1 + n).
   rewrite -(subnKC r_m) -(subnKC r_n) pid_mx_block -col_mx0 -row_mx0.
   by rewrite block_mxA castmx_id col_mx0 row_mx0 -scalar_mx_block -pid_mx_block.
@@ -534,10 +611,10 @@ move=> sAB /andP[sBC ltBC]; rewrite ltmxE (submx_trans sAB) //.
 by apply: contra ltBC => sCA; apply: submx_trans sAB.
 Qed.
 
-Lemma ltmx_trans m n : transitive (@ltmx m m n).
+Lemma ltmx_trans m n : transitive (@ltmx F m m n).
 Proof. by move=> A B C; move/ltmxW; apply: sub_ltmx_trans. Qed.
 
-Lemma ltmx_irrefl m n : irreflexive (@ltmx m m n).
+Lemma ltmx_irrefl m n : irreflexive (@ltmx F m m n).
 Proof. by move=> A; rewrite /ltmx submx_refl andbF. Qed.
 
 Lemma sub0mx m1 m2 n (A : 'M_(m2, n)) : ((0 : 'M_(m1, n)) <= A)%MS.
@@ -655,7 +732,7 @@ by rewrite [_ A]eqn_leq rank_leq_col (mulmx1_min_rank B 1%:M) ?mulmx1.
 Qed.
 Arguments row_fullP {m n A}.
 
-Lemma row_full_inj m n p A : row_full A -> injective (@mulmx _ m n p A).
+Lemma row_full_inj m n p A : row_full A -> injective (@mulmx F m n p A).
 Proof.
 case/row_fullP=> A' A'K; apply: can_inj (mulmx A') _ => B.
 by rewrite mulmxA A'K mul1mx.
@@ -669,7 +746,7 @@ apply: (iffP row_fullP) => [] [B kA];
   by exists B^T; rewrite -trmx1 -kA trmx_mul ?trmxK.
 Qed.
 
-Lemma row_free_inj m n p A : row_free A -> injective ((@mulmx _ m n p)^~ A).
+Lemma row_free_inj m n p A : row_free A -> injective ((@mulmx F m n p)^~ A).
 Proof.
 case/row_freeP=> A' AK; apply: can_inj (mulmx^~ A') _ => B.
 by rewrite -mulmxA AK mulmx1.
@@ -806,14 +883,15 @@ exists (col_ebase A *m pid_mx (\rank A)).
 by rewrite mulmxA -(mulmxA _ _ (pid_mx _)) pid_mx_id // mulmx_ebase.
 Qed.
 
-Let qidmx_eq1 n (A : 'M_n) : qidmx A = (A == 1%:M).
+Local Definition qidmx_eq1 n (A : 'M_n) : qidmx A = (A == 1%:M).
 Proof. by rewrite /qidmx eqxx pid_mx_1. Qed.
 
-Let genmx_witnessP m n (A : 'M_(m, n)) :
+Local Definition genmx_witnessP m n (A : 'M_(m, n)) :
   equivmx A (row_full A) (genmx_witness A).
 Proof.
 rewrite /equivmx qidmx_eq1 /genmx_witness.
-case fullA: (row_full A); first by rewrite eqxx sub1mx submx1 fullA.
+set R := row_full A; have : row_full A = R by []. clearbody R => S.
+case fullA: R; first by rewrite eqxx sub1mx submx1 S fullA.
 set B := _ *m _; have defB : (B == A)%MS.
   apply/andP; split; apply/submxP.
     exists (pid_mx (\rank A) *m invmx (col_ebase A)).
@@ -821,7 +899,7 @@ set B := _ *m _; have defB : (B == A)%MS.
   exists (col_ebase A *m pid_mx (\rank A)).
   by rewrite mulmxA -(mulmxA _ _ (pid_mx _)) pid_mx_id // mulmx_ebase.
 rewrite defB -negb_add addbF; case: eqP defB => // ->.
-by rewrite sub1mx fullA.
+by rewrite sub1mx S fullA.
 Qed.
 
 Lemma genmxE m n (A : 'M_(m, n)) : (<<A>> :=: A)%MS.
@@ -832,7 +910,8 @@ Qed.
 Lemma eq_genmx m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
   (A :=: B -> <<A>> = <<B>>)%MS.
 Proof.
-move=> eqAB; rewrite unlock.
+move=> eqAB.
+refine (paths_rec_r (fun pv => pv m1 n A = pv m2 n B) _ (unlock (genmx_unlockable F))).
 have{eqAB} eqAB: equivmx A (row_full A) =1 equivmx B (row_full B).
   by move=> C; rewrite /row_full /equivmx !eqAB.
 rewrite (eq_choose eqAB) (choose_id _ (genmx_witnessP B)) //.
@@ -853,7 +932,9 @@ Proof. by apply/eqP; rewrite -submx0 genmxE sub0mx. Qed.
 Lemma genmx1 n : <<1%:M : 'M_n>>%MS = 1%:M.
 Proof.
 rewrite unlock; case/andP: (chooseP (@genmx_witnessP n n 1%:M)) => _ /eqP.
-by rewrite qidmx_eq1 row_full_unit unitmx1 => /eqP.
+rewrite qidmx_eq1.
+repeat rewrite -> (row_full_unit 1%:M).
+by rewrite unitmx1 => /eqP.
 Qed.
 
 Lemma genmx_id m n (A : 'M_(m, n)) : (<<<<A>>>> = <<A>>)%MS.
@@ -862,7 +943,7 @@ Proof. by apply: eq_genmx; apply: genmxE. Qed.
 Lemma row_base_free m n (A : 'M_(m, n)) : row_free (row_base A).
 Proof. by apply/eqnP; rewrite eq_row_base. Qed.
 
-Lemma mxrank_gen m n (A : 'M_(m, n)) : \rank <<A>> = \rank A.
+Lemma mxrank_gen m n (A : 'M_(m, n)) : \rank (<<A>>)%MS = \rank A.
 Proof. by rewrite genmxE. Qed.
 
 Lemma col_base_full m n (A : 'M_(m, n)) : row_full (col_base A).
@@ -908,7 +989,7 @@ case: (eqVneq m2 m1) => [-> | neqm12] in B *.
 by left; rewrite nonconform_mx ?neqm12.
 Qed.
 
-Let eqmx_sum_nop m n (A : 'M_(m, n)) : (addsmx_nop A :=: A)%MS.
+Let eqmx_sum_nop m n (A : 'M_(m, n)) : (@addsmx_nop F _ _ A :=: A)%MS.
 Proof.
 case: (eqmx_conform <<A>>%MS A) => // eq_id_gen.
 exact: eqmx_trans (genmxE A).
@@ -925,7 +1006,7 @@ rewrite !submxE mul_col_mx -col_mx0.
 by apply/eqP/andP; [case/eq_col_mx=> -> -> | case; do 2!move/eqP->].
 Qed.
 
-Lemma addsmxE : (A + B :=: col_mx A B)%MS.
+Lemma addsmxE : ((A + B)%MS :=: col_mx A B)%MS.
 Proof.
 have:= submx_refl (col_mx A B); rewrite col_mx_sub; case/andP=> sAS sBS.
 rewrite unlock; do 2?case: eqP => [AB0 | _]; last exact: genmxE.
@@ -943,13 +1024,13 @@ Proof. by have:= submx_refl (A + B)%MS; rewrite addsmx_sub; case/andP. Qed.
 Lemma addsmxSr : (B <= A + B)%MS.
 Proof. by have:= submx_refl (A + B)%MS; rewrite addsmx_sub; case/andP. Qed.
 
-Lemma addsmx_idPr : reflect (A + B :=: B)%MS (A <= B)%MS.
+Lemma addsmx_idPr : reflect ((A + B)%MS :=: B)%MS (A <= B)%MS.
 Proof.
 have:= @eqmxP _ _ _ (A + B)%MS B.
 by rewrite addsmxSr addsmx_sub submx_refl !andbT.
 Qed.
 
-Lemma addsmx_idPl : reflect (A + B :=: A)%MS (B <= A)%MS.
+Lemma addsmx_idPl : reflect ((A + B)%MS :=: A)%MS (B <= A)%MS.
 Proof.
 have:= @eqmxP _ _ _ (A + B)%MS A.
 by rewrite addsmxSl addsmx_sub submx_refl !andbT.
@@ -957,10 +1038,10 @@ Qed.
 
 End AddsmxSub.
 
-Lemma adds0mx m1 m2 n (B : 'M_(m2, n)) : ((0 : 'M_(m1, n)) + B :=: B)%MS.
+Lemma adds0mx m1 m2 n (B : 'M_(m2, n)) : (((0 : 'M_(m1, n)) + B)%MS :=: B)%MS.
 Proof. by apply/eqmxP; rewrite addsmx_sub sub0mx addsmxSr /= andbT. Qed.
 
-Lemma addsmx0 m1 m2 n (A : 'M_(m1, n)) : (A + (0 : 'M_(m2, n)) :=: A)%MS.
+Lemma addsmx0 m1 m2 n (A : 'M_(m1, n)) : ((A + (0 : 'M_(m2, n)))%MS :=: A)%MS.
 Proof. by apply/eqmxP; rewrite addsmx_sub sub0mx addsmxSl /= !andbT. Qed.
 
 Let addsmx_nop_eq0 m n (A : 'M_(m, n)) : (addsmx_nop A == 0) = (A == 0).
@@ -969,14 +1050,14 @@ Proof. by rewrite -!submx0 eqmx_sum_nop. Qed.
 Let addsmx_nop0 m n : addsmx_nop (0 : 'M_(m, n)) = 0.
 Proof. by apply/eqP; rewrite addsmx_nop_eq0. Qed.
 
-Let addsmx_nop_id n (A : 'M_n) : addsmx_nop A = A.
+Local Definition addsmx_nop_id n (A : 'M_n) : addsmx_nop A = A.
 Proof. exact: conform_mx_id. Qed.
 
-Lemma addsmxC m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) : (A + B = B + A)%MS.
+Lemma addsmxC m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) : ((A + B)%MS = (B + A)%MS)%MS.
 Proof.
-have: (A + B == B + A)%MS.
+have: ((A + B)%MS == (B + A)%MS)%MS.
   by apply/andP; rewrite !addsmx_sub andbC -addsmx_sub andbC -addsmx_sub.
-move/genmxP; rewrite [@addsmx]unlock -!submx0 !submx0.
+move/genmxP; rewrite [@addsmx F]unlock -!submx0 !submx0.
 by do 2!case: eqP => [// -> | _]; rewrite ?genmx_id ?addsmx_nop0.
 Qed.
 
@@ -987,21 +1068,52 @@ Lemma addsmx0_id m2 n (A : 'M_n) : (A + (0 : 'M_(m2, n)))%MS = A.
 Proof. by rewrite addsmxC adds0mx_id. Qed.
 
 Lemma addsmxA m1 m2 m3 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) (C : 'M_(m3, n)) :
-  (A + (B + C) = A + B + C)%MS.
+  ((A + (B + C)%MS)%MS = ((A + B)%MS + C)%MS)%MS.
 Proof.
-have: (A + (B + C) :=: A + B + C)%MS.
+have: ((A + (B + C)%MS)%MS :=: ((A + B)%MS + C)%MS)%MS.
   by apply/eqmxP/andP; rewrite !addsmx_sub -andbA andbA -!addsmx_sub.
-rewrite {1 3}[in @addsmx m1]unlock [in @addsmx n]unlock !addsmx_nop_id -!submx0.
-rewrite !addsmx_sub ![@addsmx]unlock -!submx0; move/eq_genmx.
+rewrite {1 3}[in @addsmx F m1]unlock [in @addsmx F n]unlock !addsmx_nop_id -!submx0.
+rewrite !addsmx_sub ![@addsmx F]unlock -!submx0; move/eq_genmx.
 by do 3!case: (_ <= 0)%MS; rewrite //= !genmx_id.
 Qed.
 
-Canonical addsmx_monoid n :=
-  Monoid.Law (@addsmxA n n n n) (@adds0mx_id n n) (@addsmx0_id n n).
-Canonical addsmx_comoid n := Monoid.ComLaw (@addsmxC n n n).
+End RowSpaceTheory4.
+
+Monomorphic Canonical addsmx_monoid F n :=
+  Monoid.Law (@addsmxA F n n n n) (@adds0mx_id F n n) (@addsmx0_id F n n).
+Monomorphic Canonical addsmx_comoid F n := Monoid.ComLaw (@addsmxC F n n n).
+
+Section RowSpaceTheory5.
+
+Variable F : fieldType.
+Implicit Types m n p r : nat.
+
+Arguments submx {F m1%N m2%N n%N} A%MS B%MS : rename.
+Local Notation "A <= B" := (@submx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A <= B <= C" := ((A <= B) && (B <= C))%MS : matrix_set_scope.
+Local Notation "A == B" := (A <= B <= A)%MS : matrix_set_scope.
+Local Notation "\rank A" := (@mxrank F _ _ A) : nat_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
+Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
+Local Notation "<< A >>" := (@genmx F _ _ A) : matrix_set_scope.
+Local Notation "A :&: B" := (@capmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\bigcap_ ( i | P ) B" := (\big[(@capmx F _ _ _)/1%:M]_(i | P) B)
+  : matrix_set_scope.
+Local Notation "A :\: B" := (@diffmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A < B" := (@ltmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A :=: B" := (@eqmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A + B" := (@addsmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\sum_ ( i | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i | P) B%MS)
+  : matrix_set_scope.
+Local Notation "\sum_ ( i <- r | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i <- r | P) B%MS)
+  : matrix_set_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+
+Hint Resolve submx_refl : core.
 
 Lemma addsmxMr m1 m2 n p (A : 'M_(m1, n)) (B : 'M_(m2, n)) (C : 'M_(n, p)) :
-  ((A + B)%MS *m C :=: A *m C + B *m C)%MS.
+  ((A + B)%MS *m C :=: (A *m C + B *m C)%MS)%MS.
 Proof. by apply/eqmxP; rewrite !addsmxE -!mul_col_mx !submxMr ?addsmxE. Qed.
 
 Lemma addsmxS m1 m2 m3 m4 n (A : 'M_(m1, n)) (B : 'M_(m2, n))
@@ -1021,26 +1133,26 @@ by rewrite addmx_sub ?addsmxSl ?addsmxSr.
 Qed.
 
 Lemma addsmx_addKl n m1 m2 (A : 'M_(m1, n)) (B C : 'M_(m2, n)) :
-  (B <= A)%MS -> (A + (B + C)%R :=: A + C)%MS.
+  (B <= A)%MS -> ((A + (B + C)%R)%MS :=: (A + C)%MS)%MS.
 Proof.
 move=> sBA; apply/eqmxP; rewrite !addsmx_sub !addsmxSl.
 by rewrite -{3}[C](addKr B) !addmx_sub_adds ?eqmx_opp.
 Qed.
 
 Lemma addsmx_addKr n m1 m2 (A B : 'M_(m1, n)) (C : 'M_(m2, n)) :
-  (B <= C)%MS -> ((A + B)%R + C :=: A + C)%MS.
+  (B <= C)%MS -> (((A + B)%R + C)%MS :=: (A + C)%MS)%MS.
 Proof. by rewrite -!(addsmxC C) addrC; apply: addsmx_addKl. Qed.
 
 Lemma adds_eqmx m1 m2 m3 m4 n (A : 'M_(m1, n)) (B : 'M_(m2, n))
                               (C : 'M_(m3, n)) (D : 'M_(m4, n)) :
-  (A :=: C -> B :=: D -> A + B :=: C + D)%MS.
+  (A :=: C -> B :=: D -> (A + B)%MS :=: (C + D)%MS)%MS.
 Proof. by move=> eqAC eqBD; apply/eqmxP; rewrite !addsmxS ?eqAC ?eqBD. Qed.
 
 Lemma genmx_adds m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
-  (<<(A + B)%MS>> = <<A>> + <<B>>)%MS.
+  (<<(A + B)%MS>> = (<<A>> + <<B>>)%MS)%MS.
 Proof.
 rewrite -(eq_genmx (adds_eqmx (genmxE A) (genmxE B))).
-by rewrite [@addsmx]unlock !addsmx_nop_id !(fun_if (@genmx _ _)) !genmx_id.
+by rewrite [@addsmx F]unlock !addsmx_nop_id !(fun_if (@genmx F _ _)) !genmx_id.
 Qed.
 
 Lemma sub_addsmxP m1 m2 m3 n
@@ -1058,7 +1170,7 @@ Implicit Type P : pred I.
 
 Lemma genmx_sums P n (B_ : I -> 'M_n) :
   <<(\sum_(i | P i) B_ i)%MS>>%MS = (\sum_(i | P i) <<B_ i>>)%MS.
-Proof. exact: (big_morph _ (@genmx_adds n n n) (@genmx0 n n)). Qed.
+Proof. exact: (big_morph _ (@genmx_adds n n n) (@genmx0 F n n)). Qed.
 
 Lemma sumsmx_sup i0 P m n (A : 'M_(m, n)) (B_ : I -> 'M_n) :
   P i0 -> (A <= B_ i0)%MS -> (A <= \sum_(i | P i) B_ i)%MS.
@@ -1091,7 +1203,7 @@ Qed.
 
 Lemma eqmx_sums P n (A B : I -> 'M[F]_n) :
     (forall i, P i -> A i :=: B i)%MS ->
-  (\sum_(i | P i) A i :=: \sum_(i | P i) B i)%MS.
+  ((\sum_(i | P i) A i)%MS :=: (\sum_(i | P i) B i)%MS)%MS.
 Proof. by move=> eqAB; apply/eqmxP; rewrite !sumsmxS // => i; move/eqAB->. Qed.
 
 Lemma sub_sumsmxP P m n (A : 'M_(m, n)) (B_ : I -> 'M_n) :
@@ -1111,7 +1223,7 @@ by apply: eq_bigr => j /andP[_ /negPf->].
 Qed.
 
 Lemma sumsmxMr_gen P m n A (B : 'M[F]_(m, n)) :
-  ((\sum_(i | P i) A i)%MS *m B :=: \sum_(i | P i) <<A i *m B>>)%MS.
+  ((\sum_(i | P i) A i)%MS *m B :=: (\sum_(i | P i) <<A i *m B>>)%MS)%MS.
 Proof.
 apply/eqmxP/andP; split; last first.
   by apply/sumsmx_subP=> i Pi; rewrite genmxE submxMr ?(sumsmx_sup i).
@@ -1120,7 +1232,7 @@ by rewrite mulmx_suml summx_sub_sums // => i _; rewrite genmxE -mulmxA submxMl.
 Qed.
 
 Lemma sumsmxMr P n (A_ : I -> 'M[F]_n) (B : 'M_n) :
-  ((\sum_(i | P i) A_ i)%MS *m B :=: \sum_(i | P i) (A_ i *m B))%MS.
+  ((\sum_(i | P i) A_ i)%MS *m B :=: (\sum_(i | P i) (A_ i *m B))%MS)%MS.
 Proof.
 by apply: eqmx_trans (sumsmxMr_gen _ _ _) (eqmx_sums _) => i _; apply: genmxE.
 Qed.
@@ -1139,24 +1251,34 @@ rewrite -addsmxE adds0mx -mxrank_tr tr_row_mx trmx0 trmx1.
 by rewrite -addsmxE adds0mx mxrank1 addKn.
 Qed.
 
-Lemma mxrank_compl m n (A : 'M_(m, n)) : \rank A^C = (n - \rank A)%N.
+Hint Resolve rank_leq_row rank_leq_col row_ebase_unit col_ebase_unit : core.
+Hint Resolve row_base_free col_base_full : core.
+
+Lemma mxrank_compl m n (A : 'M_(m, n)) : (\rank (A^C)%MS)%MS = (n - \rank A)%N.
 Proof. by rewrite mxrankMfree ?row_free_unit ?rank_copid_mx. Qed.
 
 Lemma mxrank_ker m n (A : 'M_(m, n)) : \rank (kermx A) = (m - \rank A)%N.
-Proof. by rewrite mxrankMfree ?row_free_unit ?unitmx_inv ?rank_copid_mx. Qed.
+Proof.
+rewrite mxrankMfree ?row_free_unit ?unitmx_inv ?rank_copid_mx //.
+exact: col_ebase_unit.
+Qed.
 
 Lemma kermx_eq0 n m (A : 'M_(m, n)) : (kermx A == 0) = row_free A.
 Proof. by rewrite -mxrank_eq0 mxrank_ker subn_eq0 row_leq_rank. Qed.
 
 Lemma mxrank_coker m n (A : 'M_(m, n)) : \rank (cokermx A) = (n - \rank A)%N.
-Proof. by rewrite eqmxMfull ?row_full_unit ?unitmx_inv ?rank_copid_mx. Qed.
+Proof.
+rewrite eqmxMfull ?row_full_unit ?unitmx_inv ?rank_copid_mx //.
+exact: row_ebase_unit.
+Qed.
 
 Lemma cokermx_eq0 n m (A : 'M_(m, n)) : (cokermx A == 0) = row_full A.
 Proof. by rewrite -mxrank_eq0 mxrank_coker subn_eq0 col_leq_rank. Qed.
 
 Lemma mulmx_ker m n (A : 'M_(m, n)) : kermx A *m A = 0.
 Proof.
-by rewrite -{2}[A]mulmx_ebase !mulmxA mulmxKV // mul_copid_mx_pid ?mul0mx.
+rewrite -{2}[A]mulmx_ebase !mulmxA mulmxKV // ?mul_copid_mx_pid ?mul0mx //.
+exact: col_ebase_unit.
 Qed.
 
 Lemma mulmxKV_ker m n p (A : 'M_(n, p)) (B : 'M_(m, n)) :
@@ -1166,12 +1288,13 @@ rewrite mulmxA mulmxBr mulmx1 mulmxBl mulmxK //.
 rewrite -{1}[A]mulmx_ebase !mulmxA => /(canRL (mulmxK (row_ebase_unit A))).
 rewrite mul0mx // => BA0; apply: (canLR (addrK _)).
 by rewrite -(pid_mx_id _ _ n (rank_leq_col A)) mulmxA BA0 !mul0mx addr0.
+exact: col_ebase_unit.
 Qed.
 
 Lemma sub_kermxP p m n (A : 'M_(m, n)) (B : 'M_(p, m)) :
   reflect (B *m A = 0) (B <= kermx A)%MS.
 Proof.
-apply: (iffP submxP) => [[D ->]|]; first by rewrite -mulmxA mulmx_ker mulmx0.
+apply: (iffP (@submxP F _ _ _ _ _)) => [[D ->]|]; first by rewrite -mulmxA mulmx_ker mulmx0.
 by move/mulmxKV_ker; exists (B *m col_ebase A).
 Qed.
 
@@ -1189,7 +1312,9 @@ rewrite -{2}(mulmx_base (A *m B)) -mulmxA (eqmxMfull _ (col_base_full _)).
 set C2 := row_base _ *m C.
 rewrite -{1}(subnK (rank_leq_row C2)) -(mxrank_ker C2) addnAC leq_add2r.
 rewrite addnC -{1}(mulmx_base B) -mulmxA eqmxMfull //.
-set C1 := _ *m C; rewrite -{2}(subnKC (rank_leq_row C1)) leq_add2l -mxrank_ker.
+set C1 := _ *m C.
+refine (paths_rec _ (fun pv => _ <= pv) _ (\rank B) (subnKC (rank_leq_row C1))).
+rewrite leq_add2l -mxrank_ker.
 rewrite -(mxrankMfree _ (row_base_free (A *m B))).
 have: (row_base (A *m B) <= row_base B)%MS by rewrite !eq_row_base submxMl.
 case/submxP=> D defD; rewrite defD mulmxA mxrankMfree ?mxrankS //.
@@ -1206,8 +1331,10 @@ Lemma addsmx_compl_full m n (A : 'M_(m, n)) : row_full (A + A^C)%MS.
 Proof.
 rewrite /row_full addsmxE; apply/row_fullP.
 exists (row_mx (pinvmx A) (cokermx A)); rewrite mul_row_col.
-rewrite -{2}[A]mulmx_ebase -!mulmxA mulKmx // -mulmxDr !mulmxA.
-by rewrite pid_mx_id ?copid_mx_id // -mulmxDl addrC subrK mul1mx mulVmx.
+rewrite -{2}[A]mulmx_ebase -!mulmxA mulKmx //; last by exact: col_ebase_unit.
+rewrite -mulmxDr !mulmxA.
+rewrite pid_mx_id ?copid_mx_id // -mulmxDl addrC subrK mul1mx mulVmx //.
+exact: row_ebase_unit.
 Qed.
 
 Lemma sub_capmx_gen m1 m2 m3 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) (C : 'M_(m3, n)) :
@@ -1220,14 +1347,18 @@ apply/idP/andP=> [sAI | [/submxP[B' ->{A}] /submxP[C' eqBC']]].
    by rewrite add0r -mulNmx submxMl.
 have: (row_mx B' (- C') <= kermx (col_mx B C))%MS.
   by apply/sub_kermxP; rewrite mul_row_col eqBC' mulNmx subrr.
-case/submxP=> D; rewrite -[kermx _]hsubmxK mul_mx_row.
+case/submxP=> D.
+refine (paths_rec _ (fun pv => _ = D *m pv -> _) _ _ (hsubmxK (kermx (col_mx B C)))).
+rewrite mul_mx_row.
 by case/eq_row_mx=> -> _; rewrite -mulmxA submxMl.
 Qed.
+
+Axiom any : forall A, A.
 
 Let capmx_witnessP m n (A : 'M_(m, n)) : equivmx A (qidmx A) (capmx_witness A).
 Proof.
 rewrite /equivmx qidmx_eq1 /qidmx /capmx_witness.
-rewrite -sub1mx; case s1A: (1%:M <= A)%MS => /=; last first.
+rewrite <- sub1mx; case s1A: (1%:M <= A)%MS => /=; last first.
   rewrite !genmxE submx_refl /= -negb_add; apply: contra {s1A}(negbT s1A).
   case: eqP => [<- _| _]; first by rewrite genmxE.
   by case: eqP A => //= -> A; move/eqP->; rewrite pid_mx_1.
@@ -1319,7 +1450,7 @@ Proof. by rewrite capmxC capmxSl. Qed.
 Lemma capmx_idPr n m1 m2 (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
   reflect (A :&: B :=: B)%MS (B <= A)%MS.
 Proof.
-have:= @eqmxP _ _ _ (A :&: B)%MS B.
+have:= @eqmxP F _ _ _ (A :&: B)%MS B.
 by rewrite capmxSr sub_capmx submx_refl !andbT.
 Qed.
 
@@ -1374,12 +1505,12 @@ Lemma genmx_cap m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
 Proof.
 rewrite -(eq_genmx (cap_eqmx (genmxE A) (genmxE B))).
 case idAB: (qidmx <<A>> || qidmx <<B>>)%MS.
-  rewrite [@capmx]unlock !capmx_nop_id !(fun_if (@genmx _ _)) !genmx_id.
+  rewrite [@capmx F]unlock !capmx_nop_id !(fun_if (@genmx F _ _)) !genmx_id.
   by case: (qidmx _) idAB => //= ->.
 case idA: (qidmx _) idAB => //= idB; rewrite {2}capmx_eq_norm ?idA //.
 set C := (_ :&: _)%MS; have eq_idC: row_full C = qidmx C.
   rewrite qidmx_cap idA -sub1mx sub_capmx genmxE; apply/andP=> [[s1A]].
-  by case/idP: idA; rewrite qidmx_eq1 -genmx1 (sameP eqP genmxP) submx1.
+  by case/idP: idA; rewrite qidmx_eq1 -genmx1 (sameP eqP (@genmxP F _ _ _ _ _)) submx1.
 rewrite unlock /capmx_norm eq_idC.
 by apply: choose_id (capmx_witnessP _); rewrite -eq_idC genmx_witnessP.
 Qed.
@@ -1394,16 +1525,51 @@ rewrite (capmxC A B) capmxC; wlog idA: m1 m3 A C / qidmx A.
   rewrite capmx_eq_norm ?qidmx_cap ?idA ?idC ?andbF //.
   apply: capmx_norm_eq; first by rewrite !qidmx_cap andbAC.
   by apply/andP; split; rewrite !sub_capmx andbAC -!sub_capmx.
-rewrite -!(capmxC A) [in @capmx m1]unlock idA capmx_nop_id.
+rewrite -!(capmxC A) [in @capmx F m1]unlock idA capmx_nop_id.
 have [eqBC |] :=eqVneq (qidmx B) (qidmx C).
   rewrite (@capmx_eq_norm n) ?capmx_nopP // capmx_eq_norm //.
   by apply: capmx_norm_eq; rewrite ?qidmx_cap ?capmxS ?capmx_nopP.
 by rewrite !unlock capmx_nopP capmx_nop_id; do 2?case: (qidmx _) => //.
 Qed.
 
-Canonical capmx_monoid n :=
-   Monoid.Law (@capmxA n n n n) (@cap1mx n) (@capmx1 n).
-Canonical capmx_comoid n := Monoid.ComLaw (@capmxC n n n).
+End RowSpaceTheory5.
+
+Monomorphic Canonical capmx_monoid F n :=
+   Monoid.Law (@capmxA F n n n n) (@cap1mx F n) (@capmx1 F n).
+Monomorphic Canonical capmx_comoid F n :=
+  Monoid.ComLaw (@capmxC F n n n).
+
+Section RowSpaceTheory6.
+
+Variable F : fieldType.
+Implicit Types m n p r : nat.
+Variable I : finType.
+Implicit Type P : pred I.
+
+Local Notation "A <= B" := (@submx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A <= B <= C" := ((A <= B) && (B <= C))%MS : matrix_set_scope.
+Local Notation "A == B" := (A <= B <= A)%MS : matrix_set_scope.
+Local Notation "\rank A" := (@mxrank F _ _ A) : nat_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
+Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
+Local Notation "<< A >>" := (@genmx F _ _ A) : matrix_set_scope.
+Local Notation "A :&: B" := (@capmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\bigcap_ ( i | P ) B" := (\big[(@capmx F _ _ _)/1%:M]_(i | P) B)
+  : matrix_set_scope.
+Local Notation "A :\: B" := (@diffmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A < B" := (@ltmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A :=: B" := (@eqmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A + B" := (@addsmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\sum_ ( i | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i | P) B%MS)
+  : matrix_set_scope.
+Local Notation "\sum_ ( i <- r | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i <- r | P) B%MS)
+  : matrix_set_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+
+Hint Resolve submx_refl : core.
+Hint Resolve rank_leq_row rank_leq_col row_ebase_unit col_ebase_unit : core.
+Hint Resolve row_base_free col_base_full : core.
 
 Lemma bigcapmx_inf i0 P m n (A_ : I -> 'M_n) (B : 'M_(m, n)) :
   P i0 -> (A_ i0 <= B -> \bigcap_(i | P i) A_ i <= B)%MS.
@@ -1419,21 +1585,21 @@ Qed.
 
 Lemma genmx_bigcap P n (A_ : I -> 'M_n) :
   (<<\bigcap_(i | P i) A_ i>> = \bigcap_(i | P i) <<A_ i>>)%MS.
-Proof. exact: (big_morph _ (@genmx_cap n n n) (@genmx1 n)). Qed.
+Proof. exact: (big_morph _ (@genmx_cap F n n n) (@genmx1 F n)). Qed.
 
 Lemma matrix_modl m1 m2 m3 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) (C : 'M_(m3, n)) :
-  (A <= C -> A + (B :&: C) :=: (A + B) :&: C)%MS.
+  (A <= C -> (A + (B :&: C))%MS :=: (A + B) :&: C)%MS.
 Proof.
 move=> sAC; set D := ((A + B) :&: C)%MS; apply/eqmxP.
 rewrite sub_capmx addsmxS ?capmxSl // addsmx_sub sAC capmxSr /=.
-have: (D <= B + A)%MS by rewrite addsmxC capmxSl.
+have: (D <= (B + A)%MS)%MS by rewrite addsmxC capmxSl.
 case/sub_addsmxP=> u defD; rewrite defD addrC addmx_sub_adds ?submxMl //.
 rewrite sub_capmx submxMl -[_ *m B](addrK (u.2 *m A)) -defD.
 by rewrite addmx_sub ?capmxSr // eqmx_opp mulmx_sub.
 Qed.
 
 Lemma matrix_modr m1 m2 m3 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) (C : 'M_(m3, n)) :
-  (C <= A -> (A :&: B) + C :=: A :&: (B + C))%MS.
+  (C <= A -> ((A :&: B) + C)%MS :=: A :&: (B + C))%MS.
 Proof. by rewrite !(capmxC A) -!(addsmxC C); apply: matrix_modl. Qed.
 
 Lemma capmx_compl m n (A : 'M_(m, n)) : (A :&: A^C)%MS = 0.
@@ -1442,10 +1608,11 @@ set D := (A :&: A^C)%MS; have: (D <= D)%MS by [].
 rewrite sub_capmx andbC => /andP[/submxP[B defB]].
 rewrite submxE => /eqP; rewrite defB -!mulmxA mulKVmx ?copid_mx_id //.
 by rewrite mulmxA => ->; rewrite mul0mx.
+exact: row_ebase_unit.
 Qed.
 
 Lemma mxrank_mul_ker m n p (A : 'M_(m, n)) (B : 'M_(n, p)) :
-  (\rank (A *m B) + \rank (A :&: kermx B))%N = \rank A.
+  (\rank (A *m B) + \rank (A :&: kermx B)%MS)%N = \rank A.
 Proof.
 apply/eqP; set K := kermx B; set C := (A :&: K)%MS.
 rewrite -(eqmxMr B (eq_row_base A)); set K' := _ *m B.
@@ -1487,7 +1654,7 @@ Proof. by rewrite unlock; apply/eqmxP; rewrite !genmxE !capmxE andbb. Qed.
 
 Lemma genmx_diff m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
   (<<A :\: B>> = A :\: B)%MS.
-Proof. by rewrite [@diffmx]unlock genmx_id. Qed.
+Proof. by rewrite [@diffmx F]unlock genmx_id. Qed.
 
 Lemma diffmxSl m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) : (A :\: B <= A)%MS.
 Proof. by rewrite diffmxE capmxSl. Qed.
@@ -1500,11 +1667,11 @@ by rewrite sub_capmx -capmxE sub_capmx andbAC -sub_capmx -diffmxE -sub_capmx.
 Qed.
 
 Lemma addsmx_diff_cap_eq m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
-  (A :\: B + A :&: B :=: A)%MS.
+  ((A :\: B + A :&: B)%MS :=: A)%MS.
 Proof.
 apply/eqmxP; rewrite addsmx_sub capmxSl diffmxSl /=.
 set C := (A :\: B)%MS; set D := capmx_gen A B.
-suffices sACD: (A <= C + D)%MS.
+suffices sACD: (A <= (C + D)%MS)%MS.
   by rewrite (submx_trans sACD) ?addsmxS ?capmxE.
 have:= addsmx_compl_full D; rewrite /row_full addsmxE.
 case/row_fullP=> U /(congr1 (mulmx A)); rewrite mulmx1.
@@ -1516,14 +1683,14 @@ by rewrite -capmxE capmxSl.
 Qed.
 
 Lemma mxrank_cap_compl m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
-  (\rank (A :&: B) + \rank (A :\: B))%N = \rank A.
+  (\rank (A :&: B)%MS + \rank (A :\: B)%MS)%N = \rank A.
 Proof.
 rewrite addnC -mxrank_disjoint_sum ?addsmx_diff_cap_eq //.
 by rewrite (capmxC A) capmxA capmx_diff cap0mx.
 Qed.
 
 Lemma mxrank_sum_cap m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
-  (\rank (A + B) + \rank (A :&: B) = \rank A + \rank B)%N.
+  (\rank (A + B)%MS + \rank (A :&: B)%MS = \rank A + \rank B)%N.
 Proof.
 set C := (A :&: B)%MS; set D := (A :\: B)%MS.
 have rDB: \rank (A + B)%MS = \rank (D + B)%MS.
@@ -1534,7 +1701,7 @@ by rewrite addnC addnA mxrank_cap_compl.
 Qed.
 
 Lemma mxrank_adds_leqif m1 m2 n (A : 'M_(m1, n)) (B : 'M_(m2, n)) :
-  \rank (A + B) <= \rank A + \rank B ?= iff (A :&: B <= (0 : 'M_n))%MS.
+  \rank (A + B)%MS <= \rank A + \rank B ?= iff (A :&: B <= (0 : 'M_n))%MS.
 Proof.
 rewrite -mxrank_sum_cap; split; first exact: leq_addr.
 by rewrite addnC (@eqn_add2r _ 0) eq_sym mxrank_eq0 -submx0.
@@ -1546,7 +1713,7 @@ Lemma proj_mx_sub m n U V (W : 'M_(m, n)) : (W *m proj_mx U V <= U)%MS.
 Proof. by rewrite !mulmx_sub // -addsmxE addsmx0. Qed.
 
 Lemma proj_mx_compl_sub m n U V (W : 'M_(m, n)) :
-  (W <= U + V -> W - W *m proj_mx U V <= V)%MS.
+  (W <= (U + V)%MS -> W - W *m proj_mx U V <= V)%MS.
 Proof.
 rewrite addsmxE => sWUV; rewrite mulmxA -{1}(mulmxKpV sWUV) -mulmxBr.
 by rewrite mulmx_sub // opp_col_mx add_col_mx subrr subr0 -addsmxE adds0mx.
@@ -1569,7 +1736,7 @@ by rewrite opprB proj_mx_compl_sub // (submx_trans sWV) ?addsmxSr.
 Qed.
 
 Lemma add_proj_mx m n U V (W : 'M_(m, n)) :
-    (U :&: V = 0)%MS -> (W <= U + V)%MS ->
+    (U :&: V = 0)%MS -> (W <= (U + V)%MS)%MS ->
   W *m proj_mx U V + W *m proj_mx V U = W.
 Proof.
 move=> dxUV sWUV; apply/eqP; rewrite -subr_eq0 -submx0 -dxUV.
@@ -1611,7 +1778,7 @@ Qed.
 Lemma eqmxMunitP m n (U V : 'M_(m, n)) :
   reflect (exists2 P, P \in unitmx & U = P *m V) (U == V)%MS.
 Proof.
-apply: (iffP eqmxP) => [eqUV | [P Punit ->]]; last first.
+apply: (iffP (@eqmxP F _ _ _ _ _)) => [eqUV | [P Punit ->]]; last first.
   by apply/eqmxMfull; rewrite row_full_unit.
 have [D defU]: exists D, U = D *m V by apply/submxP; rewrite eqUV.
 have{eqUV} [Pt Pt_unit defUt]: {Pt | Pt \in unitmx & V^T *m D^T = V^T *m Pt}.
@@ -1636,7 +1803,39 @@ have injfU: \rank (U *m f) = \rank U by rewrite -defV eqrUV.
 by have [g injg defUg] := complete_unitmx injfU; exists g; rewrite -?defUg.
 Qed.
 
+End RowSpaceTheory6.
+
 Section SumExpr.
+
+Monomorphic Variable F : fieldType.
+Implicit Types m n p r : nat.
+Monomorphic Variable I : finType.
+Implicit Type P : pred I.
+
+Local Notation "A <= B" := (@submx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A <= B <= C" := ((A <= B) && (B <= C))%MS : matrix_set_scope.
+Local Notation "A == B" := (A <= B <= A)%MS : matrix_set_scope.
+Local Notation "\rank A" := (@mxrank F _ _ A) : nat_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
+Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
+Local Notation "<< A >>" := (@genmx F _ _ A) : matrix_set_scope.
+Local Notation "A :&: B" := (@capmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\bigcap_ ( i | P ) B" := (\big[(@capmx F _ _ _)/1%:M]_(i | P) B)
+  : matrix_set_scope.
+Local Notation "A :\: B" := (@diffmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A < B" := (@ltmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A :=: B" := (@eqmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A + B" := (@addsmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\sum_ ( i | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i | P) B%MS)
+  : matrix_set_scope.
+Local Notation "\sum_ ( i <- r | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i <- r | P) B%MS)
+  : matrix_set_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+
+Hint Resolve submx_refl : core.
+Hint Resolve rank_leq_row rank_leq_col row_ebase_unit col_ebase_unit : core.
+Hint Resolve row_base_free col_base_full : core.
 
 (* This is the infrastructure to support the mxdirect predicate. We use a     *)
 (* bespoke canonical structure to decompose a matrix expression into binary   *)
@@ -1728,7 +1927,7 @@ Section SumExpr.
 (* canonical structure, so the mxsum_expr structure must use a generic        *)
 (* constant, namely wrap.                                                     *)
 
-Inductive mxsum_spec n : forall m, 'M[F]_(m, n) -> nat -> Prop :=
+Monomorphic Inductive mxsum_spec n : forall m, 'M[F]_(m, n) -> nat -> Prop :=
  | TrivialMxsum m A
     : @mxsum_spec n m A (\rank A)
  | ProperMxsum m1 m2 T1 T2 r1 r2 of
@@ -1736,65 +1935,98 @@ Inductive mxsum_spec n : forall m, 'M[F]_(m, n) -> nat -> Prop :=
     : mxsum_spec (T1 + T2)%MS (r1 + r2)%N.
 Arguments mxsum_spec {n%N m%N} T%MS r%N.
 
-Structure mxsum_expr m n := Mxsum {
+Monomorphic Structure mxsum_expr m n := Mxsum {
   mxsum_val :> wrapped 'M_(m, n);
   mxsum_rank : wrapped nat;
   _ : mxsum_spec (unwrap mxsum_val) (unwrap mxsum_rank)
 }.
 
-Canonical trivial_mxsum m n A :=
+Monomorphic Canonical trivial_mxsum m n A :=
   @Mxsum m n (Wrap A) (Wrap (\rank A)) (TrivialMxsum A).
 
-Structure proper_mxsum_expr n := ProperMxsumExpr {
+Monomorphic Structure proper_mxsum_expr n := ProperMxsumExpr {
   proper_mxsum_val :> 'M_n;
   proper_mxsum_rank : nat;
   _ : mxsum_spec proper_mxsum_val proper_mxsum_rank
 }.
 
-Definition proper_mxsumP n (S : proper_mxsum_expr n) :=
+Monomorphic Definition proper_mxsumP n (S : proper_mxsum_expr n) :=
   let: ProperMxsumExpr _ _ termS := S return mxsum_spec S (proper_mxsum_rank S)
   in termS.
 
-Canonical sum_mxsum n (S : proper_mxsum_expr n) :=
+Monomorphic Canonical sum_mxsum n (S : proper_mxsum_expr n) :=
   @Mxsum n n (wrap (S : 'M_n)) (wrap (proper_mxsum_rank S)) (proper_mxsumP S).
 
 Section Binary.
-Variable (m1 m2 n : nat) (S1 : mxsum_expr m1 n) (S2 : mxsum_expr m2 n).
-Fact binary_mxsum_proof :
+Monomorphic Variable (m1 m2 n : nat) (S1 : mxsum_expr m1 n) (S2 : mxsum_expr m2 n).
+Monomorphic Fact binary_mxsum_proof :
   mxsum_spec (unwrap S1 + unwrap S2)
              (unwrap (mxsum_rank S1) + unwrap (mxsum_rank S2)).
 Proof. by case: S1 S2 => [A1 r1 A1P] [A2 r2 A2P]; right. Qed.
-Canonical binary_mxsum_expr := ProperMxsumExpr binary_mxsum_proof.
+Monomorphic Canonical binary_mxsum_expr := ProperMxsumExpr binary_mxsum_proof.
 End Binary.
 
 Section Nary.
-Context J (r : seq J) (P : pred J) n (S_ : J -> mxsum_expr n n).
-Fact nary_mxsum_proof :
+Monomorphic Context J (r : seq J) (P : pred J) n (S_ : J -> mxsum_expr n n).
+Monomorphic Fact nary_mxsum_proof :
   mxsum_spec (\sum_(j <- r | P j) unwrap (S_ j))
              (\sum_(j <- r | P j) unwrap (mxsum_rank (S_ j))).
 Proof.
-elim/big_rec2: _ => [|j]; first by rewrite -(mxrank0 n n); left.
+elim/big_rec2: _ => [|j]; first by rewrite -(mxrank0 F n n); left.
 by case: (S_ j); right.
 Qed.
-Canonical nary_mxsum_expr := ProperMxsumExpr nary_mxsum_proof.
+Monomorphic Canonical nary_mxsum_expr := ProperMxsumExpr nary_mxsum_proof.
+
 End Nary.
 
-Definition mxdirect_def m n T of phantom 'M_(m, n) (unwrap (mxsum_val T)) :=
+Monomorphic Definition mxdirect_def m n T of phantom 'M_(m, n) (unwrap (mxsum_val T)) :=
   \rank (unwrap T) == unwrap (mxsum_rank T).
 
 End SumExpr.
 
+Section RowSpaceTheory7.
+
+Variable F : fieldType.
+Implicit Types m n p r : nat.
+Variable I : finType.
+Implicit Type P : pred I.
+
+Local Notation "A <= B" := (@submx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A <= B <= C" := ((A <= B) && (B <= C))%MS : matrix_set_scope.
+Local Notation "A == B" := (A <= B <= A)%MS : matrix_set_scope.
+Local Notation "\rank A" := (@mxrank F _ _ A) : nat_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+Local Notation "''M_' ( m , n )" := 'M[F]_(m, n) : type_scope.
+Local Notation "''M_' n" := 'M[F]_(n, n) : type_scope.
+Local Notation "<< A >>" := (@genmx F _ _ A) : matrix_set_scope.
+Local Notation "A :&: B" := (@capmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\bigcap_ ( i | P ) B" := (\big[(@capmx F _ _ _)/1%:M]_(i | P) B)
+  : matrix_set_scope.
+Local Notation "A :\: B" := (@diffmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A < B" := (@ltmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A :=: B" := (@eqmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "A + B" := (@addsmx F _ _ _ A B) : matrix_set_scope.
+Local Notation "\sum_ ( i | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i | P) B%MS)
+  : matrix_set_scope.
+Local Notation "\sum_ ( i <- r | P ) B" := (\big[(@addsmx F _ _ _)/0]_(i <- r | P) B%MS)
+  : matrix_set_scope.
+Local Notation "A ^C" := (@complmx F _ _ A) : matrix_set_scope.
+
+Hint Resolve submx_refl : core.
+Hint Resolve rank_leq_row rank_leq_col row_ebase_unit col_ebase_unit : core.
+Hint Resolve row_base_free col_base_full : core.
+
 Notation mxdirect A := (mxdirect_def (Phantom 'M_(_,_) A%MS)).
 
-Lemma mxdirectP n (S : proper_mxsum_expr n) :
+Lemma mxdirectP n (S : proper_mxsum_expr F n) :
   reflect (\rank S = proper_mxsum_rank S) (mxdirect S).
 Proof. exact: eqnP. Qed.
 Arguments mxdirectP {n S}.
 
-Lemma mxdirect_trivial m n A : mxdirect (unwrap (@trivial_mxsum m n A)).
+Lemma mxdirect_trivial m n A : mxdirect (unwrap (@trivial_mxsum F m n A)).
 Proof. exact: eqxx. Qed.
 
-Lemma mxrank_sum_leqif m n (S : mxsum_expr m n) :
+Lemma mxrank_sum_leqif m n (S : mxsum_expr F m n) :
   \rank (unwrap S) <= unwrap (mxsum_rank S) ?= iff mxdirect (unwrap S).
 Proof.
 rewrite /mxdirect_def; case: S => [[A] [r] /= defAr]; split=> //=.
@@ -1802,11 +2034,11 @@ elim: m A r / defAr => // m1 m2 A1 A2 r1 r2 _ leAr1 _ leAr2.
 by apply: leq_trans (leq_add leAr1 leAr2); rewrite mxrank_adds_leqif.
 Qed.
 
-Lemma mxdirectE m n (S : mxsum_expr m n) :
+Lemma mxdirectE m n (S : mxsum_expr F m n) :
   mxdirect (unwrap S) = (\rank (unwrap S) == unwrap (mxsum_rank S)).
 Proof. by []. Qed.
 
-Lemma mxdirectEgeq m n (S : mxsum_expr m n) :
+Lemma mxdirectEgeq m n (S : mxsum_expr F m n) :
   mxdirect (unwrap S) = (\rank (unwrap S) >= unwrap (mxsum_rank S)).
 Proof. by rewrite (geq_leqif (mxrank_sum_leqif S)). Qed.
 
@@ -1814,7 +2046,7 @@ Section BinaryDirect.
 
 Variables m1 m2 n : nat.
 
-Lemma mxdirect_addsE (S1 : mxsum_expr m1 n) (S2 : mxsum_expr m2 n) :
+Lemma mxdirect_addsE (S1 : mxsum_expr F m1 n) (S2 : mxsum_expr F m2 n) :
    mxdirect (unwrap S1 + unwrap S2)
     = [&& mxdirect (unwrap S1), mxdirect (unwrap S2)
         & unwrap S1 :&: unwrap S2 == 0]%MS.
@@ -1837,10 +2069,11 @@ Variables (P : pred I) (n : nat).
 
 Let TIsum A_ i := (A_ i :&: (\sum_(j | P j && (j != i)) A_ j) = 0 :> 'M_n)%MS.
 
-Let mxdirect_sums_recP (S_ : I -> mxsum_expr n n) :
+Let mxdirect_sums_recP (S_ : I -> mxsum_expr F n n) :
   reflect (forall i, P i -> mxdirect (unwrap (S_ i)) /\ TIsum (unwrap \o S_) i)
-          (mxdirect (\sum_(i | P i) (unwrap (S_ i)))).
+          (mxdirect (\sum_(i | P i) (unwrap (S_ i)))%MS).
 Proof.
+Unset Printing Universes.
 rewrite /TIsum; apply: (iffP eqnP) => /= [dxS i Pi | dxS].
   set Si' := (\sum_(j | _) unwrap (S_ j))%MS.
   have: mxdirect (unwrap (S_ i) + Si') by apply/eqnP; rewrite /= -!(bigD1 i).
@@ -1849,9 +2082,11 @@ elim: _.+1 {-2 4}P (subxx P) (ltnSn #|P|) => // m IHm Q; move/subsetP=> sQP.
 case: (pickP Q) => [i Qi | Q0]; last by rewrite !big_pred0 ?mxrank0.
 rewrite (cardD1x Qi) !((bigD1 i) Q) //=.
 move/IHm=> <- {IHm}/=; last by apply/subsetP=> j /andP[/sQP].
-case: (dxS i (sQP i Qi)) => /eqnP=> <- TiQ_0; rewrite mxrank_disjoint_sum //.
+case: (dxS i (sQP i Qi)) => /eqnP.
+move=> hh. rewrite <- hh; clear hh; move=> TiQ_0.
+rewrite mxrank_disjoint_sum //.
 apply/eqP; rewrite -submx0 -{2}TiQ_0 capmxS //=.
-by apply/sumsmx_subP=> j /= /andP[Qj i'j]; rewrite (sumsmx_sup j) ?[P j]sQP.
+by apply/sumsmx_subP=> j /= /andP[Qj i'j]; rewrite (@sumsmx_sup F _ j) ?[P j]sQP.
 Qed.
 
 Lemma mxdirect_sumsP (A_ : I -> 'M_n) :
@@ -1862,7 +2097,7 @@ apply: (iffP (mxdirect_sums_recP _)) => dxA i /dxA; first by case.
 by rewrite mxdirect_trivial.
 Qed.
 
-Lemma mxdirect_sumsE (S_ : I -> mxsum_expr n n) (xunwrap := unwrap) :
+Lemma mxdirect_sumsE (S_ : I -> mxsum_expr F n n) (xunwrap := unwrap) :
   reflect (and (forall i, P i -> mxdirect (unwrap (S_ i)))
                (mxdirect (\sum_(i | P i) (xunwrap (S_ i)))))
           (mxdirect (\sum_(i | P i) (unwrap (S_ i)))).
@@ -1884,7 +2119,7 @@ Variant sub_daddsmx_spec : Prop :=
                         & forall C1 C2, (C1 <= B1)%MS -> (C2 <= B2)%MS ->
                           A = C1 + C2 -> C1 = A1 /\ C2 = A2.
 
-Lemma sub_daddsmx : (B1 :&: B2 = 0)%MS -> (A <= B1 + B2)%MS -> sub_daddsmx_spec.
+Lemma sub_daddsmx : (B1 :&: B2 = 0)%MS -> (A <= (B1 + B2)%MS)%MS -> sub_daddsmx_spec.
 Proof.
 move=> dxB /sub_addsmxP[u defA].
 exists (u.1 *m B1) (u.2 *m B2); rewrite ?submxMl // => C1 C2 sCB1 sCB2.
@@ -1908,19 +2143,19 @@ Variant sub_dsumsmx_spec : Prop :=
                           A = \sum_(i | P i) C i -> {in SimplPred P, C =1 A_}.
 
 Lemma sub_dsumsmx :
-    mxdirect (\sum_(i | P i) B i) -> (A <= \sum_(i | P i) B i)%MS ->
+    mxdirect (\sum_(i | P i) B i)%MS -> (A <= (\sum_(i | P i) B i)%MS)%MS ->
   sub_dsumsmx_spec.
 Proof.
-move/mxdirect_sumsP=> dxB /sub_sumsmxP[u defA].
+move/mxdirect_sumsP=> dxB /sub_sumsmxP [u defA].
 pose A_ i := u i *m B i.
 exists A_ => //= [i _ | C sCB defAC i Pi]; first exact: submxMl.
 apply/eqP; rewrite -subr_eq0 -submx0 -{dxB}(dxB i Pi) /=.
 rewrite sub_capmx addmx_sub ?eqmx_opp ?submxMl ?sCB //=.
 rewrite -(subrK A (C i)) -addrA -opprB addmx_sub ?eqmx_opp //.
   rewrite addrC defAC (bigD1 i) // addKr /= summx_sub // => j Pi'j.
-  by rewrite (sumsmx_sup j) ?sCB //; case/andP: Pi'j.
+  by rewrite (@sumsmx_sup F _ j) ?sCB //; case/andP: Pi'j.
 rewrite addrC defA (bigD1 i) // addKr /= summx_sub // => j Pi'j.
-by rewrite (sumsmx_sup j) ?submxMl.
+by rewrite (@sumsmx_sup F _ j) ?submxMl.
 Qed.
 
 End SubDsumsmx.
@@ -1968,7 +2203,7 @@ Qed.
 
 End Eigenspace.
 
-End RowSpaceTheory.
+End RowSpaceTheory7.
 
 Hint Resolve submx_refl : core.
 Arguments submxP {F m1 m2 n A B}.
@@ -1996,7 +2231,7 @@ Arguments capmx_idPr {F n m1 m2 A B}.
 Arguments capmx_idPl {F n m1 m2 A B}.
 Arguments bigcapmx_inf [F I] i0 [P m n A_ B].
 Arguments sub_bigcapmxP {F I P m n A B_}.
-Arguments mxrank_injP {F m n} p [A f].
+Arguments mxrank_injP {F m n} p {A f}.
 Arguments mxdirectP {F n S}.
 Arguments mxdirect_addsP {F m1 m2 n A B}.
 Arguments mxdirect_sumsP {F I P n A_}.
@@ -2104,7 +2339,7 @@ Section CardGL.
 Variable F : finFieldType.
 
 Lemma card_GL n : n > 0 ->
-  #|'GL_n[F]| = (#|F| ^ 'C(n, 2) * \prod_(1 <= i < n.+1) (#|F| ^ i - 1))%N.
+  #|'GL_n[F]| = (#|F| ** 'C(n, 2) * \prod_(1 <= i < n.+1) (#|F| ** i - 1))%N.
 Proof.
 case: n => // n' _; set n := n'.+1; set p := #|F|.
 rewrite big_nat_rev big_add1 -triangular_sum expn_sum -big_split /=.
@@ -2138,7 +2373,7 @@ Qed.
 (* An alternate, somewhat more elementary proof, that does not rely on the *)
 (* row-space theory, but directly performs the LUP decomposition.          *)
 Lemma LUP_card_GL n : n > 0 ->
-  #|'GL_n[F]| = (#|F| ^ 'C(n, 2) * \prod_(1 <= i < n.+1) (#|F| ^ i - 1))%N.
+  #|'GL_n[F]| = (#|F| ** 'C(n, 2) * \prod_(1 <= i < n.+1) (#|F| ** i - 1))%N.
 Proof.
 case: n => // n' _; set n := n'.+1; set p := #|F|.
 rewrite cardsT /= card_sub /GRing.unit /= big_add1 /= -triangular_sum -/n.
@@ -2187,7 +2422,7 @@ Qed.
 Lemma card_GL_1 : #|'GL_1[F]| = #|F|.-1.
 Proof. by rewrite card_GL // mul1n big_nat1 expn1 subn1. Qed.
 
-Lemma card_GL_2 : #|'GL_2[F]| = (#|F| * #|F|.-1 ^ 2 * #|F|.+1)%N.
+Lemma card_GL_2 : #|'GL_2[F]| = (#|F| * #|F|.-1 ** 2 * #|F|.+1)%N.
 Proof.
 rewrite card_GL // big_ltn // big_nat1 expn1 -(addn1 #|F|) -subn1 -!mulnA.
 by rewrite -subn_sqr.
@@ -2198,10 +2433,10 @@ End CardGL.
 Lemma logn_card_GL_p n p : prime p -> logn p #|'GL_n(p)| = 'C(n, 2).
 Proof.
 move=> p_pr; have p_gt1 := prime_gt1 p_pr.
-have p_i_gt0: p ^ _ > 0 by move=> i; rewrite expn_gt0 ltnW.
+have p_i_gt0: p ** _ > 0 by move=> i; rewrite expn_gt0 ltnW.
 rewrite (card_GL _ (ltn0Sn n.-1)) card_ord Fp_cast // big_add1 /=.
 pose p'gt0 m := m > 0 /\ logn p m = 0%N.
-suffices [Pgt0 p'P]: p'gt0 (\prod_(0 <= i < n.-1.+1) (p ^ i.+1 - 1))%N.
+suffices [Pgt0 p'P]: p'gt0 (\prod_(0 <= i < n.-1.+1) (p ** i.+1 - 1))%N.
   by rewrite lognM // p'P pfactorK // addn0; case n.
 apply big_ind => [|m1 m2 [m10 p'm1] [m20]|i _]; rewrite {}/p'gt0 ?logn1 //.
   by rewrite muln_gt0 m10 lognM ?p'm1.
@@ -2209,7 +2444,7 @@ rewrite lognE -if_neg subn_gt0 p_pr /= -{1 2}(exp1n i.+1) ltn_exp2r // p_gt1.
 by rewrite dvdn_subr ?dvdn_exp // gtnNdvd.
 Qed.
 
-Section MatrixAlgebra.
+Section MatrixAlgebra1.
 
 Variables F : fieldType.
 
@@ -2338,7 +2573,7 @@ Qed.
 Lemma mulsmxP m1 m2 n A (R1 : 'A_(m1, n)) (R2 : 'A_(m2, n)) :
   reflect (exists2 A1, forall i, A1 i \in R1
             & exists2 A2, forall i, A2 i \in R2
-           & A = \sum_(i < n ^ 2) A1 i *m A2 i)
+           & A = \sum_(i < n ** 2) A1 i *m A2 i)
           (A \in R1 * R2)%MS.
 Proof.
 apply: (iffP idP) => [R_A|[A1 R_A1 [A2 R_A2 ->{A}]]]; last first.
@@ -2425,7 +2660,7 @@ Lemma mxring_idP m n (R : 'A_(m, n)) :
   reflect (exists e, mxring_id R e) (has_mxring_id R).
 Proof.
 apply: (iffP andP) => [[nzR] | [e [nz_e Re ideR idRe]]].
-  case/submxP=> v; rewrite -[v]vec_mxK; move/vec_mx: v => e.
+  case/submxP=> v. rewrite -[v]vec_mxK; move: v => /vec_mx e.
   rewrite !mul_mx_row; case/eq_row_mx => /eqP.
   rewrite eq_sym -submxE => Re.
   case/eq_row_mx; rewrite !{1}mul_rV_lin1 /= mxvecK.
@@ -2444,29 +2679,37 @@ by rewrite !row_mul !mul_rV_lin1 /= mxvecK idRe vec_mxK ?row_sub.
 Qed.
 Arguments mxring_idP {m n R}.
 
+End MatrixAlgebra1.
+
 Section CentMxDef.
 
-Variables (m n : nat) (R : 'A[F]_(m, n)).
+Monomorphic Variables F : fieldType.
+Monomorphic Variables (m n : nat) (R : 'A[F]_(m, n)).
 
-Definition cent_mx_fun (B : 'M[F]_n) := R *m lin_mx (mulmxr B \- mulmx B).
+Monomorphic Definition cent_mx_fun (B : 'M[F]_n) := R *m lin_mx (mulmxr B \- mulmx B).
 
-Lemma cent_mx_fun_is_linear : linear cent_mx_fun.
+Monomorphic Lemma cent_mx_fun_is_linear : linear cent_mx_fun.
 Proof.
 move=> a A B; apply/row_matrixP=> i; rewrite linearP row_mul mul_rV_lin.
 rewrite /= {-3}[row]lock row_mul mul_rV_lin -lock row_mul mul_rV_lin.
 by rewrite -linearP -(linearP [linear of mulmx _ \- mulmxr _]).
 Qed.
-Canonical cent_mx_fun_additive := Additive cent_mx_fun_is_linear.
-Canonical cent_mx_fun_linear := Linear cent_mx_fun_is_linear.
+Monomorphic Canonical cent_mx_fun_additive := Additive cent_mx_fun_is_linear.
+Monomorphic Canonical cent_mx_fun_linear := Linear cent_mx_fun_is_linear.
 
-Definition cent_mx := kermx (lin_mx cent_mx_fun).
+Monomorphic Definition cent_mx := kermx (lin_mx cent_mx_fun).
 
-Definition center_mx := (R :&: cent_mx)%MS.
+Monomorphic Definition center_mx := (R :&: cent_mx)%MS.
 
 End CentMxDef.
 
-Local Notation "''C' ( R )" := (cent_mx R) : matrix_set_scope.
-Local Notation "''Z' ( R )" := (center_mx R) : matrix_set_scope.
+Section MatrixAlgebra2.
+
+Variables F : fieldType.
+
+Local Notation "A \in R" := (@submx F _ _ _ (mxvec A) R).
+Local Notation "''C' ( R )" := (@cent_mx F _ _ R) : matrix_set_scope.
+Local Notation "''Z' ( R )" := (@center_mx F _ _ R) : matrix_set_scope.
 
 Lemma cent_rowP m n B (R : 'A_(m, n)) :
   reflect (forall i (A := vec_mx (row i R)), A *m B = B *m A) (B \in 'C(R))%MS.
@@ -2501,13 +2744,18 @@ Lemma center_mxP m n A (R : 'A_(m, n)) :
   reflect (A \in R /\ forall B, B \in R -> B *m A = A *m B)
           (A \in 'Z(R))%MS.
 Proof.
-rewrite sub_capmx; case R_A: (A \in R); last by right; case.
+rewrite sub_capmx.
+refine (
+  match A \in R as b return reflect (b * _) (b && _) with
+  | true => _
+  | false => _
+  end); last by right; case.
 by apply: (iffP cent_mxP) => [cAR | [_ cAR]].
 Qed.
 Arguments center_mxP {m n A R}.
 
 Lemma mxring_id_uniq m n (R : 'A_(m, n)) e1 e2 :
-  mxring_id R e1 -> mxring_id R e2 -> e1 = e2.
+  mxring_id R e1 -> @mxring_id F _ _ R e2 -> e1 = e2.
 Proof.
 by case=> [_ Re1 idRe1 _] [_ Re2 _ ide2R]; rewrite -(idRe1 _ Re2) ide2R.
 Qed.
@@ -2524,6 +2772,8 @@ move=> n_gt0; rewrite /mxring cent_mx_ideal; apply/mxring_idP.
 exists 1%:M; split=> [||A _|A _]; rewrite ?mulmx1 ?mul1mx ?scalar_mx_cent //.
 by rewrite -mxrank_eq0 mxrank1 -lt0n.
 Qed.
+
+Local Notation mulsmx_subP := (@mulsmx_subP F _ _ _ _ _ _ _).
 
 Lemma mxdirect_adds_center m1 m2 n (R1 : 'A_(m1, n)) (R2 : 'A_(m2, n)) :
     mx_ideal (R1 + R2)%MS R1 -> mx_ideal (R1 + R2)%MS R2 ->
@@ -2567,6 +2817,8 @@ rewrite [A.1 *m z]memmx0 1?[z *m A.1]memmx0 //.
 by rewrite -dxR12 sub_capmx (mulsmx_subP idrR1) // (mulsmx_subP idlR2).
 Qed.
 
+Local Notation memmx_subP := (@memmx_subP F _ _ _ _ _).
+
 Lemma mxdirect_sums_center (I : finType) m n (R : 'A_(m, n)) R_ :
     (\sum_i R_ i :=: R)%MS -> mxdirect (\sum_i R_ i) ->
     (forall i : I, mx_ideal R (R_ i)) ->
@@ -2596,7 +2848,7 @@ rewrite !big1 => [|j|j]; first by rewrite !addr0 (cent_mxP cRiz).
 by move/anhR->.
 Qed.
 
-End MatrixAlgebra.
+End MatrixAlgebra2.
 
 Arguments mulsmx {F m1%N m2%N n%N} R1%MS R2%MS.
 Arguments left_mx_ideal {F m1%N m2%N n%N} R%MS S%MS : rename.
@@ -2617,7 +2869,7 @@ Notation "''Z' ( R )" := (center_mx R) : matrix_set_scope.
 
 Arguments memmx_subP {F m1 m2 n R1 R2}.
 Arguments memmx_eqP {F m1 m2 n R1 R2}.
-Arguments memmx_addsP {F m1 m2 n} A [R1 R2].
+Arguments memmx_addsP {F m1 m2 n} A {R1 R2}.
 Arguments memmx_sumsP {F I P n A R_}.
 Arguments mulsmx_subP {F m1 m2 m n R1 R2 R}.
 Arguments mulsmxP {F m1 m2 n A R1 R2}.

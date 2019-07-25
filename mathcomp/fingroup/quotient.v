@@ -25,9 +25,9 @@ Unset Printing Implicit Defensive.
 
 Import GroupScope.
 
-Section Cosets.
+Section Cosets1.
 
-Variables (gT : finGroupType) (Q A : {set gT}).
+Monomorphic Variables (gT : finGroupType) (A : {set gT}).
 
 (******************************************************************************)
 (* Cosets are right cosets of elements in the normaliser.                     *)
@@ -53,33 +53,40 @@ Variables (gT : finGroupType) (Q A : {set gT}).
 (******************************************************************************)
 
 Notation H := <<A>>.
-Definition coset_range := [pred B in rcosets H 'N(A)].
+Monomorphic Definition coset_range := [pred B in rcosets H 'N(A)].
 
-Record coset_of : Type :=
+Monomorphic Record coset_of : Type :=
   Coset { set_of_coset :> GroupSet.sort gT; _ : coset_range set_of_coset }.
 
-Canonical coset_subType := Eval hnf in [subType for set_of_coset].
-Definition coset_eqMixin := Eval hnf in [eqMixin of coset_of by <:].
-Canonical coset_eqType := Eval hnf in EqType coset_of coset_eqMixin.
-Definition coset_choiceMixin := [choiceMixin of coset_of by <:].
-Canonical coset_choiceType := Eval hnf in ChoiceType coset_of coset_choiceMixin.
-Definition coset_countMixin := [countMixin of coset_of by <:].
-Canonical coset_countType := Eval hnf in CountType coset_of coset_countMixin.
-Canonical coset_subCountType := Eval hnf in [subCountType of coset_of].
-Definition coset_finMixin := [finMixin of coset_of by <:].
-Canonical coset_finType := Eval hnf in FinType coset_of coset_finMixin.
-Canonical coset_subFinType := Eval hnf in [subFinType of coset_of].
+Monomorphic Canonical coset_subType := Eval hnf in [subType for set_of_coset].
+Monomorphic Definition coset_eqMixin := Eval hnf in [eqMixin of coset_of by <:].
+Monomorphic Canonical coset_eqType := Eval hnf in EqType coset_of coset_eqMixin.
+Monomorphic Definition coset_choiceMixin := [choiceMixin of coset_of by <:].
+Monomorphic Canonical coset_choiceType := Eval hnf in ChoiceType coset_of coset_choiceMixin.
+Monomorphic Definition coset_countMixin := [countMixin of coset_of by <:].
+Monomorphic Canonical coset_countType := Eval hnf in CountType coset_of coset_countMixin.
+Monomorphic Canonical coset_subCountType := Eval hnf in [subCountType of coset_of].
+Monomorphic Definition coset_finMixin := [finMixin of coset_of by <:].
+Monomorphic Canonical coset_finType := Eval hnf in FinType coset_of coset_finMixin.
+Monomorphic Canonical coset_subFinType := Eval hnf in [subFinType of coset_of].
+
+End Cosets1.
+
+Section Cosets2.
+
+Variables (gT : finGroupType) (A : {set gT}).
+Notation H := <<A>>.
 
 (* We build a new (canonical) structure of groupType for cosets.              *)
 (* When A is a group, this is the largest possible quotient 'N(A) / A.        *)
 
-Lemma coset_one_proof : coset_range H.
+Lemma coset_one_proof : coset_range A H.
 Proof. by apply/rcosetsP; exists (1 : gT); rewrite (group1, mulg1). Qed.
 Definition coset_one := Coset coset_one_proof.
 
 Let nNH := subsetP (norm_gen A).
 
-Lemma coset_range_mul (B C : coset_of) : coset_range (B * C).
+Lemma coset_range_mul (B C : coset_of A) : coset_range A (B * C).
 Proof.
 case: B C => _ /= /rcosetsP[x Nx ->] [_ /= /rcosetsP[y Ny ->]].
 by apply/rcosetsP; exists (x * y); rewrite !(groupM, rcoset_mul, nNH).
@@ -87,7 +94,7 @@ Qed.
 
 Definition coset_mul B C := Coset (coset_range_mul B C).
 
-Lemma coset_range_inv (B : coset_of) : coset_range B^-1.
+Lemma coset_range_inv (B : coset_of A) : coset_range A B^-1.
 Proof.
 case: B => _ /= /rcosetsP[x Nx ->]; rewrite norm_rlcoset ?nNH // invg_lcoset.
 by apply/rcosetsP; exists x^-1; rewrite ?groupV.
@@ -111,16 +118,31 @@ rewrite invg_rcoset -mulgA (mulgA H) mulGid.
 by rewrite norm_rlcoset ?nNH // -lcosetM mulVg mul1g.
 Qed.
 
-Definition coset_of_groupMixin :=
-  FinGroup.Mixin coset_mulP coset_oneP coset_invP.
+End Cosets2.
 
-Canonical coset_baseGroupType :=
-  Eval hnf in BaseFinGroupType coset_of coset_of_groupMixin.
-Canonical coset_groupType := FinGroupType coset_invP.
+Section Cosets3.
+
+Monomorphic Variables (gT : finGroupType) (A : {set gT}).
+
+Monomorphic Definition coset_of_groupMixin :=
+  FinGroup.Mixin (@coset_mulP gT A) (@coset_oneP gT A) (@coset_invP gT A).
+
+Monomorphic Canonical coset_baseGroupType :=
+  Eval hnf in BaseFinGroupType (coset_of A) coset_of_groupMixin.
+Monomorphic Canonical coset_groupType := FinGroupType (@coset_invP gT A).
+
+End Cosets3.
+
+Section Cosets4.
+
+Variables (gT : finGroupType) (A : {set gT}).
+Notation H := <<A>>.
+
+Let nNH := subsetP (norm_gen A).
 
 (* Projection of the initial group type over the cosets groupType.  *)
 
-Definition coset x : coset_of := insubd (1 : coset_of) (H :* x).
+Definition coset x : coset_of A := insubd (1 : coset_of A) (H :* x).
 
 (* This is a primitive lemma -- we'll need to restate it for *)
 (* the case where A is a group. *)
@@ -135,7 +157,16 @@ move=> x y Nx Ny; apply: val_inj.
 by rewrite /= !val_coset_prim ?groupM //= rcoset_mul ?nNH.
 Qed.
 
-Canonical coset_morphism := Morphism coset_morphM.
+End Cosets4.
+
+Monomorphic Canonical coset_morphism (gT : finGroupType) (A : {set gT}) :=
+  Morphism (@coset_morphM gT A).
+
+Section Cosets5.
+
+Variables (gT : finGroupType) (A : {set gT}).
+Notation H := <<A>>.
+Notation coset := (coset A).
 
 Lemma ker_coset_prim : 'ker coset = 'N_H(A).
 Proof.
@@ -144,7 +175,7 @@ case Nz: (z \in 'N(A)); rewrite ?andbF ?val_coset_prim // !andbT.
 by apply/eqP/idP=> [<-| Az]; rewrite (rcoset_refl, rcoset_id).
 Qed.
 
-Implicit Type xbar : coset_of.
+Implicit Type xbar : coset_of A.
 
 Lemma coset_mem y xbar : y \in xbar -> coset y = xbar.
 Proof.
@@ -158,7 +189,7 @@ Qed.
 Lemma mem_repr_coset xbar : repr xbar \in xbar.
 Proof. by case: xbar => /= _ /rcosetsP[x _ ->]; apply: mem_repr_rcoset. Qed.
 
-Lemma repr_coset1 : repr (1 : coset_of) = 1.
+Lemma repr_coset1 : repr (1 : coset_of A) = 1.
 Proof. exact: repr_group. Qed.
 
 Lemma coset_reprK : cancel (fun xbar => repr xbar) coset.
@@ -183,18 +214,18 @@ Proof.
 by apply/setP=> xbar; case: (cosetP xbar) => x Nx ->; rewrite inE mem_morphim.
 Qed.
 
-Lemma sub_im_coset (C : {set coset_of}) : C \subset coset @* 'N(A).
+Lemma sub_im_coset (C : {set coset_of A}) : C \subset coset @* 'N(A).
 Proof. by rewrite im_coset subsetT. Qed.
 
 Lemma cosetpre_proper C D :
   (coset @*^-1 C \proper coset @*^-1 D) = (C \proper D).
 Proof. by rewrite morphpre_proper ?sub_im_coset. Qed.
 
-Definition quotient : {set coset_of} := coset @* Q.
+End Cosets5.
 
-Lemma quotientE : quotient = coset @* Q. Proof. by []. Qed.
+Definition quotient (gT : finGroupType) (Q A : {set gT}) : {set coset_of A} := coset A @* Q.
 
-End Cosets.
+Lemma quotientE (gT : finGroupType) (Q A : {set gT}) : quotient Q A = coset A @* Q. Proof. by []. Qed.
 
 Arguments coset_of {gT} H%g : rename.
 Arguments coset {gT} H%g x%g : rename.
@@ -205,14 +236,15 @@ Bind Scope group_scope with coset_of.
 
 Notation "A / H" := (quotient A H) : group_scope.
 
+Monomorphic Canonical quotient_group (gT : finGroupType) (G : {group gT}) (A : {set gT})
+  : {group coset_of A}
+  := Eval hnf in [group of G / A].
+
 Section CosetOfGroupTheory.
 
 Variables (gT : finGroupType) (H : {group gT}).
 Implicit Types (A B : {set gT}) (G K : {group gT}) (xbar yb : coset_of H).
 Implicit Types (C D : {set coset_of H}) (L M : {group coset_of H}).
-
-Canonical quotient_group G A : {group coset_of A} :=
-  Eval hnf in [group of G / A].
 
 Infix "/" := quotient_group : Group_scope.
 
@@ -665,8 +697,6 @@ Qed.
 
 Definition quotm := factm quotm_ker_proof nHG.
 
-Canonical quotm_morphism := [morphism G / H of quotm].
-
 Lemma quotmE x : x \in G -> quotm (coset H x) = coset (f @* H) (f x).
 Proof. exact: factmE. Qed.
 
@@ -690,7 +720,16 @@ Proof. by move/trivgP=> /= kf1; rewrite ker_quotm kf1 quotientE morphim1. Qed.
 
 End QuotientMorphism.
 
-Section EqIso.
+Section QuotientMorphismCanon.
+
+Monomorphic Variable (gT rT : finGroupType) (G H : {group gT}) (f : {morphism G >-> rT}).
+Monomorphic Hypotheses (nsHG : H <| G).
+
+Monomorphic Canonical quotm_morphism := [morphism G / H of quotm f nsHG].
+
+End QuotientMorphismCanon.
+
+Section EqIso1.
 
 Variables (gT : finGroupType) (G H : {group gT}).
 
@@ -702,10 +741,26 @@ Proof. by rewrite eqGH. Qed.
 Lemma qisom_restr_proof : setT \subset 'N(H) / G.
 Proof. by rewrite eqGH im_quotient. Qed.
 
-Definition qisom :=
-  restrm qisom_restr_proof (factm qisom_ker_proof im_qisom_proof).
+End EqIso1.
 
-Canonical qisom_morphism := Eval hnf in [morphism of qisom].
+Section EqIso2.
+
+Monomorphic Variables (gT : finGroupType) (G H : {group gT}).
+Monomorphic Hypothesis (eqGH : G :=: H).
+
+Monomorphic Definition qisom :=
+  restrm (qisom_restr_proof eqGH) (factm (qisom_ker_proof eqGH) (im_qisom_proof eqGH)).
+
+Monomorphic Canonical qisom_morphism := Eval hnf in [morphism of qisom].
+
+End EqIso2.
+
+Section EqIso3.
+
+Variables (gT : finGroupType) (G H : {group gT}).
+Hypothesis (eqGH : G :=: H).
+
+Notation qisom := (qisom eqGH).
 
 Lemma qisomE x : qisom (coset G x) = coset H x.
 Proof.
@@ -747,7 +802,7 @@ Proof.
 by move=> Gx Gy; apply: injm_morphim_inj; rewrite (injm_qisom, subsetT).
 Qed.
 
-End EqIso.
+End EqIso3.
 
 Arguments qisom_inj {gT G H} eqGH [x1 x2].
 Arguments morphim_qisom_inj {gT G H} eqGH [x1 x2].
