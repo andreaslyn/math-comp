@@ -19,7 +19,7 @@ From mathcomp Require Import ssralg zmodp matrix mxalgebra poly polydiv.
 (*                  mapping a (scalar) polynomial p to the value of its       *)
 (*                  scalar matrix interpretation at A (this is an instance of *)
 (*                  the generic horner_morph construct defined in poly).      *)
-(* powers_mx A d == the d x (n ^ 2) matrix whose rows are the mxvec encodings *)
+(* powers_mx A d == the d x (n ** 2) matrix whose rows are the mxvec encodings *)
 (*                  of the first d powers of A (n of the form n'.+1). Thus,   *)
 (*                  vec_mx (v *m powers_mx A d) = horner_mx A (rVpoly v).     *)
 (*   char_poly A  == the characteristic polynomial of A.                      *)
@@ -75,7 +75,11 @@ Definition rVpoly v := \poly_(k < d) (if insub k is Some i then v 0 i else 0).
 Definition poly_rV p := \row_(i < d) p`_i.
 
 Lemma coef_rVpoly v k : (rVpoly v)`_k = if insub k is Some i then v 0 i else 0.
-Proof. by rewrite coef_poly; case: insubP => [i ->|]; rewrite ?if_same. Qed.
+Proof.
+rewrite coef_poly; destruct (insubP (ordinal_subType d) k) as [i e|].
+  by rewrite e.
+by rewrite if_same.
+Qed.
 
 Lemma coef_rVpoly_ord v (i : 'I_d) : (rVpoly v)`_i = v 0 i.
 Proof. by rewrite coef_rVpoly valK. Qed.
@@ -99,18 +103,23 @@ Qed.
 
 Lemma poly_rV_is_linear : linear poly_rV.
 Proof. by move=> a p q; apply/rowP=> i; rewrite !mxE coefD coefZ. Qed.
-Canonical poly_rV_additive := Additive poly_rV_is_linear.
-Canonical poly_rV_linear := Linear poly_rV_is_linear.
 
 Lemma rVpoly_is_linear : linear rVpoly.
 Proof.
 move=> a u v; apply/polyP=> k; rewrite coefD coefZ !coef_rVpoly.
 by case: insubP => [i _ _ | _]; rewrite ?mxE // mulr0 addr0.
 Qed.
-Canonical rVpoly_additive := Additive rVpoly_is_linear.
-Canonical rVpoly_linear := Linear rVpoly_is_linear.
 
 End RowPoly.
+
+Monomorphic Canonical poly_rV_additive (R : ringType) (d : nat) :=
+  Additive (@poly_rV_is_linear R d).
+Monomorphic Canonical poly_rV_linear (R : ringType) (d : nat) :=
+  Linear (@poly_rV_is_linear R d).
+Monomorphic Canonical rVpoly_additive (R : ringType) (d : nat) :=
+  Additive (@rVpoly_is_linear R d).
+Monomorphic Canonical rVpoly_linear (R : ringType) (d : nat) :=
+  Linear (@rVpoly_is_linear R d).
 
 Prenex Implicits rVpoly rVpolyK.
 Arguments poly_rV {R d}.
@@ -260,21 +269,32 @@ rewrite mul_row_col scaleNr mulNmx !mul_rV_lin1 /= !linearZ /= !poly_rV_K //.
 by rewrite !scalerCA p'r q'r mulrCA addNr.
 Qed.
 
-Section HornerMx.
+Section HornerMx1.
+
+Monomorphic Variables (R : comRingType) (n' : nat).
+Local Notation n := n'.+1.
+Monomorphic Variable A : 'M[R]_n.
+
+Monomorphic Definition horner_mx := horner_morph (fun a => scalar_mx_comm a A).
+Monomorphic Canonical horner_mx_additive := [additive of horner_mx].
+Monomorphic Canonical horner_mx_rmorphism := [rmorphism of horner_mx].
+
+End HornerMx1.
+
+Section HornerMx2.
 
 Variables (R : comRingType) (n' : nat).
 Local Notation n := n'.+1.
 Variable A : 'M[R]_n.
 Implicit Types p q : {poly R}.
 
-Definition horner_mx := horner_morph (fun a => scalar_mx_comm a A).
-Canonical horner_mx_additive := [additive of horner_mx].
-Canonical horner_mx_rmorphism := [rmorphism of horner_mx].
+Local Notation horner_mx := (horner_mx A).
 
 Lemma horner_mx_C a : horner_mx a%:P = a%:M.
-Proof. exact: horner_morphC. Qed.
+Proof. exact: (fun a => horner_morphC (fun x => scalar_mx_comm x A) a). Qed.
 
-Lemma horner_mx_X : horner_mx 'X = A. Proof. exact: horner_morphX. Qed.
+Lemma horner_mx_X : horner_mx 'X = A.
+Proof. exact: (horner_morphX (fun a : R => scalar_mx_comm a A)). Qed.
 
 Lemma horner_mxZ : scalable horner_mx.
 Proof.
@@ -282,20 +302,36 @@ move=> a p /=; rewrite -mul_polyC rmorphM /=.
 by rewrite horner_mx_C [_ * _]mul_scalar_mx.
 Qed.
 
-Canonical horner_mx_linear := AddLinear horner_mxZ.
-Canonical horner_mx_lrmorphism := [lrmorphism of horner_mx].
+End HornerMx2.
+
+Section HornerMx3.
+
+Monomorphic Variables (R : comRingType) (n' : nat).
+Local Notation n := n'.+1.
+Monomorphic Variable A : 'M[R]_n.
+
+Monomorphic Canonical horner_mx_linear := AddLinear (horner_mxZ A).
+Monomorphic Canonical horner_mx_lrmorphism := [lrmorphism of horner_mx A].
+
+End HornerMx3.
+
+Section HornerMx4.
+
+Variables (R : comRingType) (n' : nat).
+Local Notation n := n'.+1.
+Variable A : 'M[R]_n.
 
 Definition powers_mx d := \matrix_(i < d) mxvec (A ^+ i).
 
 Lemma horner_rVpoly m (u : 'rV_m) :
-  horner_mx (rVpoly u) = vec_mx (u *m powers_mx m).
+  horner_mx A (rVpoly u) = vec_mx (u *m powers_mx m).
 Proof.
-rewrite mulmx_sum_row linear_sum [rVpoly u]poly_def rmorph_sum.
+rewrite mulmx_sum_row linear_sum /rVpoly poly_def rmorph_sum.
 apply: eq_bigr => i _.
 by rewrite valK !linearZ rmorphX /= horner_mx_X rowK /= mxvecK.
 Qed.
 
-End HornerMx.
+End HornerMx4.
 
 Prenex Implicits horner_mx powers_mx.
 
@@ -314,7 +350,7 @@ Proof. by rewrite size_image card_ord. Qed.
 Let split_diagA :
   exists2 q, \prod_(x <- diagA) ('X - x%:P) + q = char_poly & size q <= n.-1.
 Proof.
-rewrite [char_poly](bigD1 1%g) //=; set q := \sum_(s | _) _; exists q.
+rewrite /char_poly /determinant (bigD1 1%g) //=; set q := \sum_(s | _) _; exists q.
   congr (_ + _); rewrite odd_perm1 mul1r big_map enumT; apply: eq_bigr => i _.
   by rewrite !mxE perm1 eqxx.
 apply: leq_trans {q}(size_sum _ _ _) _; apply/bigmax_leqP=> s nt_s.
@@ -417,7 +453,7 @@ Theorem Cayley_Hamilton (R : comRingType) n' (A : 'M[R]_n'.+1) :
   horner_mx A (char_poly A) = 0.
 Proof.
 have [phi [_ phiZ phiC _]] := mx_poly_ring_isom R n'.
-apply/rootP/factor_theorem; rewrite -phiZ -mul_adj_mx rmorphM.
+apply/rootP/(factor_theorem _ A); rewrite -phiZ -mul_adj_mx rmorphM.
 by move: (phi _) => q; exists q; rewrite rmorphB phiC phiZ map_polyX.
 Qed.
 
@@ -488,17 +524,26 @@ rewrite ltn_eqF ?big1 ?addr0 1?eq_sym //; last first.
 by move=> k /negPf ki_eqF; rewrite !mxE eqxx ki_eqF mul0r.
 Qed.
 
-Section MinPoly.
+Section MinPoly1.
+
+Monomorphic Variables (F : fieldType) (n' : nat).
+Local Notation n := n'.+1.
+Monomorphic Variable A : 'M[F]_n.
+
+Monomorphic Fact degree_mxminpoly_proof : exists d, \rank (powers_mx A d.+1) <= d.
+Proof. by exists (n ** 2)%N; rewrite rank_leq_col. Qed.
+Monomorphic Definition degree_mxminpoly := ex_minn degree_mxminpoly_proof.
+
+End MinPoly1.
+
+Section MinPoly2.
 
 Variables (F : fieldType) (n' : nat).
 Local Notation n := n'.+1.
 Variable A : 'M[F]_n.
 Implicit Types p q : {poly F}.
 
-Fact degree_mxminpoly_proof : exists d, \rank (powers_mx A d.+1) <= d.
-Proof. by exists (n ^ 2)%N; rewrite rank_leq_col. Qed.
-Definition degree_mxminpoly := ex_minn degree_mxminpoly_proof.
-Local Notation d := degree_mxminpoly.
+Local Notation d := (degree_mxminpoly A).
 Local Notation Ad := (powers_mx A d).
 
 Lemma mxminpoly_nonconstant : d > 0.
@@ -579,7 +624,7 @@ Qed.
 
 Lemma mx_root_minpoly : horner_mx A p_A = 0.
 Proof.
-rewrite rmorphB -{3}(horner_mx_X A) -rmorphX /=.
+rewrite rmorphB -{4}(horner_mx_X A) -rmorphX /=.
 by rewrite mx_inv_hornerK ?subrr ?horner_mx_mem.
 Qed.
 
@@ -594,7 +639,8 @@ Lemma horner_mxK p : mx_inv_horner (horner_mx A p) = p %% p_A.
 Proof.
 rewrite {1}(Pdiv.IdomainMonic.divp_eq mxminpoly_monic p) rmorphD rmorphM /=.
 rewrite mx_root_minpoly mulr0 add0r.
-by rewrite -(poly_rV_K (size_mod_mxminpoly _)) horner_rVpolyK.
+rewrite -(poly_rV_K (size_mod_mxminpoly _)). rewrite horner_rVpolyK.
+apply: poly_rV_K; exact: size_mod_mxminpoly.
 Qed.
 
 Lemma mxminpoly_min p : horner_mx A p = 0 -> p_A %| p.
@@ -611,7 +657,7 @@ Proof.
 have scalP := has_non_scalar_mxP minpoly_mx1.
 rewrite leqNgt -(eqnP minpoly_mx_free); apply/scalP/idP=> [|[[B]]].
   case scalA: (is_scalar_mx A); [by right | left].
-  by exists A; rewrite ?scalA // -{1}(horner_mx_X A) horner_mx_mem.
+  by exists A; rewrite ?scalA // -{2}(horner_mx_X A) horner_mx_mem.
 move/mx_inv_hornerK=> <- nsB; case/is_scalar_mxP=> a defA; case/negP: nsB.
 move: {B}(_ B); apply: poly_ind => [|p c].
   by rewrite rmorph0 ?mx0_is_scalar.
@@ -630,13 +676,13 @@ apply/idP/idP=> Aa; last first.
 have{Aa} [v Av_av v_nz] := eigenvalueP Aa.
 apply: contraR v_nz => pa_nz; rewrite -{pa_nz}(eqmx_eq0 (eqmx_scale _ pa_nz)).
 apply/eqP; rewrite -(mulmx0 _ v) -mx_root_minpoly.
-elim/poly_ind: p_A => [|p c IHp].
+refine ((poly_ind _)^~ p_A (fun p c (IHp : p.[a] *: v = v *m horner_mx A p) => _)).
   by rewrite rmorph0 horner0 scale0r mulmx0.
 rewrite !hornerE rmorphD rmorphM /= horner_mx_X horner_mx_C scalerDl.
 by rewrite -scalerA mulmxDr mul_mx_scalar mulmxA -IHp -scalemxAl Av_av.
 Qed.
 
-End MinPoly.
+End MinPoly2.
 
 Prenex Implicits degree_mxminpoly mxminpoly mx_inv_horner.
 
@@ -654,7 +700,7 @@ Variables (d n : nat) (A : 'M[aR]_n).
 Lemma map_rVpoly (u : 'rV_d) : fp (rVpoly u) = rVpoly u^f.
 Proof.
 apply/polyP=> k; rewrite coef_map !coef_rVpoly.
-by case: (insub k) => [i|]; rewrite /=  ?rmorph0 // mxE.
+by destruct (insub k) as [i|]; rewrite /=  ?rmorph0 // mxE.
 Qed.
 
 Lemma map_poly_rV p : (poly_rV p)^f = poly_rV (fp p) :> 'rV_d.
@@ -729,7 +775,7 @@ rewrite rmorphB; congr (_ - _).
   by rewrite /= map_polyXn degree_mxminpoly_map.
 rewrite degree_mxminpoly_map -rmorphX /=.
 apply/polyP=> i; rewrite coef_map //= !coef_rVpoly degree_mxminpoly_map.
-case/insub: i => [i|]; last by rewrite rmorph0.
+destruct (insub i) as [?|]; last by rewrite rmorph0.
 by rewrite -map_powers_mx -map_pinvmx // -map_mxvec -map_mxM // mxE.
 Qed.
 
