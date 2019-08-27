@@ -861,7 +861,6 @@ Lemma block_mxA m1 m2 m3 n1 n2 n3
   block_mx A11 row1 col1 (block_mx A22 A23 A32 A33)
     = castmx cast (block_mx (block_mx A11 A12 A21 A22) col3 row3 A33).
 Proof.
-Unset Printing Universes.
 rewrite /=. rewrite -/(castmx (esym _, esym _) _).
 rewrite block_mxEh. rewrite !col_mxA. rewrite -cast_row_mx -block_mxEv -block_mxEh.
 rewrite block_mxEv block_mxEh !row_mxA -cast_col_mx -block_mxEh -block_mxEv.

@@ -61,7 +61,7 @@ Section Presentation.
 Implicit Types gT rT : finGroupType.
 Implicit Type vT : finType. (* tuple value type *)
 
-Inductive term :=
+Monomorphic Inductive term :=
   | Cst of nat
   | Idx
   | Inv of term
@@ -70,43 +70,43 @@ Inductive term :=
   | Conj of term & term
   | Comm of term & term.
 
-Fixpoint eval {gT} e t : gT :=
+Monomorphic Fixpoint eval {gT} e t : gT :=
   match t with
   | Cst i => nth 1 e i
   | Idx => 1
   | Inv t1 => (eval e t1)^-1
   | Exp t1 n => eval e t1 ^+ n
   | Mul t1 t2 => eval e t1 * eval e t2
-  | Conj t1 t2 => eval e t1 ^ eval e t2
+  | Conj t1 t2 => eval e t1 ** eval e t2
   | Comm t1 t2 => [~ eval e t1, eval e t2]
   end.
 
-Inductive formula := Eq2 of term & term | And of formula & formula.
-Definition Eq1 s := Eq2 s Idx.
-Definition Eq3 s1 s2 t := And (Eq2 s1 t) (Eq2 s2 t).
+Monomorphic Inductive formula := Eq2 of term & term | And of formula & formula.
+Monomorphic Definition Eq1 s := Eq2 s Idx.
+Monomorphic Definition Eq3 s1 s2 t := And (Eq2 s1 t) (Eq2 s2 t).
 
-Inductive rel_type := NoRel | Rel vT of vT & vT.
+Monomorphic Inductive rel_type := NoRel | Rel vT of vT & vT.
 
-Definition bool_of_rel r := if r is Rel vT v1 v2 then v1 == v2 else true.
+Monomorphic Definition bool_of_rel r := if r is Rel vT v1 v2 then v1 == v2 else true.
 Local Coercion bool_of_rel : rel_type >-> bool.
 
-Definition and_rel vT (v1 v2 : vT) r :=
+Monomorphic Definition and_rel vT (v1 v2 : vT) r :=
   if r is Rel wT w1 w2 then Rel (v1, w1) (v2, w2) else Rel v1 v2.
  
-Fixpoint rel {gT} (e : seq gT) f r :=
+Monomorphic Fixpoint rel {gT} (e : seq gT) f r :=
   match f with
   | Eq2 s t => and_rel (eval e s) (eval e t) r
   | And f1 f2 => rel e f1 (rel e f2 r)
   end.
 
-Inductive type := Generator of term -> type | Formula of formula.
-Definition Cast p : type := p. (* syntactic scope cast *)
+Monomorphic Inductive type := Generator of term -> type | Formula of formula.
+Monomorphic Definition Cast p : type := p. (* syntactic scope cast *)
 Local Coercion Formula : formula >-> type.
 
-Inductive env gT := Env of {set gT} & seq gT.
-Definition env1 {gT} (x : gT : finType) := Env <[x]> [:: x].
+Monomorphic Inductive env gT := Env of {set gT} & seq gT.
+Monomorphic Definition env1 {gT} (x : gT : finType) := Env <[x]> [:: x].
 
-Fixpoint sat gT vT B n (s : vT -> env gT) p :=
+Monomorphic Fixpoint sat gT vT B n (s : vT -> env gT) p :=
   match p with
   | Formula f =>
     [exists v, let: Env A e := s v in and_rel A B (rel (rev e) f NoRel)]
@@ -115,8 +115,8 @@ Fixpoint sat gT vT B n (s : vT -> env gT) p :=
     sat B n.+1 s' (p' (Cst n))
   end.
 
-Definition hom gT (B : {set gT}) p := sat B 1 env1 (p (Cst 0)).
-Definition iso gT (B : {set gT}) p :=
+Monomorphic Definition hom gT (B : {set gT}) p := sat B 1 env1 (p (Cst 0)).
+Monomorphic Definition iso gT (B : {set gT}) p :=
   forall rT (H : {group rT}), (H \homg B) = hom H p.
 
 End Presentation.
@@ -128,6 +128,8 @@ Import Presentation.
 Coercion bool_of_rel : rel_type >-> bool.
 Coercion Eq1 : term >-> formula.
 Coercion Formula : formula >-> type.
+
+Declare Scope group_presentation.
 
 (* Declare (implicitly) the argument scope tags. *)
 Notation "1" := Idx : group_presentation.
@@ -145,7 +147,7 @@ Arguments Cast _%group_presentation.
 
 Infix "*" := Mul : group_presentation.
 Infix "^+" := Exp : group_presentation.
-Infix "^" := Conj : group_presentation.
+Infix "**" := Conj : group_presentation.
 Notation "x ^-1" := (Inv x) : group_presentation.
 Notation "x ^- n" := (Inv (x ^+ n)) : group_presentation.
 Notation "[ ~ x1 , x2 , .. , xn ]" :=
@@ -154,6 +156,8 @@ Notation "x = y" := (Eq2 x y) : group_presentation.
 Notation "x = y = z" := (Eq3 x y z) : group_presentation.
 Notation "( r1 , r2 , .. , rn )" := 
   (And .. (And r1 r2) .. rn) : group_presentation.
+
+Declare Scope nt_group_presentation.
 
 (* Declare (implicitly) the argument scope tags. *)
 Notation "x : p" := (fun x => Cast p) : nt_group_presentation.
@@ -224,11 +228,11 @@ have (v): let: Env A e := s v in
 elim: p 1%N vT vT' s s' => /= [p IHp | f] n vT vT' s s' Gs.
   apply: IHp => [[v x]] /=; case: (s v) {Gs}(Gs v) => A e /= Gs.
   rewrite join_subG cycle_subG; case/andP=> sAG Gx; rewrite Gx.
-  have [//|-> [v' def_v']] := Gs; split=> //; exists (v', h x); rewrite def_v'.
+  have [-> [v' def_v']|//] := Gs; split=> //; exists (v', h x); rewrite def_v'; last first.
   by congr (Env _ _); rewrite morphimY ?cycle_subG // morphim_cycle.
 case/existsP=> v; case: (s v) {Gs}(Gs v) => /= A e Gs.
 rewrite and_relE => /andP[/eqP defA rel_f].
-have{Gs} [|Ge [v' def_v']] := Gs; first by rewrite defA.
+have{Gs} [Ge [v' def_v']|] := Gs; last by rewrite defA.
 apply/existsP; exists v'; rewrite def_v' and_relE defA eqxx /=.
 by rewrite -map_rev rsatG ?(eq_all_r (mem_rev e)).
 Qed.

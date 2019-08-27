@@ -43,11 +43,13 @@ Import GRing.Theory Num.Theory.
 
 Local Notation mid x y := ((x + y) / 2%:R).
 
+Monomorphic Definition lersif (R : numDomainType) (x y : R) b := if b then x < y else x <= y.
+
 Section LersifPo.
 
 Variable R : numDomainType.
 
-Definition lersif (x y : R) b := if b then x < y else x <= y.
+Local Notation lersif := (@lersif R).
 
 Local Notation "x <= y ?< 'if' b" := (lersif x y b)
   (at level 70, y at next level,
@@ -254,10 +256,10 @@ Proof. by case: b => ? /=; rewrite lter_ndivr_mull. Qed.
 
 End LersifField.
 
-Variant itv_bound (T : Type) : Type := BOpen_if of bool & T | BInfty.
+Monomorphic Variant itv_bound (T : Type) : Type := BOpen_if of bool & T | BInfty.
 Notation BOpen := (BOpen_if true).
 Notation BClose := (BOpen_if false).
-Variant interval (T : Type) := Interval of itv_bound T & itv_bound T.
+Monomorphic Variant interval (T : Type) := Interval of itv_bound T & itv_bound T.
 
 (* We provide the 9 following notations to help writing formal intervals *)
 Notation "`[ a , b ]" := (Interval (BClose a) (BClose b))
@@ -281,47 +283,47 @@ Notation "`] -oo , '+oo' [" := (Interval (BInfty _) (BInfty _))
 
 Section IntervalEq.
 
-Variable T : eqType.
+Monomorphic Variable T : eqType.
 
-Definition eq_itv_bound (b1 b2 : itv_bound T) : bool :=
+Monomorphic Definition eq_itv_bound (b1 b2 : itv_bound T) : bool :=
   match b1, b2 with
     | BOpen_if a x, BOpen_if b y => (a == b) && (x == y)
     | BInfty, BInfty => true
     | _, _ => false
   end.
 
-Lemma eq_itv_boundP : Equality.axiom eq_itv_bound.
+Monomorphic Lemma eq_itv_boundP : Equality.axiom eq_itv_bound.
 Proof.
 move=> b1 b2; apply: (iffP idP).
 - by move: b1 b2 => [a x |] [b y |] => //= /andP [] /eqP -> /eqP ->.
 - by move=> <-; case: b1 => //= a x; rewrite !eqxx.
 Qed.
 
-Canonical itv_bound_eqMixin := EqMixin eq_itv_boundP.
-Canonical itv_bound_eqType :=
+Monomorphic Canonical itv_bound_eqMixin := EqMixin eq_itv_boundP.
+Monomorphic Canonical itv_bound_eqType :=
   Eval hnf in EqType (itv_bound T) itv_bound_eqMixin.
 
-Definition eqitv (x y : interval T) : bool :=
+Monomorphic Definition eqitv (x y : interval T) : bool :=
   let: Interval x x' := x in
   let: Interval y y' := y in (x == y) && (x' == y').
 
-Lemma eqitvP : Equality.axiom eqitv.
+Monomorphic Lemma eqitvP : Equality.axiom eqitv.
 Proof.
 move=> x y; apply: (iffP idP).
 - by move: x y => [x x'] [y y'] => //= /andP [] /eqP -> /eqP ->.
 - by move=> <-; case: x => /= x x'; rewrite !eqxx.
 Qed.
 
-Canonical interval_eqMixin := EqMixin eqitvP.
-Canonical interval_eqType := Eval hnf in EqType (interval T) interval_eqMixin.
+Monomorphic Canonical interval_eqMixin := EqMixin eqitvP.
+Monomorphic Canonical interval_eqType := Eval hnf in EqType (interval T) interval_eqMixin.
 
 End IntervalEq.
 
-Section IntervalPo.
+Section IntervalPo1.
 
-Variable R : numDomainType.
+Monomorphic Variable R : numDomainType.
 
-Definition pred_of_itv (i : interval R) : pred R :=
+Monomorphic Definition pred_of_itv (i : interval R) : pred R :=
   [pred x | let: Interval l u := i in
       match l with
         | BOpen_if b lb => lb <= x ?< if b
@@ -331,10 +333,10 @@ Definition pred_of_itv (i : interval R) : pred R :=
         | BOpen_if b ub => x <= ub ?< if b
         | BInfty => true
       end].
-Canonical Structure itvPredType := PredType pred_of_itv.
+Monomorphic Canonical Structure itvPredType := PredType pred_of_itv.
 
 (* we compute a set of rewrite rules associated to an interval *)
-Definition itv_rewrite (i : interval R) x : Type :=
+Monomorphic Definition itv_rewrite (i : interval R) x : Type :=
   let: Interval l u := i in
     (match l with
        | BClose a => (a <= x) * (x < a = false)
@@ -360,6 +362,12 @@ Definition itv_rewrite (i : interval R) x : Type :=
          * (a \in `[a, b]) * (a \in `[a, b[)* (b \in `[a, b]) * (b \in `]a, b])
        | _, _ => forall x : R, x == x
     end)%type.
+
+End IntervalPo1.
+
+Section IntervalPo2.
+
+Variable R : numDomainType.
 
 Definition itv_decompose (i : interval R) x : Prop :=
   let: Interval l u := i in
@@ -435,11 +443,11 @@ Proof. by case: b1 b2 => [[] lr1 |] [[] lr2 |] //; rewrite lersif_anti. Qed.
 
 Lemma itv_xx x bl br :
   Interval (BOpen_if bl x) (BOpen_if br x) =i 
-  if ~~ (bl || br) then pred1 x else pred0.
+  if ~~ (bl || br) then pred1 x else @pred0 R.
 Proof. by move: bl br => [] [] y /=; rewrite !inE lersif_anti. Qed.
 
 Lemma itv_gte ba xa bb xb :  xb <= xa ?< if ~~ (ba || bb) 
-  -> Interval (BOpen_if ba xa) (BOpen_if bb xb) =i pred0.
+  -> Interval (BOpen_if ba xa) (BOpen_if bb xb) =i @pred0 R.
 Proof.
 move=> ? y; rewrite itv_boundlr inE /=.
 by apply/negP => /andP [] lexay /(lersif_trans lexay); rewrite lersifNF.
@@ -508,25 +516,25 @@ Lemma subitvPl (a1 a2 b : itv_bound R) :
 Proof. by move=> lea; apply: subitvP; rewrite /= lea /=. Qed.
 
 Lemma lersif_in_itv ba bb xa xb x :
-  x \in Interval (BOpen_if ba xa) (BOpen_if bb xb) ->
+  x \in @Interval R (BOpen_if ba xa) (BOpen_if bb xb) ->
         xa <= xb ?< if ba || bb.
 Proof. by case: ba bb => [] [] /itvP /= ->. Qed.
 
 Lemma ltr_in_itv ba bb xa xb x :
-  ba || bb -> x \in Interval (BOpen_if ba xa) (BOpen_if bb xb) -> xa < xb.
+  ba || bb -> x \in @Interval R (BOpen_if ba xa) (BOpen_if bb xb) -> xa < xb.
 Proof. by move=> bab /lersif_in_itv; rewrite bab. Qed.
 
 Lemma ler_in_itv ba bb xa xb x :
-  x \in Interval (BOpen_if ba xa) (BOpen_if bb xb) -> xa <= xb.
+  x \in @Interval R (BOpen_if ba xa) (BOpen_if bb xb) -> xa <= xb.
 Proof. by move/lersif_in_itv/lersifW. Qed.
 
-Lemma mem0_itvcc_xNx x : (0 \in `[-x, x]) = (0 <= x).
+Lemma mem0_itvcc_xNx (x:R) : (0 \in `[-x, x]) = (0 <= x).
 Proof. by rewrite !inE /= oppr_le0 andbb. Qed.
 
-Lemma mem0_itvoo_xNx x : 0 \in `](-x), x[ = (0 < x).
+Lemma mem0_itvoo_xNx (x:R) : 0 \in `](-x), x[ = (0 < x).
 Proof. by rewrite !inE /= oppr_lt0 andbb. Qed.
 
-Lemma itv_splitI : forall a b x,
+Lemma itv_splitI : forall a b (x:R),
   x \in Interval a b =
   (x \in Interval a (BInfty _)) && (x \in Interval (BInfty _) b).
 Proof. by move=> [? ?|] [? ?|] ?; rewrite !inE ?andbT. Qed.
@@ -548,7 +556,7 @@ Proof. exact: oppr_itv. Qed.
 Lemma oppr_itvcc (a b x : R) : (-x \in `[a, b]) = (x \in `[(-b), (-a)]).
 Proof. exact: oppr_itv. Qed.
 
-End IntervalPo.
+End IntervalPo2.
 
 Section IntervalOrdered.
 
@@ -601,7 +609,7 @@ Qed.
 Lemma itv_intersectionA : associative (@itv_intersection R).
 Proof.
 move=> [x x'] [y y'] [z z'] /=; congr Interval;
-  do !case: ifP => //=; do 1?congruence.
+  do !case: ifP => //=; do 1? solve [by move=> ? ->].
 - by move=> lexy leyz; rewrite (le_boundl_trans lexy leyz).
 - move=> gtxy lexz gtyz _; apply/eqP; rewrite -le_boundl_anti lexz /=.
   move: (le_boundl_total y z) (le_boundl_total x y).
@@ -612,12 +620,12 @@ move=> [x x'] [y y'] [z z'] /=; congr Interval;
   by rewrite gtxy' gtyz'; apply: le_boundr_trans.
 Qed.
 
-Canonical itv_intersection_monoid :=
-  Monoid.Law itv_intersectionA (@itv_intersection1i R) (@itv_intersectioni1 R).
-
-Canonical itv_intersection_comoid := Monoid.ComLaw itv_intersectionC.
-
 End IntervalOrdered.
+
+Monomorphic Canonical itv_intersection_monoid R :=
+  Monoid.Law (@itv_intersectionA R) (@itv_intersection1i R) (@itv_intersectioni1 R).
+
+Monomorphic Canonical itv_intersection_comoid R := Monoid.ComLaw (@itv_intersectionC R).
 
 Section IntervalField.
 

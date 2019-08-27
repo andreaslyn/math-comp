@@ -16,7 +16,7 @@ From mathcomp Require Import fintype finfun bigop ssralg countalg ssrnum poly.
 (*                convertible to x *+ n if m is Posz n                        *)
 (*                convertible to x *- n.+1 if m is Negz n.                    *)
 (*       m%:~R == the image of m : int in a generic ring (:= 1 *~ m).         *)
-(*       x ^ m == x to the m, with m : int;                                   *)
+(*       x ** m == x to the m, with m : int;                                   *)
 (*                convertible to x ^+ n if m is Posz n                        *)
 (*                convertible to x ^- n.+1 if m is Negz n.                    *)
 (*       sgz x == sign of x : R,                                              *)
@@ -40,11 +40,17 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Import GRing.Theory Num.Theory.
+
+Declare Scope int_scope.
 Delimit Scope int_scope with Z.
 Local Open Scope int_scope.
 
+Local Unset Elimination Schemes.
+
 (* Defining int *)
 Variant int : Set := Posz of nat | Negz of nat.
+
+Local Set Elimination Schemes.
 (* This must be deferred to module DistInt to work around the design flaws of *)
 (* the Coq module system.                                                     *)
 (* Coercion Posz : nat >-> int. *)
@@ -63,28 +69,28 @@ Notation "n != m :> 'in' 't'" := (Posz n != Posz m)
 Notation "n <> m :> 'in' 't'" := (Posz n <> Posz m)
   (at level 70, m at next level, format "n  <>  m  :>  'in' 't'") : ring_scope.
 
-Definition natsum_of_int (m : int) : nat + nat :=
+Monomorphic Definition natsum_of_int (m : int) : nat + nat :=
   match m with Posz p => inl _ p | Negz n => inr _ n end.
 
-Definition int_of_natsum (m : nat + nat) :=
+Monomorphic Definition int_of_natsum (m : nat + nat) :=
   match m with inl p => Posz p | inr n => Negz n end.
 
-Lemma natsum_of_intK : cancel natsum_of_int int_of_natsum.
+Monomorphic Lemma natsum_of_intK : cancel natsum_of_int int_of_natsum.
 Proof. by case. Qed.
 
-Definition int_eqMixin := CanEqMixin natsum_of_intK.
-Definition int_countMixin := CanCountMixin natsum_of_intK.
-Definition int_choiceMixin := CountChoiceMixin int_countMixin.
-Canonical int_eqType := Eval hnf in EqType int int_eqMixin.
-Canonical int_choiceType := Eval hnf in ChoiceType int int_choiceMixin.
-Canonical int_countType := Eval hnf in CountType int int_countMixin.
+Monomorphic Definition int_eqMixin := CanEqMixin natsum_of_intK.
+Monomorphic Definition int_countMixin := CanCountMixin natsum_of_intK.
+Monomorphic Definition int_choiceMixin := CountChoiceMixin int_countMixin.
+Monomorphic Canonical int_eqType := Eval hnf in EqType int int_eqMixin.
+Monomorphic Canonical int_choiceType := Eval hnf in ChoiceType int int_choiceMixin.
+Monomorphic Canonical int_countType := Eval hnf in CountType int int_countMixin.
 
-Lemma eqz_nat (m n : nat) : (m%:Z == n%:Z) = (m == n). Proof. by []. Qed.
+Monomorphic Lemma eqz_nat (m n : nat) : (m%:Z == n%:Z) = (m == n). Proof. by []. Qed.
 
 Module intZmod.
-Section intZmod.
+Section intZmod1.
 
-Definition addz (m n : int) :=
+Monomorphic Definition addz (m n : int) :=
   match m, n with
     | Posz m', Posz n' => Posz (m' + n')
     | Negz m', Negz n' => Negz (m' + n').+1
@@ -92,7 +98,7 @@ Definition addz (m n : int) :=
     | Negz n', Posz m' => if n' < m' then Posz (m' - n'.+1) else Negz (n' - m')
   end.
 
-Definition oppz m := nosimpl
+Monomorphic Definition oppz m := nosimpl
   match m with
     | Posz n => if n is (n'.+1)%N then Negz n' else Posz 0
     | Negz n => Posz (n.+1)%N
@@ -105,13 +111,13 @@ Local Notation "+%Z" := (@addz) : int_scope.
 Local Notation "x + y" := (addz x y) : int_scope.
 Local Notation "x - y" := (x + - y) : int_scope.
 
-Lemma PoszD : {morph Posz : m n / (m + n)%N >-> m + n}. Proof. by []. Qed.
+Monomorphic Lemma PoszD : {morph Posz : m n / (m + n)%N >-> m + n}. Proof. by []. Qed.
 
 Local Coercion Posz : nat >-> int.
 
-Lemma NegzE (n : nat) : Negz n = - n.+1. Proof. by []. Qed.
+Monomorphic Lemma NegzE (n : nat) : Negz n = - n.+1. Proof. by []. Qed.
 
-Lemma int_rect (P : int -> Type) :
+Monomorphic Lemma int_rect (P : int -> Type) :
   P 0 -> (forall n : nat, P n -> P (n.+1))
   -> (forall n : nat, P (- n) -> P (- (n.+1)))
   -> forall n : int, P n.
@@ -119,13 +125,26 @@ Proof.
 by move=> P0 hPp hPn []; elim=> [|n ihn]//; do ?[apply: hPn | apply: hPp].
 Qed.
 
-Definition int_rec := int_rect.
-Definition int_ind := int_rect.
+Monomorphic Definition int_rec := int_rect.
+Monomorphic Definition int_ind := int_rect.
 
-Variant int_spec (x : int) : int -> Type :=
+Monomorphic Variant int_spec (x : int) : int -> Type :=
 | ZintNull of x = 0 : int_spec x 0
 | ZintPos n of x = n.+1 : int_spec x n.+1
 | ZintNeg n of x = - (n.+1)%:Z : int_spec x (- n.+1).
+
+End intZmod1.
+
+Section intZmod2.
+
+Local Notation "0" := (Posz 0) : int_scope.
+Local Notation "-%Z" := (@oppz) : int_scope.
+Local Notation "- x" := (oppz x) : int_scope.
+Local Notation "+%Z" := (@addz) : int_scope.
+Local Notation "x + y" := (addz x y) : int_scope.
+Local Notation "x - y" := (x + - y) : int_scope.
+
+Local Coercion Posz : nat >-> int.
 
 Lemma intP x : int_spec x x. Proof. by move: x=> [] []; constructor. Qed.
 
@@ -186,14 +205,14 @@ Proof. by case: n=> // n _ /=; rewrite subn1. Qed.
 
 Definition Mixin := ZmodMixin addzA addzC add0z addNz.
 
-End intZmod.
+End intZmod2.
 End intZmod.
 
-Canonical int_ZmodType := ZmodType int intZmod.Mixin.
+Monomorphic Canonical int_ZmodType := ZmodType int intZmod.Mixin.
 
 Local Open Scope ring_scope.
 
-Section intZmoduleTheory.
+Section intZmoduleTheory1.
 
 Local Coercion Posz : nat >-> int.
 
@@ -212,40 +231,47 @@ Qed.
 Definition int_rec := int_rect.
 Definition int_ind := int_rect.
 
-Variant int_spec (x : int) : int -> Type :=
+End intZmoduleTheory1.
+
+Section intZmoduleTheory2.
+
+Local Coercion Posz : nat >-> int.
+
+Monomorphic Variant int_spec (x : int) : int -> Type :=
 | ZintNull : int_spec x 0
 | ZintPos n : int_spec x n.+1
 | ZintNeg n : int_spec x (- (n.+1)%:Z).
 
-Lemma intP x : int_spec x x.
+Monomorphic Lemma intP x : int_spec x x.
 Proof. by move: x=> [] [] *; rewrite ?NegzE; constructor. Qed.
 
-Definition oppz_add := (@opprD [zmodType of int]).
+Monomorphic Definition oppz_add := (@opprD [zmodType of int]).
 
-Lemma subzn (m n : nat) : (n <= m)%N -> m%:Z - n%:Z = (m - n)%N.
+Monomorphic Lemma subzn (m n : nat) : (n <= m)%N -> m%:Z - n%:Z = (m - n)%N.
 Proof.
 elim: n=> //= [|n ihn] hmn; first by rewrite subr0 subn0.
 rewrite subnS -addn1 !PoszD opprD addrA ihn 1?ltnW //.
 by rewrite intZmod.predn_int // subn_gt0.
 Qed.
 
-Lemma subzSS (m n : nat) : m.+1%:Z - n.+1%:Z = m%:Z - n%:Z.
+Monomorphic Lemma subzSS (m n : nat) : m.+1%:Z - n.+1%:Z = m%:Z - n%:Z.
 Proof. by elim: n m=> [|n ihn] m //; rewrite !subzn. Qed.
 
-End intZmoduleTheory.
+End intZmoduleTheory2.
 
 Module intRing.
-Section intRing.
 
-Local Coercion Posz : nat >-> int.
-
-Definition mulz (m n : int) :=
+Monomorphic Definition mulz (m n : int) :=
   match m, n with
     | Posz m', Posz n' => (m' * n')%N%:Z
     | Negz m', Negz n' => (m'.+1%N * n'.+1%N)%N%:Z
     | Posz m', Negz n' => - (m' * (n'.+1%N))%N%:Z
     | Negz n', Posz m' => - (m' * (n'.+1%N))%N%:Z
   end.
+
+Section intRing.
+
+Local Coercion Posz : nat >-> int.
 
 Local Notation "1" := (1%N:int) : int_scope.
 Local Notation "*%Z" := (@mulz) : int_scope.
@@ -297,8 +323,8 @@ Definition comMixin := ComRingMixin mulzA mulzC mul1z mulz_addl nonzero1z.
 End intRing.
 End intRing.
 
-Canonical int_Ring := Eval hnf in RingType int intRing.comMixin.
-Canonical int_comRing := Eval hnf in ComRingType int intRing.mulzC.
+Monomorphic Canonical int_Ring := Eval hnf in RingType int intRing.comMixin.
+Monomorphic Canonical int_comRing := Eval hnf in ComRingType int intRing.mulzC.
 
 Section intRingTheory.
 
@@ -315,12 +341,13 @@ Proof. exact: intZmod.predn_int. Qed.
 End intRingTheory.
 
 Module intUnitRing.
+
+Monomorphic Definition unitz := [qualify a n : int | (n == 1) || (n == -1)].
+Monomorphic Definition invz n : int := n.
+
 Section intUnitRing.
 Implicit Types m n : int.
 Local Coercion Posz : nat >-> int.
-
-Definition unitz := [qualify a n : int | (n == 1) || (n == -1)].
-Definition invz n : int := n.
 
 Lemma mulVz : {in unitz, left_inverse 1%R invz *%R}.
 Proof. by move=> n /pred2P[] ->. Qed.
@@ -348,33 +375,31 @@ Definition comMixin := ComUnitRingMixin mulVz unitzPl invz_out.
 End intUnitRing.
 End intUnitRing.
 
-Canonical int_unitRingType :=
+Monomorphic Canonical int_unitRingType :=
   Eval hnf in UnitRingType int intUnitRing.comMixin.
-Canonical int_comUnitRing := Eval hnf in [comUnitRingType of int].
-Canonical int_iDomain :=
+Monomorphic Canonical int_comUnitRing := Eval hnf in [comUnitRingType of int].
+Monomorphic Canonical int_iDomain :=
   Eval hnf in IdomainType int intUnitRing.idomain_axiomz.
 
-Canonical int_countZmodType := [countZmodType of int].
-Canonical int_countRingType := [countRingType of int].
-Canonical int_countComRingType := [countComRingType of int].
-Canonical int_countUnitRingType := [countUnitRingType of int].
-Canonical int_countComUnitRingType := [countComUnitRingType of int].
-Canonical int_countIdomainType := [countIdomainType of int].
+Monomorphic Canonical int_countZmodType := [countZmodType of int].
+Monomorphic Canonical int_countRingType := [countRingType of int].
+Monomorphic Canonical int_countComRingType := [countComRingType of int].
+Monomorphic Canonical int_countUnitRingType := [countUnitRingType of int].
+Monomorphic Canonical int_countComUnitRingType := [countComUnitRingType of int].
+Monomorphic Canonical int_countIdomainType := [countIdomainType of int].
 
-Definition absz m := match m with Posz p => p | Negz n => n.+1 end.
+Monomorphic Definition absz m := match m with Posz p => p | Negz n => n.+1 end.
+
+Declare Scope distn_scope.
+
 Notation "m - n" :=
   (@GRing.add int_ZmodType m%N (@GRing.opp int_ZmodType n%N)) : distn_scope.
 Arguments absz m%distn_scope.
 Local Notation "`| m |" := (absz m) : nat_scope.
 
 Module intOrdered.
-Section intOrdered.
-Implicit Types m n p : int.
-Local Coercion Posz : nat >-> int.
 
-Local Notation normz m := (absz m)%:Z.
-
-Definition lez m n :=
+Monomorphic Definition lez m n :=
   match m, n with
     | Posz m', Posz n' => (m' <= n')%N
     | Posz m', Negz n' => false
@@ -382,13 +407,19 @@ Definition lez m n :=
     | Negz m', Negz n' => (n' <= m')%N
   end.
 
-Definition ltz m n :=
+Monomorphic Definition ltz m n :=
   match m, n with
     | Posz m', Posz n' => (m' < n')%N
     | Posz m', Negz n' => false
     | Negz m', Posz n' => true
     | Negz m', Negz n' => (n' < m')%N
   end.
+
+Section intOrdered.
+Implicit Types m n p : int.
+Local Coercion Posz : nat >-> int.
+
+Local Notation normz m := (absz m)%:Z.
 
 Fact lez_norm_add x y : lez (normz (x + y)) (normz x + normz y).
 Proof.
@@ -428,15 +459,16 @@ Proof.
 by move: x y=> [] x [] y //=; rewrite (ltn_neqAle, leq_eqVlt) // eq_sym.
 Qed.
 
-Definition Mixin :=
+End intOrdered.
+
+Monomorphic Definition Mixin :=
    NumMixin lez_norm_add ltz_add eq0_normz (in2W lez_total) normzM
             lez_def ltz_def.
 
 End intOrdered.
-End intOrdered.
 
-Canonical int_numDomainType := NumDomainType int intOrdered.Mixin.
-Canonical int_realDomainType := RealDomainType int (intOrdered.lez_total 0).
+Monomorphic Canonical int_numDomainType := NumDomainType int intOrdered.Mixin.
+Monomorphic Canonical int_realDomainType := RealDomainType int (intOrdered.lez_total 0).
 
 Section intOrderedTheory.
 
@@ -491,7 +523,7 @@ End intOrderedTheory.
 Bind Scope ring_scope with int.
 
 (* definition of intmul *)
-Definition intmul (R : zmodType) (x : R) (n : int) := nosimpl
+Monomorphic Definition intmul (R : zmodType) (x : R) (n : int) := nosimpl
   match n with
     | Posz n => (x *+ n)%R
     | Negz n => (x *- (n.+1))%R
@@ -510,7 +542,7 @@ Proof. by []. Qed.
 Lemma nmulrn (R : zmodType) (x : R) (n : nat) : x *- n = x *~ - n%:Z.
 Proof. by case: n=> [] //; rewrite ?oppr0. Qed.
 
-Section ZintLmod.
+Section ZintLmod1.
 
 Definition zmodule (M : Type) : Type := M.
 Local Notation "M ^z" := (zmodule M) (at level 2, format "M ^z") : type_scope.
@@ -561,49 +593,59 @@ rewrite -?(opprD) ?(add0r, addr0, mulrnDr, subn0) //.
 * by rewrite -addnS -addSn mulrnDr.
 Qed.
 
-Definition Mint_LmodMixin :=
+End ZintLmod1.
+
+Monomorphic Definition Mint_LmodMixin (M:zmodType) :=
   @LmodMixin _ [zmodType of M] (fun n x => x *~ n)
-   mulrzA_C mulr1z mulrzDr mulrzDl.
-Canonical Mint_LmodType := LmodType int M^z Mint_LmodMixin.
+   (@mulrzA_C M) (@mulr1z M) (@mulrzDr M) (@mulrzDl M).
+Monomorphic Canonical Mint_LmodType (M:zmodType) :=
+  LmodType int (zmodule M) (@Mint_LmodMixin M).
+
+Section ZintLmod2.
+
+Local Notation "M ^z" := (zmodule M) (at level 2, format "M ^z") : type_scope.
+Local Coercion Posz : nat >-> int.
+
+Variable M : zmodType.
 
 Lemma scalezrE n x : n *: (x : M^z) = x *~ n. Proof. by []. Qed.
 
-Lemma mulrzA x m n :  x *~ (m * n) = x *~ m *~ n.
+Lemma mulrzA x m n :  x *~ (m * n) = x *~ m *~ n :> M.
 Proof. by rewrite -!scalezrE scalerA mulrC. Qed.
 
-Lemma mulr0z x : x *~ 0 = 0. Proof. by []. Qed.
+Lemma mulr0z x : x *~ 0 = 0 :> M. Proof. by []. Qed.
 
 Lemma mul0rz n : 0 *~ n = 0 :> M.
 Proof. by rewrite -scalezrE scaler0. Qed.
 
-Lemma mulrNz x n : x *~ (- n) = - (x *~ n).
+Lemma mulrNz x n : x *~ (- n) = - (x *~ n) :> M.
 Proof. by rewrite -scalezrE scaleNr. Qed.
 
-Lemma mulrN1z x : x *~ (- 1) = - x. Proof. by rewrite -scalezrE scaleN1r. Qed.
+Lemma mulrN1z x : x *~ (- 1) = - x :> M. Proof. by rewrite -scalezrE scaleN1r. Qed.
 
-Lemma mulNrz x n : (- x) *~ n = - (x *~ n).
+Lemma mulNrz x n : (- x) *~ n = - (x *~ n) :> M.
 Proof. by rewrite -scalezrE scalerN. Qed.
 
-Lemma mulrzBr x m n : x *~ (m - n) = x *~ m - x *~ n.
+Lemma mulrzBr x m n : x *~ (m - n) = x *~ m - x *~ n :> M.
 Proof. by rewrite -scalezrE scalerBl. Qed.
 
-Lemma mulrzBl x y n : (x - y) *~ n = x *~ n - y *~ n.
+Lemma mulrzBl x y n : (x - y) *~ n = x *~ n - y *~ n :> M.
 Proof. by rewrite -scalezrE scalerBr. Qed.
 
-Lemma mulrz_nat (n : nat) x : x *~ n%:R = x *+ n.
+Lemma mulrz_nat (n : nat) x : x *~ n%:R = x *+ n :> M.
 Proof. by rewrite -scalezrE scaler_nat. Qed.
 
 Lemma mulrz_sumr : forall x I r (P : pred I) F,
-  x *~ (\sum_(i <- r | P i) F i) = \sum_(i <- r | P i) x *~ F i.
+  x *~ (\sum_(i <- r | P i) F i) = \sum_(i <- r | P i) x *~ F i :> M.
 Proof. by rewrite -/M^z; apply: scaler_suml. Qed.
 
 Lemma mulrz_suml : forall n I r (P : pred I) (F : I -> M),
   (\sum_(i <- r | P i) F i) *~ n= \sum_(i <- r | P i) F i *~ n.
 Proof. by rewrite -/M^z; apply: scaler_sumr. Qed.
 
-Canonical intmul_additive x := Additive (@mulrzBr x).
+End ZintLmod2.
 
-End ZintLmod.
+Monomorphic Canonical intmul_additive M x := Additive (@mulrzBr M x).
 
 Lemma ffunMzE (I : finType) (M : zmodType) (f : {ffun I -> M}) z x :
   (f *~ z) x = f x *~ z.
@@ -659,11 +701,13 @@ Lemma intmul1_is_rmorphism : rmorphism ( *~%R (1 : R)).
 Proof.
 by do ?split; move=> // x y /=; rewrite ?intrD ?mulrNz ?intrM.
 Qed.
-Canonical intmul1_rmorphism := RMorphism intmul1_is_rmorphism.
 
 Lemma mulr2z n : n *~ 2 = n + n. Proof. exact: mulr2n. Qed.
 
 End RintMod.
+
+Monomorphic Canonical intmul1_rmorphism R :=
+  RMorphism (@intmul1_is_rmorphism R).
 
 Lemma mulrzz m n : m *~ n = m * n. Proof. by rewrite -mulrzr intz. Qed.
 
@@ -974,13 +1018,13 @@ End MorphTheory.
 
 Arguments intr_inj {R} [x1 x2].
 
-Definition exprz (R : unitRingType) (x : R) (n : int) := nosimpl
+Monomorphic Definition exprz (R : unitRingType) (x : R) (n : int) := nosimpl
   match n with
     | Posz n => x ^+ n
     | Negz n => x ^- (n.+1)
   end.
 
-Notation "x ^ n" := (exprz x n) : ring_scope.
+Notation "x ** n" := (exprz x n) : ring_scope.
 
 Section ExprzUnitRing.
 
@@ -989,54 +1033,54 @@ Implicit Types x y : R.
 Implicit Types m n : int.
 Local Coercion Posz : nat >-> int.
 
-Lemma exprnP x (n : nat) : x ^+ n = x ^ n. Proof. by []. Qed.
+Lemma exprnP x (n : nat) : x ^+ n = x ** n. Proof. by []. Qed.
 
-Lemma exprnN x (n : nat) : x ^- n = x ^ -n%:Z.
+Lemma exprnN x (n : nat) : x ^- n = x ** -n%:Z.
 Proof. by case: n=> //; rewrite oppr0 expr0 invr1. Qed.
 
-Lemma expr0z x : x ^ 0 = 1. Proof. by []. Qed.
+Lemma expr0z x : x ** 0 = 1. Proof. by []. Qed.
 
-Lemma expr1z x : x ^ 1 = x. Proof. by []. Qed.
+Lemma expr1z x : x ** 1 = x. Proof. by []. Qed.
 
-Lemma exprN1 x : x ^ (-1) = x^-1. Proof. by []. Qed.
+Lemma exprN1 x : x ** (-1) = x^-1. Proof. by []. Qed.
 
-Lemma invr_expz x n : (x ^ n)^-1 = x ^ (- n).
+Lemma invr_expz x n : (x ** n)^-1 = x ** (- n).
 Proof.
 by case: (intP n)=> // [|m]; rewrite ?opprK ?expr0z ?invr1 // invrK.
 Qed.
 
-Lemma exprz_inv x n : (x^-1) ^ n = x ^ (- n).
+Lemma exprz_inv x n : (x^-1) ** n = x ** (- n).
 Proof.
-by case: (intP n)=> // m; rewrite -[_ ^ (- _)]exprVn ?opprK ?invrK.
+by case: (intP n)=> // m; rewrite -[_ ** (- _)]exprVn ?opprK ?invrK.
 Qed.
 
-Lemma exp1rz n : 1 ^ n = 1 :> R.
+Lemma exp1rz n : 1 ** n = 1 :> R.
 Proof.
 by case: (intP n)=> // m; rewrite -?exprz_inv ?invr1; apply: expr1n.
 Qed.
 
-Lemma exprSz x (n : nat) : x ^ n.+1 = x * x ^ n. Proof. exact: exprS. Qed.
+Lemma exprSz x (n : nat) : x ** n.+1 = x * x ** n. Proof. exact: exprS. Qed.
 
-Lemma exprSzr x (n : nat) : x ^ n.+1 = x ^ n * x.
+Lemma exprSzr x (n : nat) : x ** n.+1 = x ** n * x.
 Proof. exact: exprSr. Qed.
 
-Fact exprzD_nat x (m n : nat) : x ^ (m%:Z + n) = x ^ m * x ^ n.
+Fact exprzD_nat x (m n : nat) : x ** (m%:Z + n) = x ** m * x ** n.
 Proof. exact: exprD. Qed.
 
-Fact exprzD_Nnat x (m n : nat) : x ^ (-m%:Z + -n%:Z) = x ^ (-m%:Z) * x ^ (-n%:Z).
+Fact exprzD_Nnat x (m n : nat) : x ** (-m%:Z + -n%:Z) = x ** (-m%:Z) * x ** (-n%:Z).
 Proof. by rewrite -opprD -!exprz_inv exprzD_nat. Qed.
 
 Lemma exprzD_ss x m n : (0 <= m) && (0 <= n) || (m <= 0) && (n <= 0)
-  ->  x ^ (m + n) = x ^ m * x ^ n.
+  ->  x ** (m + n) = x ** m * x ** n.
 Proof.
 case: (intP m)=> {m} [|m|m]; case: (intP n)=> {n} [|n|n] //= _;
 by rewrite ?expr0z ?mul1r ?exprzD_nat ?exprzD_Nnat ?sub0r ?addr0 ?mulr1.
 Qed.
 
-Lemma exp0rz n : 0 ^ n = (n == 0)%:~R :> R.
+Lemma exp0rz n : 0 ** n = (n == 0)%:~R :> R.
 Proof. by case: (intP n)=> // m; rewrite -?exprz_inv ?invr0 exprSz mul0r. Qed.
 
-Lemma commrXz x y n : GRing.comm x y -> GRing.comm x (y ^ n).
+Lemma commrXz x y n : GRing.comm x y -> GRing.comm x (y ** n).
 Proof.
 rewrite /GRing.comm; elim: n x y=> [|n ihn|n ihn] x y com_xy //=.
 * by rewrite expr0z mul1r mulr1.
@@ -1047,7 +1091,7 @@ by apply/eqP; rewrite (can2_eq (mulrVK _) (mulrK _)) // -mulrA com_xy mulKr.
 Qed.
 
 Lemma exprMz_comm x y n : x \is a GRing.unit -> y \is a GRing.unit ->
-  GRing.comm x y -> (x * y) ^ n = x ^ n * y ^ n.
+  GRing.comm x y -> (x * y) ** n = x ** n * y ** n.
 Proof.
 move=> ux uy com_xy; elim: n => [|n _|n _]; first by rewrite expr0z mulr1.
   by rewrite -!exprnP exprMn_comm.
@@ -1056,19 +1100,19 @@ exact/commrV/commr_sym/commrV.
 Qed.
 
 Lemma commrXz_wmulls x y n :
-  0 <= n -> GRing.comm x y -> (x * y) ^ n = x ^ n * y ^ n.
+  0 <= n -> GRing.comm x y -> (x * y) ** n = x ** n * y ** n.
 Proof.
 move=> n0 com_xy; elim: n n0 => [|n _|n _] //; first by rewrite expr0z mulr1.
 by rewrite -!exprnP exprMn_comm.
 Qed.
 
-Lemma unitrXz x n (ux : x \is a GRing.unit) : x ^ n \is a GRing.unit.
+Lemma unitrXz x n (ux : x \is a GRing.unit) : x ** n \is a GRing.unit.
 Proof.
 case: (intP n)=> {n} [|n|n]; rewrite ?expr0z ?unitr1 ?unitrX //.
 by rewrite -invr_expz unitrV unitrX.
 Qed.
 
-Lemma exprzDr x (ux : x \is a GRing.unit) m n : x ^ (m + n) = x ^ m * x ^ n.
+Lemma exprzDr x (ux : x \is a GRing.unit) m n : x ** (m + n) = x ** m * x ** n.
 Proof.
 move: n m; apply: wlog_ler=> n m hnm.
   by rewrite addrC hnm commrXz //; apply: commr_sym; apply: commrXz.
@@ -1081,7 +1125,7 @@ case: (leqP n m)=> [|/ltnW] hmn; rewrite -{2}(subnK hmn) exprzD_nat -subzn //.
 by rewrite invrM ?unitrXz // mulVKr ?unitrXz // -opprB -invr_expz.
 Qed.
 
-Lemma exprz_exp x m n : (x ^ m) ^ n = (x ^ (m * n)).
+Lemma exprz_exp x m n : (x ** m) ** n = (x ** (m * n)).
 Proof.
 wlog: n / 0 <= n.
   by case: n=> [n -> //|n]; rewrite ?NegzE mulrN -?invr_expz=> -> /=.
@@ -1090,11 +1134,11 @@ rewrite exprSz ihn // intS mulrDr mulr1 exprzD_ss //.
 by case: (intP m)=> // m'; rewrite ?oppr_le0 //.
 Qed.
 
-Lemma exprzAC x m n : (x ^ m) ^ n = (x ^ n) ^ m.
+Lemma exprzAC x m n : (x ** m) ** n = (x ** n) ** m.
 Proof. by rewrite !exprz_exp mulrC. Qed.
 
 Lemma exprz_out x n (nux : x \isn't a GRing.unit) (hn : 0 <= n) :
-  x ^ (- n) = x ^ n.
+  x ** (- n) = x ** n.
 Proof. by case: (intP n) hn=> //= m; rewrite -exprnN -exprVn invr_out. Qed.
 
 End ExprzUnitRing.
@@ -1106,29 +1150,29 @@ Implicit Types x y : R.
 Implicit Types m n : int.
 Local Coercion Posz : nat >-> int.
 
-Lemma exprz_pmulzl x m n : 0 <= n -> (x *~ m) ^ n = x ^ n *~ (m ^ n).
+Lemma exprz_pmulzl x m n : 0 <= n -> (x *~ m) ** n = x ** n *~ (m ** n).
 Proof.
 by elim: n=> [|n ihn|n _] // _; rewrite !exprSz ihn // mulrzAr mulrzAl -mulrzA.
 Qed.
 
-Lemma exprz_pintl m n (hn : 0 <= n) : m%:~R ^ n = (m ^ n)%:~R :> R.
+Lemma exprz_pintl m n (hn : 0 <= n) : m%:~R ** n = (m ** n)%:~R :> R.
 Proof. by rewrite exprz_pmulzl // exp1rz. Qed.
 
 Lemma exprzMzl x m n (ux : x \is a GRing.unit) (um : m%:~R \is a @GRing.unit R):
-   (x *~ m) ^ n = (m%:~R ^ n) * x ^ n :> R.
+   (x *~ m) ** n = (m%:~R ** n) * x ** n :> R.
 Proof.
 rewrite -[x *~ _]mulrzl exprMz_comm //.
 by apply: commr_sym; apply: commr_int.
 Qed.
 
-Lemma expNrz x n : (- x) ^ n = (-1) ^ n * x ^ n :> R.
+Lemma expNrz x n : (- x) ** n = (-1) ** n * x ** n :> R.
 Proof.
 case: n=> [] n; rewrite ?NegzE; first by apply: exprNn.
 by rewrite -!exprz_inv !invrN invr1; apply: exprNn.
 Qed.
 
 Lemma unitr_n0expz x n :
-  n != 0 -> (x ^ n \is a GRing.unit) = (x \is a GRing.unit).
+  n != 0 -> (x ** n \is a GRing.unit) = (x \is a GRing.unit).
 Proof.
 by case: n => *; rewrite ?NegzE -?exprz_inv ?unitrX_pos ?unitrV ?lt0n.
 Qed.
@@ -1140,7 +1184,7 @@ by case: (intP n)=> // [|[]|[]] //; rewrite ?rmorphN ?invrN (invr0, invr1).
 Qed.
 
 Lemma rmorphXz (R' : unitRingType) (f : {rmorphism R -> R'}) n :
-  {in GRing.unit, {morph f : x / x ^ n}}.
+  {in GRing.unit, {morph f : x / x ** n}}.
 Proof. by case: n => n x Ux; rewrite ?rmorphV ?rpredX ?rmorphX. Qed.
 
 End Exprz_Zint_UnitRing.
@@ -1152,19 +1196,19 @@ Implicit Types x y : R.
 Implicit Types m n : int.
 Local Coercion Posz : nat >-> int.
 
-Lemma expfz_eq0 x n : (x ^ n == 0) = (n != 0) && (x == 0).
+Lemma expfz_eq0 x n : (x ** n == 0) = (n != 0) && (x == 0).
 Proof.
 by case: n=> n; rewrite ?NegzE -?exprz_inv ?expf_eq0 ?lt0n ?invr_eq0.
 Qed.
 
-Lemma expfz_neq0 x n : x != 0 -> x ^ n != 0.
+Lemma expfz_neq0 x n : x != 0 -> x ** n != 0.
 Proof. by move=> x_nz; rewrite expfz_eq0; apply/nandP; right. Qed.
 
 Lemma exprzMl x y n (ux : x \is a GRing.unit) (uy : y \is a GRing.unit) :
-  (x * y) ^ n = x ^ n * y ^ n.
+  (x * y) ** n = x ** n * y ** n.
 Proof. by rewrite exprMz_comm //; apply: mulrC. Qed.
 
-Lemma expfV (x : R) (i : int) : (x ^ i) ^-1 = (x ^-1) ^ i.
+Lemma expfV (x : R) (i : int) : (x ** i) ^-1 = (x ^-1) ** i.
 Proof. by rewrite invr_expz exprz_inv. Qed.
 
 End ExprzIdomain.
@@ -1176,10 +1220,10 @@ Implicit Types x y : F.
 Implicit Types m n : int.
 Local Coercion Posz : nat >-> int.
 
-Lemma expfzDr x m n : x != 0 -> x ^ (m + n) = x ^ m * x ^ n.
+Lemma expfzDr x m n : x != 0 -> x ** (m + n) = x ** m * x ** n.
 Proof. by move=> hx; rewrite exprzDr ?unitfE. Qed.
 
-Lemma expfz_n0addr x m n : m + n != 0 -> x ^ (m + n) = x ^ m * x ^ n.
+Lemma expfz_n0addr x m n : m + n != 0 -> x ** (m + n) = x ** m * x ** n.
 Proof.
 have [-> hmn|nx0 _] := eqVneq x 0; last exact: expfzDr.
 rewrite !exp0rz (negPf hmn).
@@ -1187,7 +1231,7 @@ case: (altP (m =P 0)) hmn=> [->|]; rewrite (mul0r, mul1r) //.
 by rewrite add0r=> /negPf->.
 Qed.
 
-Lemma expfzMl x y n : (x * y) ^ n = x ^ n * y ^ n.
+Lemma expfzMl x y n : (x * y) ** n = x ** n * y ** n.
 Proof.
 have [->|/negPf n0] := eqVneq n 0; first by rewrite !expr0z mulr1.
 case: (boolP ((x * y) == 0)); rewrite ?mulf_eq0.
@@ -1196,7 +1240,7 @@ by case/norP=> x0 y0; rewrite exprzMl ?unitfE.
 Qed.
 
 Lemma fmorphXz (R : unitRingType) (f : {rmorphism F -> R}) n :
-  {morph f : x / x ^ n}.
+  {morph f : x / x ** n}.
 Proof. by case: n => n x; rewrite ?fmorphV rmorphX. Qed.
 
 End ExprzField.
@@ -1209,10 +1253,10 @@ Implicit Types m n : int.
 Local Coercion Posz : nat >-> int.
 
 (* ler and exprz *)
-Lemma exprz_ge0 n x (hx : 0 <= x) : (0 <= x ^ n).
+Lemma exprz_ge0 n x (hx : 0 <= x) : (0 <= x ** n).
 Proof. by case: n=> n; rewrite ?NegzE -?invr_expz ?invr_ge0 ?exprn_ge0. Qed.
 
-Lemma exprz_gt0 n x (hx : 0 < x) : (0 < x ^ n).
+Lemma exprz_gt0 n x (hx : 0 < x) : (0 < x ** n).
 Proof. by case: n=> n; rewrite ?NegzE -?invr_expz ?invr_gt0 ?exprn_gt0. Qed.
 
 Definition exprz_gte0 := (exprz_ge0, exprz_gt0).
@@ -1254,11 +1298,11 @@ move=> m n /= hmn; case: (lerP 0 m)=> [|/ltrW] hm.
   by rewrite ler_wpeexpz2l // [_ \in _](ler_trans hm).
 case: (lerP n 0)=> [|/ltrW] hn.
   by rewrite ler_wneexpz2l // [_ \in _](ler_trans hmn).
-apply: (@ler_trans _ (x ^ 0)); first by rewrite ler_wneexpz2l.
+apply: (@ler_trans _ (x ** 0)); first by rewrite ler_wneexpz2l.
 by rewrite ler_wpeexpz2l.
 Qed.
 
-Lemma pexprz_eq1 x n (x0 : 0 <= x) : (x ^ n == 1) = ((n == 0) || (x == 1)).
+Lemma pexprz_eq1 x n (x0 : 0 <= x) : (x ** n == 1) = ((n == 0) || (x == 1)).
 Proof.
 case: n=> n; rewrite ?NegzE -?exprz_inv ?oppr_eq0 pexprn_eq1 // ?invr_eq1 //.
 by rewrite invr_ge0.
@@ -1267,7 +1311,7 @@ Qed.
 Lemma ieexprIz x (x0 : 0 < x) (nx1 : x != 1) : injective (exprz x).
 Proof.
 apply: wlog_ltr=> // m n hmn; first by move=> hmn'; rewrite hmn.
-move=> /(f_equal ( *%R^~ (x ^ (- n)))).
+move=> /(f_equal ( *%R^~ (x ** (- n)))).
 rewrite -!expfzDr ?gtr_eqF // subrr expr0z=> /eqP.
 by rewrite pexprz_eq1 ?(ltrW x0) // (negPf nx1) subr_eq0 orbF=> /eqP.
 Qed.
@@ -1323,7 +1367,7 @@ move=> x y; rewrite ![_ \in _]le0r=> /orP [/eqP-> _ /eqP|hx].
   by rewrite exp0rz ?(negPf n0) eq_sym expfz_eq0=> /andP [_ /eqP->].
 case/orP=> [/eqP-> /eqP|hy].
   by rewrite exp0rz ?(negPf n0) expfz_eq0=> /andP [_ /eqP].
-move=> /(f_equal ( *%R^~ (y ^ (- n)))) /eqP.
+move=> /(f_equal ( *%R^~ (y ** (- n)))) /eqP.
 rewrite -expfzDr ?(gtr_eqF hy) // subrr expr0z -exprz_inv -expfzMl.
 rewrite pexprz_eq1 ?(negPf n0) /= ?mulr_ge0 ?invr_ge0 ?ltrW //.
 by rewrite (can2_eq (mulrVK _) (mulrK _)) ?unitfE ?(gtr_eqF hy) // mul1r=> /eqP.
@@ -1335,7 +1379,7 @@ move=> x y; rewrite ![_ \in _]ler_eqVlt => /orP [/eqP -> _ /eqP|hx].
   by rewrite exp0rz ?(negPf n0) eq_sym expfz_eq0=> /andP [_ /eqP->].
 case/orP=> [/eqP -> /eqP|hy].
   by rewrite exp0rz ?(negPf n0) expfz_eq0=> /andP [_ /eqP].
-move=> /(f_equal ( *%R^~ (y ^ (- n)))) /eqP.
+move=> /(f_equal ( *%R^~ (y ** (- n)))) /eqP.
 rewrite -expfzDr ?(ltr_eqF hy) // subrr expr0z -exprz_inv -expfzMl.
 rewrite pexprz_eq1 ?(negPf n0) /= ?mulr_le0 ?invr_le0 ?ltrW //.
 by rewrite (can2_eq (mulrVK _) (mulrK _)) ?unitfE ?(ltr_eqF hy) // mul1r=> /eqP.
@@ -1366,12 +1410,15 @@ Lemma ltr_nexpz2r n (hn : n < 0) :
 Proof. exact: lerW_nmono_in (ler_nexpz2r _). Qed.
 
 Lemma eqr_expz2 n x y : n != 0 -> 0 <= x -> 0 <= y ->
-  (x ^ n == y ^ n) = (x == y).
+  (x ** n == y ** n) = (x == y).
 Proof. by  move=> *; rewrite (inj_in_eq (pexpIrz _)). Qed.
 
 End ExprzOrder.
 
 Local Notation sgr := Num.sg.
+
+Monomorphic Definition sgz (R : numDomainType) (x : R) : int :=
+  if x == 0 then 0 else if x < 0 then -1 else 1.
 
 Section Sgz.
 
@@ -1379,8 +1426,6 @@ Variable R : numDomainType.
 Implicit Types x y z : R.
 Implicit Types m n p : int.
 Local Coercion Posz : nat >-> int.
-
-Definition sgz x : int := if x == 0 then 0 else if x < 0 then -1 else 1.
 
 Lemma sgz_def x : sgz x = (-1) ^+ (x < 0)%R *+ (x != 0).
 Proof. by rewrite /sgz; case: (_ == _); case: (_ < _). Qed.
@@ -1400,7 +1445,7 @@ Lemma sgzN1 : sgz (-1 : R) = -1. Proof. by rewrite ltr0_sgz // ltrN10. Qed.
 Definition sgzE := (sgz0, sgz1, sgzN1).
 
 Lemma sgz_sgr x : sgz (sgr x) = sgz x.
-Proof. by rewrite !(fun_if sgz) !sgzE. Qed.
+Proof. by rewrite !(fun_if (@sgz R)) !sgzE. Qed.
 
 Lemma normr_sgz x : `|sgz x| = (x != 0).
 Proof. by rewrite sgz_def -mulr_natr normrMsign normr_nat natz. Qed.
@@ -1427,29 +1472,37 @@ Proof. by rewrite !(fun_if (@sgz _)). Qed.
 
 End MoreSgz.
 
-Section SgzReal.
+Section SgzReal1.
 
-Variable R : realDomainType.
-Implicit Types x y z : R.
-Implicit Types m n p : int.
+Monomorphic Variable R : realDomainType.
+Implicit Type x : R.
 Local Coercion Posz : nat >-> int.
 
-Lemma sgz_cp0 x :
+Monomorphic Lemma sgz_cp0 x :
   ((sgz x == 1) = (0 < x)) *
   ((sgz x == -1) = (x < 0)) *
   ((sgz x == 0) = (x == 0)).
 Proof. by rewrite /sgz; case: ltrgtP. Qed.
 
-Variant sgz_val x : bool -> bool -> bool -> bool -> bool -> bool
+Monomorphic Variant sgz_val x : bool -> bool -> bool -> bool -> bool -> bool
   -> bool -> bool -> bool -> bool -> bool -> bool
   -> bool -> bool -> bool -> bool -> bool -> bool
-  -> R -> R -> int -> Set :=
+  -> R -> R -> int -> Type :=
   | SgzNull of x = 0 : sgz_val x true true true true false false
     true false false true false false true false false true false false 0 0 0
   | SgzPos of x > 0 : sgz_val x false false true false false true
     false false true false false true false false true false false true x 1 1
   | SgzNeg of x < 0 : sgz_val x false true false false true false
     false true false false true false false true false false true false (-x) (-1) (-1).
+
+End SgzReal1.
+
+Section SgzReal2.
+
+Variable R : realDomainType.
+Implicit Types x y z : R.
+Implicit Types m n p : int.
+Local Coercion Posz : nat >-> int.
 
 Lemma sgzP x :
   sgz_val x (0 == x) (x <= 0) (0 <= x) (x == 0) (x < 0) (0 < x)
@@ -1519,7 +1572,7 @@ Proof. by rewrite -mulrzl sgzM -sgrEz sgz_sgr. Qed.
 Lemma sgrMz m x : sgr (x *~ m) = sgr x *~ sgr m.
 Proof. by rewrite -mulrzr sgrM -intr_sg mulrzr. Qed.
 
-End SgzReal.
+End SgzReal2.
 
 Lemma sgz_eq (R R' : realDomainType) (x : R) (y : R') :
   (sgz x == sgz y) = ((x == 0) == (y == 0)) && ((0 < x) == (0 < y)).
@@ -1555,7 +1608,7 @@ Lemma absz_id m : `|(`|m|)| = `|m|. Proof. by []. Qed.
 Lemma abszM m1 m2 : `|(m1 * m2)%R| = `|m1| * `|m2|.
 Proof. by case: m1 m2 => [[|m1]|m1] [[|m2]|m2] //=; rewrite ?mulnS mulnC. Qed.
 
-Lemma abszX (n : nat) m : `|m ^+ n| = `|m| ^ n.
+Lemma abszX (n : nat) m : `|m ^+ n| = `|m| ** n.
 Proof. by elim: n => // n ihn; rewrite exprS expnS abszM ihn. Qed.
 
 Lemma absz_sg m : `|sgr m| = (m != 0%R). Proof. by case: (intP m). Qed.
@@ -1676,11 +1729,11 @@ Lemma leqif_add_dist n1 n2 n3 :
              ?= iff (n1 <= n2 <= n3) || (n3 <= n2 <= n1).
 Proof. exact: leqif_add_distz. Qed.
 
-Lemma sqrn_dist n1 n2 : `|n1 - n2| ^ 2 + 2 * (n1 * n2) = n1 ^ 2 + n2 ^ 2.
+Lemma sqrn_dist n1 n2 : `|n1 - n2| ** 2 + 2 * (n1 * n2) = n1 ** 2 + n2 ** 2.
 Proof.
 wlog le_n21: n1 n2 / n2 <= n1.
   move=> IH; case/orP: (leq_total n2 n1) => /IH //.
-  by rewrite (addnC (n2 ^ 2)) (mulnC n2) distnC.
+  by rewrite (addnC (n2 ** 2)) (mulnC n2) distnC.
 by rewrite distnEl ?sqrn_sub ?subnK ?nat_Cauchy.
 Qed.
 
@@ -1698,7 +1751,7 @@ Proof. by rewrite {2}[m]intEsign rmorphMsign normrMsign abszE normr_nat. Qed.
 Lemma normrMz m (x : R) : `|x *~ m| = `|x| *~ `|m|.
 Proof. by rewrite -mulrzl normrM -intr_norm mulrzl. Qed.
 
-Lemma expN1r (i : int) : (-1 : R) ^ i = (-1) ^+ `|i|.
+Lemma expN1r (i : int) : (-1 : R) ** i = (-1) ^+ `|i|.
 Proof.
 case: i => n; first by rewrite exprnP absz_nat.
 by rewrite NegzE abszN  absz_nat -invr_expz expfV invrN1.
@@ -1745,19 +1798,19 @@ End PolyZintOIdom.
 
 Section ZnatPred.
 
-Definition Znat := [qualify a n : int | 0 <= n].
-Fact Znat_key : pred_key Znat. by []. Qed.
-Canonical Znat_keyd := KeyedQualifier Znat_key.
+Monomorphic Definition Znat := [qualify a n : int | 0 <= n].
+Monomorphic Fact Znat_key : pred_key Znat. by []. Qed.
+Monomorphic Canonical Znat_keyd := KeyedQualifier Znat_key.
 
-Lemma Znat_def n : (n \is a Znat) = (0 <= n). Proof. by []. Qed.
+Monomorphic Lemma Znat_def n : (n \is a Znat) = (0 <= n). Proof. by []. Qed.
 
-Lemma Znat_semiring_closed : semiring_closed Znat.
+Monomorphic Lemma Znat_semiring_closed : semiring_closed Znat.
 Proof. by do 2?split => //; [apply: addr_ge0 | apply: mulr_ge0]. Qed.
-Canonical Znat_addrPred := AddrPred Znat_semiring_closed.
-Canonical Znat_mulrPred := MulrPred Znat_semiring_closed.
-Canonical Znat_semiringPred := SemiringPred Znat_semiring_closed.
+Monomorphic Canonical Znat_addrPred := AddrPred Znat_semiring_closed.
+Monomorphic Canonical Znat_mulrPred := MulrPred Znat_semiring_closed.
+Monomorphic Canonical Znat_semiringPred := SemiringPred Znat_semiring_closed.
 
-Lemma ZnatP (m : int) : reflect (exists n : nat, m = n) (m \is a Znat).
+Monomorphic Lemma ZnatP (m : int) : reflect (exists n : nat, m = n) (m \is a Znat).
 Proof. by apply: (iffP idP) => [|[n -> //]]; case: m => // n; exists n. Qed.
 
 End ZnatPred.
@@ -1778,11 +1831,11 @@ Lemma rpredZint (R : ringType) (M : lmodType R) S
 Proof. by move=> u Su; rewrite /= scaler_int rpredMz. Qed.
 
 Lemma rpredXz R S (divS : @divrPred R S) (kS : keyed_pred divS) m :
-  {in kS, forall x, x ^ m \in kS}.
+  {in kS, forall x, x ** m \in kS}.
 Proof. by case: m => n x Sx; rewrite ?rpredV rpredX. Qed.
 
 Lemma rpredXsign R S (divS : @divrPred R S) (kS : keyed_pred divS) n x :
-  (x ^ ((-1) ^+ n) \in kS) = (x \in kS).
+  (x ** ((-1) ^+ n) \in kS) = (x \in kS).
 Proof. by rewrite -signr_odd; case: (odd n); rewrite ?rpredV. Qed.
 
 End rpred.

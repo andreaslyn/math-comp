@@ -2073,7 +2073,6 @@ Let mxdirect_sums_recP (S_ : I -> mxsum_expr F n n) :
   reflect (forall i, P i -> mxdirect (unwrap (S_ i)) /\ TIsum (unwrap \o S_) i)
           (mxdirect (\sum_(i | P i) (unwrap (S_ i)))%MS).
 Proof.
-Unset Printing Universes.
 rewrite /TIsum; apply: (iffP eqnP) => /= [dxS i Pi | dxS].
   set Si' := (\sum_(j | _) unwrap (S_ j))%MS.
   have: mxdirect (unwrap (S_ i) + Si') by apply/eqnP; rewrite /= -!(bigD1 i).

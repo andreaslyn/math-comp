@@ -60,30 +60,30 @@ Import GroupScope.
 
 Section Defs.
 
-Variables gT : finGroupType.
+Monomorphic Variables gT : finGroupType.
 Implicit Types A B C : {set gT}.
 
-Definition partial_product A B :=
+Monomorphic Definition partial_product A B :=
   if A == 1 then B else if B == 1 then A else
   if [&& group_set A, group_set B & B \subset 'N(A)] then A * B else set0.
 
-Definition semidirect_product A B :=
+Monomorphic Definition semidirect_product A B :=
   if A :&: B \subset 1%G then partial_product A B else set0.
 
-Definition central_product A B :=
+Monomorphic Definition central_product A B :=
   if B \subset 'C(A) then partial_product A B else set0.
 
-Definition direct_product A B :=
+Monomorphic Definition direct_product A B :=
   if A :&: B \subset 1%G then central_product A B else set0.
 
-Definition complements_to_in A B :=
+Monomorphic Definition complements_to_in A B :=
   [set K : {group gT} | A :&: K == 1 & A * K == B].
 
-Definition splits_over B A := complements_to_in A B != set0.
+Monomorphic Definition splits_over B A := complements_to_in A B != set0.
 
 (* Product remainder functions -- right variant only. *)
-Definition remgr A B x := repr (A :* x :&: B).
-Definition divgr A B x := x * (remgr A B x)^-1.
+Monomorphic Definition remgr A B x := repr (A :* x :&: B).
+Monomorphic Definition divgr A B x := x * (remgr A B x)^-1.
 
 End Defs.
 
@@ -113,7 +113,7 @@ Notation "[ 'splits' B , 'over' A ]" := (splits_over B A)
 (* Prenex Implicits remgl divgl. *)
 Prenex Implicits remgr divgr.
 
-Section InternalProd.
+Section InternalProd1.
 
 Variable gT : finGroupType.
 Implicit Types A B C : {set gT}.
@@ -570,8 +570,23 @@ rewrite /= mulgA mulG_subG centM subsetI cGH cHK andbT -(cent_joinEr cHK).
 by rewrite -(cent_joinEr cGH) !groupP.
 Qed.
 
-Canonical cprod_law := Monoid.Law cprodA cprod1g cprodg1.
-Canonical cprod_abelaw := Monoid.ComLaw cprodC.
+End InternalProd1.
+
+Monomorphic Canonical cprod_law (gT : finGroupType) :=
+  Monoid.Law (@cprodA gT) (@cprod1g gT) (@cprodg1 gT).
+Monomorphic Canonical cprod_abelaw (gT : finGroupType) :=
+  Monoid.ComLaw (@cprodC gT).
+
+Section InternalProd2.
+
+Variable gT : finGroupType.
+Implicit Types A B C : {set gT}.
+Implicit Types G H K L M : {group gT}.
+
+Local Notation pprod := (partial_product gT).
+Local Notation sdprod := (semidirect_product gT) (only parsing).
+Local Notation cprod := (central_product gT) (only parsing).
+Local Notation dprod := (direct_product gT) (only parsing).
 
 Lemma cprod_modl A B G H :
   A \* B = G -> A \subset H -> A \* (B :&: H) = G :&: H.
@@ -737,8 +752,23 @@ rewrite setIC group_modr ?joing_subl //= eHK -(cent_joinEr cGH).
 by rewrite -group_modl ?joing_subr //= setIC (normC (sub1G _)) mulgS.
 Qed.
 
-Canonical dprod_law := Monoid.Law dprodA dprod1g dprodg1.
-Canonical dprod_abelaw := Monoid.ComLaw dprodC.
+End InternalProd2.
+
+Monomorphic Canonical dprod_law (gT : finGroupType) :=
+  Monoid.Law (@dprodA gT) (@dprod1g gT) (@dprodg1 gT).
+Monomorphic Canonical dprod_abelaw (gT : finGroupType) :=
+  Monoid.ComLaw (@dprodC gT).
+
+Section InternalProd3.
+
+Variable gT : finGroupType.
+Implicit Types A B C : {set gT}.
+Implicit Types G H K L M : {group gT}.
+
+Local Notation pprod := (partial_product gT).
+Local Notation sdprod := (semidirect_product gT) (only parsing).
+Local Notation cprod := (central_product gT) (only parsing).
+Local Notation dprod := (direct_product gT) (only parsing).
 
 Lemma bigdprodWcp I (r : seq I) P F G :
   \big[dprod/1]_(i <- r | P i) F i = G -> \big[cprod/1]_(i <- r | P i) F i = G.
@@ -863,7 +893,7 @@ move/(congr1 (divgr K H)) : eq_ce; move/bigdprodW: defH => defH.
 by rewrite !divgrMid // -?defK -?defH ?mem_prodg // => *; rewrite ?Fc ?Fe.
 Qed.
 
-End InternalProd.
+End InternalProd3.
 
 Arguments complP {gT H A B}.
 Arguments splitsP {gT B A}.
@@ -977,59 +1007,68 @@ Proof. exact: morphim_coprime_dprod. Qed.
 
 End QuotientInternalProd.
 
-Section ExternalDirProd.
+Section ExternalDirProd1.
 
-Variables gT1 gT2 : finGroupType.
+Monomorphic Variables gT1 gT2 : finGroupType.
 
-Definition extprod_mulg (x y : gT1 * gT2) := (x.1 * y.1, x.2 * y.2).
-Definition extprod_invg (x : gT1 * gT2) := (x.1^-1, x.2^-1).
+Monomorphic Definition extprod_mulg (x y : gT1 * gT2) := (x.1 * y.1, x.2 * y.2).
+Monomorphic Definition extprod_invg (x : gT1 * gT2) := (x.1^-1, x.2^-1).
 
-Lemma extprod_mul1g : left_id (1, 1) extprod_mulg.
+Monomorphic Lemma extprod_mul1g : left_id (1, 1) extprod_mulg.
 Proof. by case=> x1 x2; congr (_, _); apply: mul1g. Qed.
 
-Lemma extprod_mulVg : left_inverse (1, 1) extprod_invg extprod_mulg.
+Monomorphic Lemma extprod_mulVg : left_inverse (1, 1) extprod_invg extprod_mulg.
 Proof. by move=> x; congr (_, _); apply: mulVg. Qed.
 
-Lemma extprod_mulgA : associative extprod_mulg.
+Monomorphic Lemma extprod_mulgA : associative extprod_mulg.
 Proof. by move=> x y z; congr (_, _); apply: mulgA. Qed.
 
-Definition extprod_groupMixin :=
+Monomorphic Definition extprod_groupMixin :=
   Eval hnf in FinGroup.Mixin extprod_mulgA extprod_mul1g extprod_mulVg.
-Canonical extprod_baseFinGroupType :=
+Monomorphic Canonical extprod_baseFinGroupType :=
   Eval hnf in BaseFinGroupType (gT1 * gT2) extprod_groupMixin.
-Canonical prod_group := FinGroupType extprod_mulVg.
+Monomorphic Canonical prod_group := FinGroupType extprod_mulVg.
 
-Lemma group_setX (H1 : {group gT1}) (H2 : {group gT2}) : group_set (setX H1 H2).
+Monomorphic Lemma group_setX (H1 : {group gT1}) (H2 : {group gT2}) : group_set (setX H1 H2).
 Proof.
 apply/group_setP; split; first by rewrite inE !group1.
 case=> [x1 x2] [y1 y2]; rewrite !inE; case/andP=> Hx1 Hx2; case/andP=> Hy1 Hy2.
 by rewrite /= !groupM.
 Qed.
 
-Canonical setX_group H1 H2 := Group (group_setX H1 H2).
+Monomorphic Canonical setX_group H1 H2 := Group (group_setX H1 H2).
 
-Definition pairg1 x : gT1 * gT2 := (x, 1).
-Definition pair1g x : gT1 * gT2 := (1, x).
+Monomorphic Definition pairg1 x : gT1 * gT2 := (x, 1).
+Monomorphic Definition pair1g x : gT1 * gT2 := (1, x).
 
-Lemma pairg1_morphM : {morph pairg1 : x y / x * y}.
+Monomorphic Lemma pairg1_morphM : {morph pairg1 : x y / x * y}.
 Proof. by move=> x y /=; rewrite {2}/mulg /= /extprod_mulg /= mul1g. Qed.
 
-Canonical pairg1_morphism := @Morphism _ _ setT _ (in2W pairg1_morphM).
+Monomorphic Canonical pairg1_morphism := @Morphism _ _ setT _ (in2W pairg1_morphM).
 
-Lemma pair1g_morphM : {morph pair1g : x y / x * y}.
+Monomorphic Lemma pair1g_morphM : {morph pair1g : x y / x * y}.
 Proof. by move=> x y /=; rewrite {2}/mulg /= /extprod_mulg /= mul1g. Qed.
 
-Canonical pair1g_morphism := @Morphism _ _ setT _ (in2W pair1g_morphM).
+Monomorphic Canonical pair1g_morphism := @Morphism _ _ setT _ (in2W pair1g_morphM).
 
-Lemma fst_morphM : {morph (@fst gT1 gT2) : x y / x * y}.
+Monomorphic Lemma fst_morphM : {morph (@fst gT1 gT2) : x y / x * y}.
 Proof. by move=> x y. Qed.
 
-Lemma snd_morphM : {morph (@snd gT1 gT2) : x y / x * y}.
+Monomorphic Lemma snd_morphM : {morph (@snd gT1 gT2) : x y / x * y}.
 Proof. by move=> x y. Qed.
 
-Canonical fst_morphism := @Morphism _ _ setT _ (in2W fst_morphM).
+Monomorphic Canonical fst_morphism := @Morphism _ _ setT _ (in2W fst_morphM).
 
-Canonical snd_morphism := @Morphism _ _ setT _ (in2W snd_morphM).
+Monomorphic Canonical snd_morphism := @Morphism _ _ setT _ (in2W snd_morphM).
+
+End ExternalDirProd1.
+
+Section ExternalDirProd2.
+
+Variables gT1 gT2 : finGroupType.
+
+Local Notation pair1g := (@pair1g gT1 gT2).
+Local Notation pairg1 := (@pairg1 gT1 gT2).
 
 Lemma injm_pair1g : 'injm pair1g.
 Proof. by apply/subsetP=> x /morphpreP[_ /set1P[->]]; apply: set11. Qed.
@@ -1044,7 +1083,7 @@ Lemma morphim_pair1g (H2 : {set gT2}) : pair1g @* H2 = setX 1 H2.
 Proof. by rewrite -imset2_pair imset2_set1l morphimEsub ?subsetT. Qed.
 
 Lemma morphim_fstX (H1: {set gT1}) (H2 : {group gT2}) : 
-  [morphism of fun x => x.1] @* setX H1 H2 = H1.
+ (@clone_morphism _ _ _ (fst_morphism gT1 gT2) (@Morphism _ _ _ fst)) @* setX H1 H2 = H1.
 Proof.
 apply/eqP; rewrite eqEsubset morphimE setTI /=.
 apply/andP; split; apply/subsetP=> x.
@@ -1054,7 +1093,7 @@ by rewrite in_setX Hx1 /=.
 Qed.
 
 Lemma morphim_sndX (H1: {group gT1}) (H2 : {set gT2}) : 
-  [morphism of fun x => x.2] @* setX H1 H2 = H2.
+  (@clone_morphism _ _ _ (snd_morphism gT1 gT2) (@Morphism _ _ _ snd)) @* setX H1 H2 = H2.
 Proof.
 apply/eqP; rewrite eqEsubset morphimE setTI /=.
 apply/andP; split; apply/subsetP=> x.
@@ -1084,14 +1123,14 @@ apply/trivgP; apply/subsetP=> [[x y]]; rewrite !inE /= -!andbA.
 by case/and4P=> _ /eqP-> /eqP->; rewrite eqxx.
 Qed.
 
-Lemma isog_setX1 (H1 : {group gT1}) : isog H1 (setX H1 1).
+Lemma isog_setX1 (H1 : {group gT1}) : @isog gT1 (prod_group gT1 gT2) H1 (setX H1 1).
 Proof.
 apply/isogP; exists [morphism of restrm (subsetT H1) pairg1].
   by rewrite injm_restrm ?injm_pairg1.
 by rewrite morphim_restrm morphim_pairg1 setIid.
 Qed.
 
-Lemma isog_set1X (H2 : {group gT2}) : isog H2 (setX 1 H2).
+Lemma isog_set1X (H2 : {group gT2}) : @isog gT2 (prod_group gT1 gT2) H2 (setX 1 H2).
 Proof.
 apply/isogP; exists [morphism of restrm (subsetT H2) pair1g].
   by rewrite injm_restrm ?injm_pair1g.
@@ -1107,37 +1146,48 @@ rewrite -setX_prod -morphim_pair1g -morphim_pairg1 !morphim_gen ?subsetT //.
 by rewrite morphim_pair1g morphim_pairg1 mul_subG // genS // setXS ?sub1set.
 Qed.
 
-End ExternalDirProd.
+End ExternalDirProd2.
 
-Section ExternalSDirProd.
+Section ExternalSDirProd1.
 
-Variables (aT rT : finGroupType) (D : {group aT}) (R : {group rT}).
+Monomorphic Variables (aT rT : finGroupType) (D : {group aT}) (R : {group rT}).
 
 (* The pair (a, x) denotes the product sdpair2 a * sdpair1 x *)
 
-Inductive sdprod_by (to : groupAction D R) : predArgType :=
+Monomorphic Inductive sdprod_by (to : groupAction D R) : predArgType :=
    SdPair (ax : aT * rT) of ax \in setX D R.
 
-Coercion pair_of_sd to (u : sdprod_by to) := let: SdPair ax _ := u in ax.
+Monomorphic Coercion pair_of_sd to (u : sdprod_by to) := let: SdPair ax _ := u in ax.
 
-Variable to : groupAction D R.
+Monomorphic Variable to : groupAction D R.
 
 Notation sdT := (sdprod_by to).
 Notation sdval := (@pair_of_sd to).
 
-Canonical sdprod_subType := Eval hnf in [subType for sdval].
-Definition sdprod_eqMixin := Eval hnf in [eqMixin of sdT by <:].
-Canonical sdprod_eqType := Eval hnf in EqType sdT sdprod_eqMixin.
-Definition sdprod_choiceMixin := [choiceMixin of sdT by <:].
-Canonical sdprod_choiceType := ChoiceType sdT sdprod_choiceMixin.
-Definition sdprod_countMixin := [countMixin of sdT by <:].
-Canonical sdprod_countType := CountType sdT sdprod_countMixin.
-Canonical sdprod_subCountType := Eval hnf in [subCountType of sdT].
-Definition sdprod_finMixin := [finMixin of sdT by <:].
-Canonical sdprod_finType := FinType sdT sdprod_finMixin.
-Canonical sdprod_subFinType := Eval hnf in [subFinType of sdT].
+Monomorphic Canonical sdprod_subType := Eval hnf in [subType for sdval].
+Monomorphic Definition sdprod_eqMixin := Eval hnf in [eqMixin of sdT by <:].
+Monomorphic Canonical sdprod_eqType := Eval hnf in EqType sdT sdprod_eqMixin.
+Monomorphic Definition sdprod_choiceMixin := [choiceMixin of sdT by <:].
+Monomorphic Canonical sdprod_choiceType := ChoiceType sdT sdprod_choiceMixin.
+Monomorphic Definition sdprod_countMixin := [countMixin of sdT by <:].
+Monomorphic Canonical sdprod_countType := CountType sdT sdprod_countMixin.
+Monomorphic Canonical sdprod_subCountType := Eval hnf in [subCountType of sdT].
+Monomorphic Definition sdprod_finMixin := [finMixin of sdT by <:].
+Monomorphic Canonical sdprod_finType := FinType sdT sdprod_finMixin.
+Monomorphic Canonical sdprod_subFinType := Eval hnf in [subFinType of sdT].
 
-Definition sdprod_one := SdPair to (group1 _).
+Monomorphic Definition sdprod_one := SdPair to (group1 _).
+
+End ExternalSDirProd1.
+
+Section ExternalSDirProd2.
+
+Variables (aT rT : finGroupType) (D : {group aT}) (R : {group rT}).
+Variable to : groupAction D R.
+
+Notation sdT := (@sdprod_by aT rT D R to).
+Notation sdval := (@pair_of_sd aT rT D R to).
+Notation sdprod_one := (@sdprod_one aT rT D R to).
 
 Lemma sdprod_inv_proof (u : sdT) : (u.1^-1, to u.2^-1 u.1^-1) \in setX D R.
 Proof.
@@ -1174,32 +1224,55 @@ case: v w => [[b y]] /=; case/setXP=> Db Ry [[c z]] /=; case/setXP=> Dc Rz.
 by rewrite !(actMin to) // gactM ?gact_stable // !mulgA.
 Qed.
 
-Canonical sdprod_groupMixin :=
-  FinGroup.Mixin sdprod_mulgA sdprod_mul1g sdprod_mulVg.
-
-Canonical sdprod_baseFinGroupType :=
-  Eval hnf in BaseFinGroupType sdT sdprod_groupMixin.
-
-Canonical sdprod_groupType := FinGroupType sdprod_mulVg.
-
 Definition sdpair1 x := insubd sdprod_one (1, x) : sdT.
 Definition sdpair2 a := insubd sdprod_one (a, 1) : sdT.
 
-Lemma sdpair1_morphM : {in R &, {morph sdpair1 : x y / x * y}}.
+End ExternalSDirProd2.
+
+Section ExternalSDirProd3.
+
+Monomorphic Variables (aT rT : finGroupType) (D : {group aT}) (R : {group rT}).
+Monomorphic Variable to : groupAction D R.
+
+Notation sdT := (@sdprod_by aT rT D R to).
+Notation sdpair1 := (@sdpair1 aT rT D R to).
+Notation sdpair2 := (@sdpair2 aT rT D R to).
+
+Monomorphic Canonical sdprod_groupMixin :=
+  FinGroup.Mixin (@sdprod_mulgA aT rT D R to) (@sdprod_mul1g aT rT D R to) (@sdprod_mulVg aT rT D R to).
+
+Monomorphic Canonical sdprod_baseFinGroupType :=
+  Eval hnf in BaseFinGroupType sdT sdprod_groupMixin.
+
+Monomorphic Canonical sdprod_groupType :=
+  FinGroupType (@sdprod_mulVg aT rT D R to).
+
+Monomorphic Lemma sdpair1_morphM : {in R &, {morph sdpair1 : x y / x * y}}.
 Proof.
 move=> x y Rx Ry; apply: val_inj.
 by rewrite /= !val_insubd !inE !group1 !groupM ?Rx ?Ry //= mulg1 act1.
 Qed.
 
-Lemma sdpair2_morphM : {in D &, {morph sdpair2 : a b / a * b}}.
+Monomorphic Lemma sdpair2_morphM : {in D &, {morph sdpair2 : a b / a * b}}.
 Proof.
 move=> a b Da Db; apply: val_inj.
 by rewrite /= !val_insubd !inE !group1 !groupM ?Da ?Db //= mulg1 gact1.
 Qed.
 
-Canonical sdpair1_morphism := Morphism sdpair1_morphM.
+Monomorphic Canonical sdpair1_morphism := Morphism sdpair1_morphM.
 
-Canonical sdpair2_morphism := Morphism sdpair2_morphM.
+Monomorphic Canonical sdpair2_morphism := Morphism sdpair2_morphM.
+
+End ExternalSDirProd3.
+
+Section ExternalSDirProd4.
+
+Variables (aT rT : finGroupType) (D : {group aT}) (R : {group rT}).
+Variable to : groupAction D R.
+
+Notation sdT := (@sdprod_by aT rT D R to).
+Notation sdpair1 := (@sdpair1 aT rT D R to).
+Notation sdpair2 := (@sdpair2 aT rT D R to).
 
 Lemma injm_sdpair1 : 'injm sdpair1.
 Proof.
@@ -1220,7 +1293,7 @@ by rewrite !val_insubd !inE Da Rx !(group1, gact1) // mulg1 mul1g.
 Qed.
 
 Lemma sdpair_act : {in R & D,
-  forall x a, sdpair1 (to x a) = sdpair1 x ^ sdpair2 a}.
+  forall x a, sdpair1 (to x a) = sdpair1 x ** sdpair2 a}.
 Proof.
 move=> x a Rx Da; apply: val_inj.
 rewrite /= !val_insubd !inE !group1 gact_stable ?Da ?Rx //=.
@@ -1282,7 +1355,7 @@ Lemma astabEsd : 'C(G | to) = sdpair2 @*^-1 'C(sdpair1 @* G).
 Proof.
 have ssGR := subsetP sGR; apply/setP=> a; apply/idP/idP=> [cGa|].
   rewrite mem_morphpre ?(astab_dom cGa) //.
-  apply/centP=> _ /morphimP[x Rx Gx ->]; symmetry.
+  apply/centP=> _ /morphimP[x Rx Gx ->]; rewrite /commute; symmetry.
   by rewrite conjgC -sdpair_act ?(astab_act cGa)  ?(astab_dom cGa).
 case/morphpreP=> Da cGa; rewrite !inE Da; apply/subsetP=> x Gx; rewrite inE.
 apply/eqP; apply: (injmP injm_sdpair1); rewrite ?gact_stable ?ssGR //=.
@@ -1304,9 +1377,9 @@ Qed.
 Lemma actsEsd : [acts A, on G | to] = (sdpair2 @* A \subset 'N(sdpair1 @* G)).
 Proof. by rewrite sub_morphim_pre -?astabsEsd. Qed.
 
-End ExternalSDirProd.
+End ExternalSDirProd4.
 
-Section ProdMorph.
+Section ProdMorph1.
 
 Variables gT rT : finGroupType.
 Implicit Types A B : {set gT}.
@@ -1324,7 +1397,7 @@ Definition pprodm of B \subset 'N(A) & {in A & B, morph_act 'J 'J fA fB}
 
 End defs.
 
-Section Props.
+Section Props1.
 
 Variables H K : {group gT}.
 Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
@@ -1353,12 +1426,45 @@ Lemma pprodmM : {in H <*> K &, {morph f: x y / x * y}}.
 Proof.
 move=> xa yb; rewrite norm_joinEr //.
 move=> /imset2P[x a Ha Ka ->{xa}] /imset2P[y b Hy Kb ->{yb}].
-have Hya: y ^ a^-1 \in H by rewrite -mem_conjg (normsP nHK).
+have Hya: y ** a^-1 \in H by rewrite -mem_conjg (normsP nHK).
 rewrite mulgA -(mulgA x) (conjgCV a y) (mulgA x) -mulgA !pprodmE 1?groupMl //.
 by rewrite morphM // actf ?groupV ?morphV // morphM // !mulgA mulgKV invgK.
 Qed.
 
-Canonical pprodm_morphism := Morphism pprodmM.
+End Props1.
+End ProdMorph1.
+
+Section Props2.
+
+Monomorphic Variables gT rT : finGroupType.
+Monomorphic Variables H K : {group gT}.
+Monomorphic Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Monomorphic Hypothesis nHK : K \subset 'N(H).
+Monomorphic Hypothesis actf : {in H & K, morph_act 'J 'J fH fK}.
+Monomorphic Hypothesis eqfHK : {in H :&: K, fH =1 fK}.
+
+Monomorphic Canonical pprodm_morphism :=
+  Morphism (@pprodmM gT rT H K fH fK nHK actf eqfHK).
+
+End Props2.
+
+Section ProdMorph2.
+
+Variables gT rT : finGroupType.
+Implicit Types A B : {set gT}.
+Implicit Types G H K : {group gT}.
+Implicit Types C D : {set rT}.
+Implicit Type L : {group rT}.
+
+Section Props3.
+
+Variables H K : {group gT}.
+Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Hypothesis nHK : K \subset 'N(H).
+Hypothesis actf : {in H & K, morph_act 'J 'J fH fK}.
+Hypothesis eqfHK : {in H :&: K, fH =1 fK}.
+
+Local Notation f := (pprodm nHK actf eqfHK).
 
 Lemma morphim_pprodm A B :
   A \subset H -> B \subset K -> f @* (A * B) = fH @* A * fK @* B.
@@ -1398,9 +1504,9 @@ Proof.
 apply/idP/and3P=> [injf | [injfH injfK]].
   rewrite eq_sym -{1}morphimIdom -(morphim_pprodml (subsetIl _ _)) injmI //.
   rewrite morphim_pprodml // morphim_pprodmr //=; split=> //.
-    apply/injmP=> x y Hx Hy /=; rewrite -!pprodmEl //.
+    apply/injmP=> x y Hx Hy /=; rewrite -!(@pprodmEl gT rT H K fH fK nHK actf eqfHK) //.
     by apply: (injmP injf); rewrite ?mem_gen ?inE ?Hx ?Hy.
-  apply/injmP=> a b Ka Kb /=; rewrite -!pprodmEr //.
+  apply/injmP=> a b Ka Kb /=; rewrite -!(@pprodmEr gT rT H K fH fK nHK actf eqfHK) //.
   by apply: (injmP injf); rewrite ?mem_gen //; apply/setUP; right.
 move/eqP=> fHK; rewrite ker_pprodm; apply/subsetP=> y.
 case/imset2P=> x a Hx /setIdP[Ka /eqP fxa] ->.
@@ -1410,9 +1516,9 @@ rewrite def_x // eqfHK ?inE ?Hz // in fxa.
 by rewrite def_x // (injmP injfK _ _ Kz Ka fxa) mulgV set11.
 Qed.
 
-End Props.
+End Props3.
 
-Section Sdprodm.
+Section Sdprodm1.
 
 Variables H K G : {group gT}.
 Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
@@ -1430,10 +1536,41 @@ Proof.
 by case/sdprodP: eqHK_G => _ _ _ -> _ /set1P->; rewrite !morph1.
 Qed.
 
-Definition sdprodm :=
-  restrm sdprodm_sub (pprodm sdprodm_norm actf sdprodm_eqf).
+End Sdprodm1.
+End ProdMorph2.
 
-Canonical sdprodm_morphism := Eval hnf in [morphism of sdprodm].
+Section Sdprodm2.
+
+Monomorphic Variables gT rT : finGroupType.
+Monomorphic Variables H K G : {group gT}.
+Monomorphic Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Monomorphic Hypothesis eqHK_G : H ><| K = G.
+Monomorphic Hypothesis actf : {in H & K, morph_act 'J 'J fH fK}.
+
+Monomorphic Definition sdprodm :=
+  restrm (@sdprodm_sub gT H K G eqHK_G)
+    (pprodm (@sdprodm_norm gT H K G eqHK_G) actf (@sdprodm_eqf gT rT H K G fH fK eqHK_G)).
+
+Monomorphic Canonical sdprodm_morphism := Eval hnf in [morphism of sdprodm].
+
+End Sdprodm2.
+
+Section ProdMorph3.
+
+Variables gT rT : finGroupType.
+Implicit Types A B : {set gT}.
+Implicit Types G H K : {group gT}.
+Implicit Types C D : {set rT}.
+Implicit Type L : {group rT}.
+
+Section Sdprodm3.
+
+Variables H K G : {group gT}.
+Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Hypothesis eqHK_G : H ><| K = G.
+Hypothesis actf : {in H & K, morph_act 'J 'J fH fK}.
+
+Local Notation sdprodm := (@sdprodm gT rT H K G fH fK eqHK_G actf).
 
 Lemma sdprodmE a b : a \in H -> b \in K -> sdprodm (a * b) = fH a * fK b.
 Proof. exact: pprodmE. Qed.
@@ -1474,14 +1611,14 @@ Qed.
 Lemma injm_sdprodm :
   'injm sdprodm = [&& 'injm fH, 'injm fK & fH @* H :&: fK @* K == 1].
 Proof.
-rewrite ker_sdprodm -(ker_pprodm sdprodm_norm actf sdprodm_eqf) injm_pprodm.
+rewrite ker_sdprodm -(ker_pprodm (@sdprodm_norm gT H K G eqHK_G) actf (@sdprodm_eqf gT rT H K G fH fK eqHK_G)) injm_pprodm.
 congr [&& _, _ & _ == _]; have [_ _ _ tiHK] := sdprodP eqHK_G.
 by rewrite -morphimIdom tiHK morphim1.
 Qed.
 
-End Sdprodm.
+End Sdprodm3.
 
-Section Cprodm.
+Section Cprodm1.
 
 Variables H K G : {group gT}.
 Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
@@ -1501,9 +1638,43 @@ case/cprodP: eqHK_G => _ _ cHK a b Ha Kb /=.
 by rewrite /conjg -(centsP cHK b) // -(centsP cfHK (fK b)) ?mulKg ?mem_morphim.
 Qed.
 
-Definition cprodm := restrm cprodm_sub (pprodm cprodm_norm cprodm_actf eqfHK).
+End Cprodm1.
+End ProdMorph3.
 
-Canonical cprodm_morphism := Eval hnf in [morphism of cprodm].
+Section Cprodm2.
+
+Monomorphic Variables gT rT : finGroupType.
+Monomorphic Variables H K G : {group gT}.
+Monomorphic Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Monomorphic Hypothesis eqHK_G : H \* K = G.
+Monomorphic Hypothesis cfHK : fK @* K \subset 'C(fH @* H).
+Monomorphic Hypothesis eqfHK : {in H :&: K, fH =1 fK}.
+
+Monomorphic Definition cprodm :=
+  restrm (@cprodm_sub gT H K G eqHK_G) (pprodm (@cprodm_norm gT H K G eqHK_G)
+    (@cprodm_actf gT rT H K G fH fK eqHK_G cfHK) eqfHK).
+
+Monomorphic Canonical cprodm_morphism := Eval hnf in [morphism of cprodm].
+
+End Cprodm2.
+
+Section ProdMorph4.
+
+Variables gT rT : finGroupType.
+Implicit Types A B : {set gT}.
+Implicit Types G H K : {group gT}.
+Implicit Types C D : {set rT}.
+Implicit Type L : {group rT}.
+
+Section Cprodm3.
+
+Variables H K G : {group gT}.
+Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Hypothesis eqHK_G : H \* K = G.
+Hypothesis cfHK : fK @* K \subset 'C(fH @* H).
+Hypothesis eqfHK : {in H :&: K, fH =1 fK}.
+
+Local Notation cprodm := (@cprodm gT rT H K G fH fK eqHK_G cfHK eqfHK).
 
 Lemma cprodmE a b : a \in H -> b \in K -> cprodm (a * b) = fH a * fK b.
 Proof. exact: pprodmE. Qed.
@@ -1545,12 +1716,12 @@ Qed.
 Lemma injm_cprodm :
   'injm cprodm = [&& 'injm fH, 'injm fK & fH @* H :&: fK @* K == fH @* K].
 Proof.
-by rewrite ker_cprodm -(ker_pprodm cprodm_norm cprodm_actf eqfHK) injm_pprodm.
+by rewrite ker_cprodm -(ker_pprodm (@cprodm_norm gT H K G eqHK_G) (@cprodm_actf gT rT H K G fH fK eqHK_G cfHK) eqfHK) injm_pprodm.
 Qed.
 
-End Cprodm.
+End Cprodm3.
 
-Section Dprodm.
+Section Dprodm1.
 
 Variables G H K : {group gT}.
 Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
@@ -1565,9 +1736,39 @@ Qed.
 Lemma dprodm_eqf : {in H :&: K, fH =1 fK}.
 Proof. by case/dprodP: eqHK_G => _ _ _ -> _ /set1P->; rewrite !morph1. Qed.
 
-Definition dprodm := cprodm dprodm_cprod cfHK dprodm_eqf.
+End Dprodm1.
+End ProdMorph4.
 
-Canonical dprodm_morphism := Eval hnf in [morphism of dprodm].
+Section Dprodm2.
+
+Monomorphic Variables gT rT : finGroupType.
+Monomorphic Variables G H K : {group gT}.
+Monomorphic Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Monomorphic Hypothesis eqHK_G : H \x K = G.
+Monomorphic Hypothesis cfHK : fK @* K \subset 'C(fH @* H).
+
+Monomorphic Definition dprodm :=
+  cprodm (@dprodm_cprod gT G H K eqHK_G) cfHK (@dprodm_eqf gT rT G H K fH fK eqHK_G).
+
+Monomorphic Canonical dprodm_morphism := Eval hnf in [morphism of dprodm].
+
+End Dprodm2.
+
+Section ProdMorph5.
+
+Variables gT rT : finGroupType.
+Implicit Types A B : {set gT}.
+Implicit Types G H K : {group gT}.
+Implicit Types C D : {set rT}.
+Implicit Type L : {group rT}.
+Section Dprodm3.
+
+Variables G H K : {group gT}.
+Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+Hypothesis eqHK_G : H \x K = G.
+Hypothesis cfHK : fK @* K \subset 'C(fH @* H).
+
+Local Notation dprodm := (@dprodm gT rT G H K fH fK eqHK_G cfHK).
 
 Lemma dprodmE a b : a \in H -> b \in K -> dprodm (a * b) = fH a * fK b.
 Proof. exact: pprodmE. Qed.
@@ -1601,7 +1802,7 @@ rewrite injm_cprodm -(morphimIdom fH K).
 by case/dprodP: eqHK_G => _ _ _ ->; rewrite morphim1.
 Qed.
 
-End Dprodm.
+End Dprodm3.
 
 Lemma isog_dprod A B G C D L :
   A \x B = G -> C \x D = L -> isog A C -> isog B D -> isog G L.
@@ -1615,9 +1816,9 @@ apply/isogP; exists (dprodm_morphism dG cCD).
 by rewrite /= -{2}defG morphim_dprodm.
 Qed.
 
-End ProdMorph.
+End ProdMorph5.
 
-Section ExtSdprodm.
+Section ExtSdprodm1.
 
 Variables gT aT rT : finGroupType.
 Variables (H : {group gT}) (K : {group aT}) (to : groupAction K H).
@@ -1650,8 +1851,36 @@ move=> fh fk; case/morphimP=> h _ Hh ->{fh}; case/morphimP=> k _ Kk ->{fk}.
 by rewrite /= -sdpair_act // /restrm /= !invmE ?actf ?gact_stable.
 Qed.
 
-Definition xsdprodm := sdprodm (sdprod_sdpair to) xsdprodm_act.
-Canonical xsdprod_morphism := [morphism of xsdprodm].
+End ExtSdprodm1.
+
+Section ExtSdprodm2.
+
+Monomorphic Variables gT aT rT : finGroupType.
+Monomorphic Variables (H : {group gT}) (K : {group aT}) (to : groupAction K H).
+Monomorphic Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+
+Monomorphic Hypothesis actf : {in H & K, morph_act to 'J fH fK}.
+
+Monomorphic Definition xsdprodm :=
+  sdprodm (sdprod_sdpair to) (@xsdprodm_act gT aT rT H K to fH fK actf).
+Monomorphic Canonical xsdprod_morphism := [morphism of xsdprodm].
+
+End ExtSdprodm2.
+
+Section ExtSdprodm3.
+
+Variables gT aT rT : finGroupType.
+Variables (H : {group gT}) (K : {group aT}) (to : groupAction K H).
+Variables (fH : {morphism H >-> rT}) (fK : {morphism K >-> rT}).
+
+Hypothesis actf : {in H & K, morph_act to 'J fH fK}.
+
+Local Notation fsH := (fH \o invm (injm_sdpair1 to)).
+Local Notation fsK := (fK \o invm (injm_sdpair2 to)).
+Let DgH := sdpair1 to @* H.
+Let DgK := sdpair2 to @* K.
+
+Local Notation xsdprodm := (@xsdprodm gT aT rT H K to fH fK actf).
 
 Lemma im_xsdprodm : xsdprodm @* setT = fH @* H * fK @* K.
 Proof. by rewrite -im_sdpair morphim_sdprodm // im_sdprodm1 im_sdprodm2. Qed.
@@ -1664,7 +1893,7 @@ rewrite !morphpre_invm !morphimIim.
 by rewrite !morphim_injm_eq1 ?subsetIl ?injm_sdpair1 ?injm_sdpair2.
 Qed.
 
-End ExtSdprodm.
+End ExtSdprodm3.
 
 Section DirprodIsom.
 
@@ -1689,7 +1918,7 @@ apply: (iffP misomP) => [[pM /isomP[injf /= <-]] | ].
 case/dprodP=> _ defG cH12 trH12.
 have fM: morphic (setX H1 H2) mulgm.
   apply/morphicP=> [[x1 x2] [y1 y2] /setXP[_ Hx2] /setXP[Hy1 _]].
-  by rewrite /= mulgA -(mulgA x1) -(centsP cH12 x2) ?mulgA.
+  by rewrite /mulgm /prod_curry !mulgA -(mulgA x1) -(centsP cH12 x2) ?mulgA.
 exists fM; apply/isomP; split; last by rewrite morphimEsub //= imset_mulgm.
 apply/subsetP=> [[x1 x2]]; rewrite !inE /= andbC -eq_invg_mul.
 case: eqP => //= <-; rewrite groupV -in_setI trH12 => /set1P->.

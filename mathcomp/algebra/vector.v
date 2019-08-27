@@ -98,6 +98,7 @@ Reserved Notation "''Hom' ( T , rT )" (at level 8, format "''Hom' ( T ,  rT )").
 Reserved Notation "''End' ( T )" (at level 8, format "''End' ( T )").
 Reserved Notation "\dim A" (at level 10, A at level 8, format "\dim  A").
 
+Declare Scope vspace_scope.
 Delimit Scope vspace_scope with VS.
 
 Import GRing.Theory.
@@ -106,36 +107,36 @@ Import GRing.Theory.
 Module Vector.
 
 Section ClassDef.
-Variable R : ringType.
+Monomorphic Variable R : ringType.
 
-Definition axiom_def n (V : lmodType R) of phant V :=
+Monomorphic Definition axiom_def n (V : lmodType R) of phant V :=
   {v2r : V -> 'rV[R]_n | linear v2r & bijective v2r}.
 
-Inductive mixin_of (V : lmodType R) := Mixin dim & axiom_def dim (Phant V).
+Monomorphic Inductive mixin_of (V : lmodType R) := Mixin dim & axiom_def dim (Phant V).
 
-Structure class_of V := Class {
+Monomorphic Structure class_of V := Class {
   base : GRing.Lmodule.class_of R V;
   mixin : mixin_of (GRing.Lmodule.Pack _ base)
 }.
 Local Coercion base : class_of >-> GRing.Lmodule.class_of.
 
-Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
+Monomorphic Structure type (phR : phant R) := Pack {sort; _ : class_of sort}.
 Local Coercion sort : type >-> Sortclass.
-Variables (phR : phant R) (T : Type) (cT : type phR).
-Definition class := let: Pack _ c := cT return class_of cT in c.
-Definition clone c of phant_id class c := @Pack phR T c.
-Let xT := let: Pack T _ := cT in T.
+Monomorphic Variables (phR : phant R) (T : Type) (cT : type phR).
+Monomorphic Definition class := let: Pack _ c := cT return class_of cT in c.
+Monomorphic Definition clone c of phant_id class c := @Pack phR T c.
+Monomorphic Let xT := let: Pack T _ := cT in T.
 Notation xclass := (class : class_of xT).
-Definition dim := let: Mixin n _ := mixin class in n.
+Monomorphic Definition dim := let: Mixin n _ := mixin class in n.
 
-Definition pack b0 (m0 : mixin_of (@GRing.Lmodule.Pack R _ T b0)) :=
+Monomorphic Definition pack b0 (m0 : mixin_of (@GRing.Lmodule.Pack R _ T b0)) :=
   fun bT b & phant_id (@GRing.Lmodule.class _ phR bT) b =>
   fun    m & phant_id m0 m => Pack phR (@Class T b m).
 
-Definition eqType := @Equality.Pack cT xclass.
-Definition choiceType := @Choice.Pack cT xclass.
-Definition zmodType := @GRing.Zmodule.Pack cT xclass.
-Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
+Monomorphic Definition eqType := @Equality.Pack cT xclass.
+Monomorphic Definition choiceType := @Choice.Pack cT xclass.
+Monomorphic Definition zmodType := @GRing.Zmodule.Pack cT xclass.
+Monomorphic Definition lmodType := @GRing.Lmodule.Pack R phR cT xclass.
 
 End ClassDef.
 Notation axiom n V := (axiom_def n (Phant V)).
@@ -143,9 +144,9 @@ Notation axiom n V := (axiom_def n (Phant V)).
 Section OtherDefs.
 Local Coercion sort : type >-> Sortclass.
 Local Coercion dim : type >-> nat.
-Inductive space (K : fieldType) (vT : type (Phant K)) (phV : phant vT) :=
+Monomorphic Inductive space (K : fieldType) (vT : type (Phant K)) (phV : phant vT) :=
   Space (mx : 'M[K]_vT) & <<mx>>%MS == mx.
-Inductive hom (R : ringType) (vT wT : type (Phant R)) :=
+Monomorphic Inductive hom (R : ringType) (vT wT : type (Phant R)) :=
   Hom of 'M[R]_(vT, wT).
 End OtherDefs.
 
@@ -180,6 +181,8 @@ Prenex Implicits Hom.
 
 Delimit Scope vspace_scope with VS.
 Bind Scope vspace_scope with space.
+
+Declare Scope lfun_scope.
 Delimit Scope lfun_scope with VF.
 Bind Scope lfun_scope with hom.
 
@@ -189,7 +192,7 @@ End Exports.
 (* therefore not be used outside of the vector library implementation.        *)
 Module InternalTheory.
 
-Section Iso.
+Section Iso1.
 Variables (R : ringType) (vT rT : vectType R).
 Local Coercion dim : vectType >-> nat.
 
@@ -210,37 +213,47 @@ Lemma r2v_inj : injective r2v. Proof. exact: can_inj r2vK. Qed.
 Lemma v2rK : cancel v2r r2v.   Proof. by have/bij_can_sym:= r2vK; apply. Qed.
 Lemma v2r_inj : injective v2r. Proof. exact: can_inj v2rK. Qed.
 
-Canonical v2r_linear := Linear (s2valP v2r_subproof : linear v2r).
-Canonical r2v_linear := Linear (can2_linear v2rK r2vK).
-End Iso.
+End Iso1.
 
-Section Vspace.
-Variables (K : fieldType) (vT : vectType K).
+Section Iso2.
+
+Monomorphic Variables (R : ringType) (vT : vectType R).
 Local Coercion dim : vectType >-> nat.
 
-Definition b2mx n (X : n.-tuple vT) := \matrix_i v2r (tnth X i).
-Lemma b2mxK n (X : n.-tuple vT) i : r2v (row i (b2mx X)) = X`_i.
+Monomorphic Canonical v2r_linear :=
+  Linear (s2valP (@v2r_subproof R vT) : linear (@v2r R vT)).
+Monomorphic Canonical r2v_linear :=
+  Linear (can2_linear (@v2rK R vT) (@r2vK R vT)).
+
+End Iso2.
+
+Section Vspace.
+Monomorphic Variables (K : fieldType) (vT : vectType K).
+Local Coercion dim : vectType >-> nat.
+
+Monomorphic Definition b2mx n (X : n.-tuple vT) := \matrix_i v2r (tnth X i).
+Monomorphic Lemma b2mxK n (X : n.-tuple vT) i : r2v (row i (b2mx X)) = X`_i.
 Proof. by rewrite rowK v2rK -tnth_nth. Qed.
 
-Definition vs2mx {phV} (U : @space K vT phV) := let: Space mx _ := U in mx.
-Lemma gen_vs2mx (U : {vspace vT}) : <<vs2mx U>>%MS = vs2mx U.
+Monomorphic Definition vs2mx {phV} (U : @space K vT phV) := let: Space mx _ := U in mx.
+Monomorphic Lemma gen_vs2mx (U : {vspace vT}) : <<vs2mx U>>%MS = vs2mx U.
 Proof. by apply/eqP; rewrite /vs2mx; case: U. Qed.
 
-Fact mx2vs_subproof m (A : 'M[K]_(m, vT)) : <<(<<A>>)>>%MS == <<A>>%MS.
+Monomorphic Fact mx2vs_subproof m (A : 'M[K]_(m, vT)) : <<(<<A>>)>>%MS == <<A>>%MS.
 Proof. by rewrite genmx_id. Qed.
-Definition mx2vs {m} A : {vspace vT} := Space _ (@mx2vs_subproof m A).
+Monomorphic Definition mx2vs {m} A : {vspace vT} := Space _ (@mx2vs_subproof m A).
 
-Canonical space_subType := [subType for @vs2mx (Phant vT)].
-Lemma vs2mxK : cancel vs2mx mx2vs.
+Monomorphic Canonical space_subType := [subType for @vs2mx (Phant vT)].
+Monomorphic Lemma vs2mxK : cancel vs2mx mx2vs.
 Proof. by move=> v; apply: val_inj; rewrite /= gen_vs2mx. Qed.
-Lemma mx2vsK m (M : 'M_(m, vT)) : (vs2mx (mx2vs M) :=: M)%MS.
+Monomorphic Lemma mx2vsK m (M : 'M_(m, vT)) : (vs2mx (mx2vs M) :=: M)%MS.
 Proof. exact: genmxE. Qed.
 End Vspace.
 
 Section Hom.
-Variables (R : ringType) (aT rT : vectType R).
-Definition f2mx (f : 'Hom(aT, rT)) := let: Hom A := f in A.
-Canonical hom_subType := [newType for f2mx].
+Monomorphic Variables (R : ringType) (aT rT : vectType R).
+Monomorphic Definition f2mx (f : 'Hom(aT, rT)) := let: Hom A := f in A.
+Monomorphic Canonical hom_subType := [newType for f2mx].
 End Hom.
 
 Arguments mx2vs {K vT m%N} A%MS.
@@ -254,43 +267,43 @@ Import Vector.InternalTheory.
 
 Section VspaceDefs.
 
-Variables (K : fieldType) (vT : vectType K).
+Monomorphic Variables (K : fieldType) (vT : vectType K).
 Implicit Types (u : vT) (X : seq vT) (U V : {vspace vT}).
 
-Definition space_eqMixin := Eval hnf in [eqMixin of {vspace vT} by <:].
-Canonical space_eqType := EqType {vspace vT} space_eqMixin.
-Definition space_choiceMixin := Eval hnf in [choiceMixin of {vspace vT} by <:].
-Canonical space_choiceType := ChoiceType {vspace vT} space_choiceMixin.
+Monomorphic Definition space_eqMixin := Eval hnf in [eqMixin of {vspace vT} by <:].
+Monomorphic Canonical space_eqType := EqType {vspace vT} space_eqMixin.
+Monomorphic Definition space_choiceMixin := Eval hnf in [choiceMixin of {vspace vT} by <:].
+Monomorphic Canonical space_choiceType := ChoiceType {vspace vT} space_choiceMixin.
 
-Definition dimv U := \rank (vs2mx U).
-Definition subsetv U V := (vs2mx U <= vs2mx V)%MS.
-Definition vline u := mx2vs (v2r u).
+Monomorphic Definition dimv U := \rank (vs2mx U).
+Monomorphic Definition subsetv U V := (vs2mx U <= vs2mx V)%MS.
+Monomorphic Definition vline u := mx2vs (v2r u).
 
 (* Vspace membership is defined as line inclusion. *)
-Definition pred_of_vspace phV (U : Vector.space phV) : {pred vT} :=
+Monomorphic Definition pred_of_vspace phV (U : Vector.space phV) : {pred vT} :=
   fun v => (vs2mx (vline v) <= vs2mx U)%MS.
-Canonical vspace_predType :=
+Monomorphic Canonical vspace_predType :=
   @PredType _ (unkeyed {vspace vT}) (@pred_of_vspace _).
 
-Definition fullv : {vspace vT} := mx2vs 1%:M.
-Definition addv U V := mx2vs (vs2mx U + vs2mx V).
-Definition capv U V := mx2vs (vs2mx U :&: vs2mx V).
-Definition complv U := mx2vs (vs2mx U)^C.
-Definition diffv U V := mx2vs (vs2mx U :\: vs2mx V).
-Definition vpick U := r2v (nz_row (vs2mx U)).
-Fact span_key : unit. Proof. by []. Qed.
-Definition span_expanded_def X := mx2vs (b2mx (in_tuple X)).
-Definition span := locked_with span_key span_expanded_def.
-Canonical span_unlockable := [unlockable fun span].
-Definition vbasis_def U :=
+Monomorphic Definition fullv : {vspace vT} := mx2vs 1%:M.
+Monomorphic Definition addv U V := mx2vs (vs2mx U + vs2mx V).
+Monomorphic Definition capv U V := mx2vs (vs2mx U :&: vs2mx V).
+Monomorphic Definition complv U := mx2vs (vs2mx U)^C.
+Monomorphic Definition diffv U V := mx2vs (vs2mx U :\: vs2mx V).
+Monomorphic Definition vpick U := r2v (nz_row (vs2mx U)).
+Monomorphic Fact span_key : unit. Proof. by []. Qed.
+Monomorphic Definition span_expanded_def X := mx2vs (b2mx (in_tuple X)).
+Monomorphic Definition span := locked_with span_key span_expanded_def.
+Monomorphic Canonical span_unlockable := [unlockable fun span].
+Monomorphic Definition vbasis_def U :=
   [tuple r2v (row i (row_base (vs2mx U))) | i < dimv U].
-Definition vbasis := locked_with span_key vbasis_def.
-Canonical vbasis_unlockable := [unlockable fun vbasis].
+Monomorphic Definition vbasis := locked_with span_key vbasis_def.
+Monomorphic Canonical vbasis_unlockable := [unlockable fun vbasis].
 
 (* coord and directv are defined in the VectorTheory section. *)
 
-Definition free X := dimv (span X) == size X.
-Definition basis_of U X := (span X == U) && free X.
+Monomorphic Definition free X := dimv (span X) == size X.
+Monomorphic Definition basis_of U X := (span X == U) && free X.
 
 End VspaceDefs.
 
@@ -360,7 +373,44 @@ Notation "\bigcap_ ( i 'in' A | P ) U" :=
 Notation "\bigcap_ ( i 'in' A ) U" :=
   (\big[capv/fullv]_(i in A) U%VS) : vspace_scope.
 
-Section VectorTheory.
+Local Definition intern_memvK  (K : fieldType) (vT : vectType K) (v : vT) (U : {vspace vT})
+  : (v \in U) = (v2r v <= vs2mx U)%MS.
+Proof. by rewrite -genmxE. Qed.
+
+Section VectorTheoryCanon.
+
+Monomorphic Variables (K : fieldType) (vT : vectType K).
+Implicit Types (v : vT) (U : {vspace vT}).
+
+Monomorphic Fact vspace_key U : pred_key U.
+Proof. by []. Qed.
+Monomorphic Canonical vspace_keyed U := KeyedPred (vspace_key U).
+
+Monomorphic Fact memv_submod_closed U : submod_closed U.
+Proof.
+split=> [|a u v]; rewrite !intern_memvK ?linear0 ?sub0mx // => Uu Uv.
+by rewrite linearP addmx_sub ?scalemx_sub.
+Qed.
+Monomorphic Canonical memv_opprPred U := OpprPred (memv_submod_closed U).
+Monomorphic Canonical memv_addrPred U := AddrPred (memv_submod_closed U).
+Monomorphic Canonical memv_zmodPred U := ZmodPred (memv_submod_closed U).
+Monomorphic Canonical memv_submodPred U := SubmodPred (memv_submod_closed U).
+
+(* Coordinates function; should perhaps be generalized to nat indices. *)
+
+Monomorphic Definition coord_expanded_def n (X : n.-tuple vT) i v :=
+  (v2r v *m pinvmx (b2mx X)) 0 i.
+Monomorphic Definition coord := locked_with span_key coord_expanded_def.
+Monomorphic Canonical coord_unlockable := [unlockable fun coord].
+
+Monomorphic Fact coord_is_scalar n (X : n.-tuple vT) i : scalar (coord X i).
+Proof. by move=> k u v; rewrite unlock linearP mulmxDl -scalemxAl !mxE. Qed.
+Monomorphic Canonical coord_addidive n Xn i := Additive (@coord_is_scalar n Xn i).
+Monomorphic Canonical coord_linear n Xn i := AddLinear (@coord_is_scalar n Xn i).
+
+End VectorTheoryCanon.
+
+Section VectorTheory1.
 
 Variables (K : fieldType) (vT : vectType K).
 Implicit Types (a : K) (u v w : vT) (X Y : seq vT) (U V W : {vspace vT}).
@@ -372,70 +422,54 @@ Local Notation capV := (@capv K vT) (only parsing).
 (* begin hide *)
 
 (* Internal theory facts *)
-Let vs2mxP U V : reflect (U = V) (vs2mx U == vs2mx V)%MS.
+Definition intern_vs2mxP U V : reflect (U = V) (vs2mx U == vs2mx V)%MS.
 Proof. by rewrite (sameP genmxP eqP) !gen_vs2mx; apply: eqP. Qed.
 
-Let memvK v U : (v \in U) = (v2r v <= vs2mx U)%MS.
-Proof. by rewrite -genmxE. Qed.
+Definition intern_mem_r2v rv U : (r2v rv \in U) = (rv <= vs2mx U)%MS.
+Proof. by rewrite intern_memvK r2vK. Qed.
 
-Let mem_r2v rv U : (r2v rv \in U) = (rv <= vs2mx U)%MS.
-Proof. by rewrite memvK r2vK. Qed.
-
-Let vs2mx0 : @vs2mx K vT _ 0 = 0.
+Definition intern_vs2mx0 : @vs2mx K vT _ 0 = 0.
 Proof. by rewrite /= linear0 genmx0. Qed.
 
-Let vs2mxD U V : vs2mx (U + V) = (vs2mx U + vs2mx V)%MS.
+Definition intern_vs2mxD U V : vs2mx (U + V) = (vs2mx U + vs2mx V)%MS.
 Proof. by rewrite /= genmx_adds !gen_vs2mx. Qed.
 
-Let vs2mx_sum := big_morph _ vs2mxD vs2mx0.
+Definition intern_vs2mx_sum := big_morph _ intern_vs2mxD intern_vs2mx0.
 
-Let vs2mxI U V : vs2mx (U :&: V) = (vs2mx U :&: vs2mx V)%MS.
+Definition intern_vs2mxI U V : vs2mx (U :&: V) = (vs2mx U :&: vs2mx V)%MS.
 Proof. by rewrite /= genmx_cap !gen_vs2mx. Qed.
 
-Let vs2mxF : vs2mx {:vT} = 1%:M.
+Definition intern_vs2mxF : vs2mx {:vT} = 1%:M.
 Proof. by rewrite /= genmx1. Qed.
 
-Let row_b2mx n (X : n.-tuple vT) i : row i (b2mx X) = v2r X`_i.
+Definition intern_row_b2mx n (X : n.-tuple vT) i : row i (b2mx X) = v2r X`_i.
 Proof. by rewrite -tnth_nth rowK. Qed.
 
-Let span_b2mx n (X : n.-tuple vT) : span X = mx2vs (b2mx X).
+Definition intern_span_b2mx n (X : n.-tuple vT) : span X = mx2vs (b2mx X).
 Proof. by rewrite unlock tvalK; case: _ / (esym _). Qed.
 
-Let mul_b2mx n (X : n.-tuple vT) (rk : 'rV_n) :
+Definition intern_mul_b2mx n (X : n.-tuple vT) (rk : 'rV_n) :
   \sum_i rk 0 i *: X`_i = r2v (rk *m b2mx X).
 Proof.
 rewrite mulmx_sum_row linear_sum; apply: eq_bigr => i _.
-by rewrite row_b2mx linearZ /= v2rK.
+by rewrite intern_row_b2mx linearZ /= v2rK.
 Qed.
 
-Let lin_b2mx n (X : n.-tuple vT) k :  
+Definition intern_lin_b2mx n (X : n.-tuple vT) k :  
   \sum_(i < n) k i *: X`_i = r2v (\row_i k i *m b2mx X).
-Proof. by rewrite -mul_b2mx; apply: eq_bigr => i _; rewrite mxE. Qed.
+Proof. by rewrite -intern_mul_b2mx; apply: eq_bigr => i _; rewrite mxE. Qed.
 
-Let free_b2mx n (X : n.-tuple vT) : free X = row_free (b2mx X).
-Proof. by rewrite /free /dimv span_b2mx genmxE size_tuple. Qed.
+Definition intern_free_b2mx n (X : n.-tuple vT) : free X = row_free (b2mx X).
+Proof. by rewrite /free /dimv intern_span_b2mx genmxE size_tuple. Qed.
 (* end hide *)
-
-Fact vspace_key U : pred_key U. Proof. by []. Qed.
-Canonical vspace_keyed U := KeyedPred (vspace_key U).
 
 Lemma memvE v U : (v \in U) = (<[v]> <= U)%VS. Proof. by []. Qed.
 
 Lemma vlineP v1 v2 : reflect (exists k, v1 = k *: v2) (v1 \in <[v2]>)%VS.
 Proof.
-apply: (iffP idP) => [|[k ->]]; rewrite memvK genmxE ?linearZ ?scalemx_sub //.
+apply: (iffP idP) => [|[k ->]]; rewrite intern_memvK genmxE ?linearZ ?scalemx_sub //.
 by case/sub_rVP=> k; rewrite -linearZ => /v2r_inj->; exists k.
 Qed.
-
-Fact memv_submod_closed U : submod_closed U.
-Proof.
-split=> [|a u v]; rewrite !memvK ?linear0 ?sub0mx // => Uu Uv.
-by rewrite linearP addmx_sub ?scalemx_sub.
-Qed.
-Canonical memv_opprPred U := OpprPred (memv_submod_closed U).
-Canonical memv_addrPred U := AddrPred (memv_submod_closed U).
-Canonical memv_zmodPred U := ZmodPred (memv_submod_closed U).
-Canonical memv_submodPred U := SubmodPred (memv_submod_closed U).
 
 Lemma mem0v U : 0 \in U. Proof. exact : rpred0. Qed.
 Lemma memvN U v : (- v \in U) = (v \in U). Proof. exact: rpredN. Qed.
@@ -464,7 +498,7 @@ Lemma subv_trans : transitive subV.
 Proof. by move=> U V W /subvP sUV /subvP sVW; apply/subvP=> u /sUV/sVW. Qed.
 
 Lemma subv_anti : antisymmetric subV.
-Proof. by move=> U V; apply/vs2mxP. Qed.
+Proof. by move=> U V; apply/intern_vs2mxP. Qed.
 
 Lemma eqEsubv U V : (U == V) = (U <= V <= U)%VS.
 Proof. by apply/eqP/idP=> [-> | /subv_anti//]; rewrite subvv. Qed.
@@ -479,7 +513,7 @@ Lemma subvPn {U V} : reflect (exists2 u, u \in U & u \notin V) (~~ (U <= V)%VS).
 Proof.
 apply: (iffP idP) => [|[u Uu]]; last by apply: contra => /subvP->.
 case/row_subPn=> i; set vi := row i _ => V'vi.
-by exists (r2v vi); rewrite memvK r2vK ?row_sub.
+by exists (r2v vi); rewrite intern_memvK r2vK ?row_sub.
 Qed.
 
 (* Empty space. *)
@@ -494,36 +528,36 @@ Proof. by apply/idP/eqP=> [/vlineP[k ->] | ->]; rewrite (scaler0, mem0v). Qed.
 
 (* Full space *)
 
-Lemma subvf U : (U <= fullv)%VS. Proof. by rewrite /subsetv vs2mxF submx1. Qed.
+Lemma subvf U : (U <= fullv)%VS. Proof. by rewrite /subsetv intern_vs2mxF submx1. Qed.
 Lemma memvf v : v \in fullv. Proof. exact: subvf. Qed.
 
 (* Picking a non-zero vector in a subspace. *)
-Lemma memv_pick U : vpick U \in U. Proof. by rewrite mem_r2v nz_row_sub. Qed.
+Lemma memv_pick U : vpick U \in U. Proof. by rewrite intern_mem_r2v nz_row_sub. Qed.
 
 Lemma vpick0 U : (vpick U == 0) = (U == 0%VS).
-Proof. by  rewrite -memv0 mem_r2v -subv0 /subV vs2mx0 !submx0 nz_row_eq0. Qed.
+Proof. by  rewrite -memv0 intern_mem_r2v -subv0 /subV intern_vs2mx0 !submx0 nz_row_eq0. Qed.
 
 (* Sum of subspaces. *)
 Lemma subv_add U V W : (U + V <= W)%VS = (U <= W)%VS && (V <= W)%VS.
-Proof. by rewrite /subV vs2mxD addsmx_sub. Qed.
+Proof. by rewrite /subV intern_vs2mxD addsmx_sub. Qed.
 
 Lemma addvS U1 U2 V1 V2 : (U1 <= U2 -> V1 <= V2 -> U1 + V1 <= U2 + V2)%VS.
-Proof. by rewrite /subV !vs2mxD; apply: addsmxS. Qed.
+Proof. by rewrite /subV !intern_vs2mxD; apply: addsmxS. Qed.
 
 Lemma addvSl U V : (U <= U + V)%VS.
-Proof. by rewrite /subV vs2mxD addsmxSl. Qed.
+Proof. by rewrite /subV intern_vs2mxD addsmxSl. Qed.
 
 Lemma addvSr U V : (V <= U + V)%VS.
-Proof. by rewrite /subV vs2mxD addsmxSr. Qed.
+Proof. by rewrite /subV intern_vs2mxD addsmxSr. Qed.
 
 Lemma addvC : commutative addV.
-Proof. by move=> U V; apply/vs2mxP; rewrite !vs2mxD addsmxC submx_refl. Qed.
+Proof. by move=> U V; apply/intern_vs2mxP; rewrite !intern_vs2mxD addsmxC submx_refl. Qed.
 
 Lemma addvA : associative addV.
-Proof. by move=> U V W; apply/vs2mxP; rewrite !vs2mxD addsmxA submx_refl. Qed.
+Proof. by move=> U V W; apply/intern_vs2mxP; rewrite !intern_vs2mxD addsmxA submx_refl. Qed.
 
 Lemma addv_idPl {U V}: reflect (U + V = U)%VS (V <= U)%VS.
-Proof. by rewrite /subV (sameP addsmx_idPl eqmxP) -vs2mxD; apply: vs2mxP. Qed.
+Proof. by rewrite /subV (sameP addsmx_idPl eqmxP) -intern_vs2mxD; apply: intern_vs2mxP. Qed.
 
 Lemma addv_idPr {U V} : reflect (U + V = V)%VS (U <= V)%VS.
 Proof. by rewrite addvC; apply: addv_idPl. Qed.
@@ -543,20 +577,33 @@ Proof. by move=> U; apply/addv_idPl/subvf. Qed.
 Lemma addvf : right_zero fullv addV.
 Proof. by move=> U; apply/addv_idPr/subvf. Qed.
 
-Canonical addv_monoid := Monoid.Law addvA add0v addv0.
-Canonical addv_comoid := Monoid.ComLaw addvC.
+End VectorTheory1.
+
+Monomorphic Canonical addv_monoid (K : fieldType) (vT : vectType K) :=
+  Monoid.Law (@addvA K vT) (@add0v K vT) (@addv0 K vT).
+Monomorphic Canonical addv_comoid (K : fieldType) (vT : vectType K) :=
+  Monoid.ComLaw (@addvC K vT).
+
+Section VectorTheory2.
+
+Variables (K : fieldType) (vT : vectType K).
+Implicit Types (a : K) (u v w : vT) (X Y : seq vT) (U V W : {vspace vT}).
+
+Local Notation subV := (@subsetv K vT) (only parsing).
+Local Notation addV := (@addv K vT) (only parsing).
+Local Notation capV := (@capv K vT) (only parsing).
 
 Lemma memv_add u v U V : u \in U -> v \in V -> u + v \in (U + V)%VS.
-Proof. by rewrite !memvK genmxE linearD; apply: addmx_sub_adds. Qed.
+Proof. by rewrite !intern_memvK genmxE linearD; apply: addmx_sub_adds. Qed.
 
 Lemma memv_addP {w U V} :
   reflect (exists2 u, u \in U & exists2 v, v \in V & w = u + v)
           (w \in U + V)%VS.
 Proof.
 apply: (iffP idP) => [|[u Uu [v Vv ->]]]; last exact: memv_add.
-rewrite memvK genmxE => /sub_addsmxP[r /(canRL v2rK)->].
+rewrite intern_memvK genmxE => /sub_addsmxP[r /(canRL v2rK)->].
 rewrite linearD /=; set u := r2v _; set v := r2v _.
-by exists u; last exists v; rewrite // mem_r2v submxMl.
+by exists u; last exists v; rewrite // intern_mem_r2v submxMl.
 Qed.
 
 Section BigSum.
@@ -567,6 +614,8 @@ Lemma sumv_sup i0 P U Vs :
   P i0 -> (U <= Vs i0)%VS -> (U <= \sum_(i | P i) Vs i)%VS.
 Proof. by move=> Pi0 /subv_trans-> //; rewrite (bigD1 i0) ?addvSl. Qed.
 Arguments sumv_sup i0 [P U Vs].
+
+Hint Resolve subvv : core.
 
 Lemma subv_sumP {P Us V} :
   reflect (forall i, P i -> Us i <= V)%VS  (\sum_(i | P i) Us i <= V)%VS.
@@ -587,9 +636,9 @@ Lemma memv_sumP {P} {Us : I -> {vspace vT}} {v} :
           (v \in \sum_(i | P i) Us i)%VS.
 Proof.
 apply: (iffP idP) => [|[vs Uv ->]]; last exact: memv_sumr.
-rewrite memvK vs2mx_sum => /sub_sumsmxP[r /(canRL v2rK)->].
+rewrite intern_memvK intern_vs2mx_sum => /sub_sumsmxP[r /(canRL v2rK)->].
 pose f i := r2v (r i *m vs2mx (Us i)); rewrite linear_sum /=.
-by exists f => //= i _; rewrite mem_r2v submxMl.
+by exists f => //= i _; rewrite intern_mem_r2v submxMl.
 Qed.
 
 End BigSum.
@@ -597,31 +646,31 @@ End BigSum.
 (* Intersection *)
 
 Lemma subv_cap U V W : (U <= V :&: W)%VS = (U <= V)%VS && (U <= W)%VS.
-Proof. by rewrite /subV vs2mxI sub_capmx. Qed.
+Proof. by rewrite /subV intern_vs2mxI sub_capmx. Qed.
 
 Lemma capvS U1 U2 V1 V2 : (U1 <= U2 -> V1 <= V2 -> U1 :&: V1 <= U2 :&: V2)%VS.
-Proof. by rewrite /subV !vs2mxI; apply: capmxS. Qed.
+Proof. by rewrite /subV !intern_vs2mxI; apply: capmxS. Qed.
 
 Lemma capvSl U V : (U :&: V <= U)%VS.
-Proof. by rewrite /subV vs2mxI capmxSl. Qed.
+Proof. by rewrite /subV intern_vs2mxI capmxSl. Qed.
 
 Lemma capvSr U V : (U :&: V <= V)%VS.
-Proof. by rewrite /subV vs2mxI capmxSr. Qed.
+Proof. by rewrite /subV intern_vs2mxI capmxSr. Qed.
 
 Lemma capvC : commutative capV.
-Proof. by move=> U V; apply/vs2mxP; rewrite !vs2mxI capmxC submx_refl. Qed.
+Proof. by move=> U V; apply/intern_vs2mxP; rewrite !intern_vs2mxI capmxC submx_refl. Qed.
 
 Lemma capvA : associative capV.
-Proof. by move=> U V W; apply/vs2mxP; rewrite !vs2mxI capmxA submx_refl. Qed.
+Proof. by move=> U V W; apply/intern_vs2mxP; rewrite !intern_vs2mxI capmxA submx_refl. Qed.
 
 Lemma capv_idPl {U V} : reflect (U :&: V = U)%VS (U <= V)%VS.
-Proof. by rewrite /subV(sameP capmx_idPl eqmxP) -vs2mxI; apply: vs2mxP. Qed.
+Proof. by rewrite /subV(sameP capmx_idPl eqmxP) -intern_vs2mxI; apply: intern_vs2mxP. Qed.
 
 Lemma capv_idPr {U V} : reflect (U :&: V = V)%VS (V <= U)%VS.
 Proof. by rewrite capvC; apply: capv_idPl. Qed.
 
 Lemma capvv : idempotent capV.
-Proof. by move=> U; apply/capv_idPl. Qed.
+Proof. by move=> U; apply/capv_idPl; apply: subvv. Qed.
 
 Lemma cap0v : left_zero 0%VS capV.
 Proof. by move=> U; apply/capv_idPl/sub0v. Qed.
@@ -635,8 +684,23 @@ Proof. by move=> U; apply/capv_idPr/subvf. Qed.
 Lemma capvf : right_id fullv capV.
 Proof. by move=> U; apply/capv_idPl/subvf. Qed.
 
-Canonical capv_monoid := Monoid.Law capvA capfv capvf.
-Canonical capv_comoid := Monoid.ComLaw capvC.
+End VectorTheory2.
+
+Monomorphic Canonical capv_monoid (K : fieldType) (vT : vectType K) :=
+  Monoid.Law (@capvA K vT) (@capfv K vT) (@capvf K vT).
+Monomorphic Canonical capv_comoid (K : fieldType) (vT : vectType K) :=
+  Monoid.ComLaw (@capvC K vT).
+
+Section VectorTheory3.
+
+Variables (K : fieldType) (vT : vectType K).
+Implicit Types (a : K) (u v w : vT) (X Y : seq vT) (U V W : {vspace vT}).
+
+Local Notation subV := (@subsetv K vT) (only parsing).
+Local Notation addV := (@addv K vT) (only parsing).
+Local Notation capV := (@capv K vT) (only parsing).
+
+Hint Resolve subvv : core.
 
 Lemma memv_cap w U V : (w \in U :&: V)%VS = (w \in U) && (w \in V).
 Proof. by rewrite !memvE subv_cap. Qed.
@@ -646,7 +710,7 @@ Proof. by rewrite memv_cap; apply: andP. Qed.
 
 Lemma vspace_modl U V W : (U <= W -> U + (V :&: W) = (U + V) :&: W)%VS.
 Proof.
-by move=> sUV; apply/vs2mxP; rewrite !(vs2mxD, vs2mxI); apply/eqmxP/matrix_modl.
+by move=> sUV; apply/intern_vs2mxP; rewrite !(intern_vs2mxD, intern_vs2mxI); apply/eqmxP/matrix_modl.
 Qed.
 
 Lemma vspace_modr  U V W : (W <= U -> (U :&: V) + W = U :&: (V + W))%VS.
@@ -673,13 +737,13 @@ End BigCap.
 (* Complement *)
 Lemma addv_complf U : (U + U^C)%VS = fullv.
 Proof.
-apply/vs2mxP; rewrite vs2mxD -gen_vs2mx -genmx_adds !genmxE submx1 sub1mx.
+apply/intern_vs2mxP; rewrite intern_vs2mxD -gen_vs2mx -genmx_adds !genmxE submx1 sub1mx.
 exact: addsmx_compl_full.
 Qed.
 
 Lemma capv_compl U : (U :&: U^C = 0)%VS.
 Proof.
-apply/val_inj; rewrite [val]/= vs2mx0 vs2mxI -gen_vs2mx -genmx_cap.
+apply/val_inj; rewrite [val]/= intern_vs2mx0 intern_vs2mxI -gen_vs2mx -genmx_cap.
 by rewrite capmx_compl genmx0.
 Qed.
 
@@ -689,13 +753,13 @@ Proof. by rewrite /subV genmxE diffmxSl. Qed.
 
 Lemma capv_diff U V : ((U :\: V) :&: V = 0)%VS.
 Proof.
-apply/val_inj; rewrite [val]/= vs2mx0 vs2mxI -(gen_vs2mx V) -genmx_cap.
+apply/val_inj; rewrite [val]/= intern_vs2mx0 intern_vs2mxI -(gen_vs2mx V) -genmx_cap.
 by rewrite capmx_diff genmx0.
 Qed.
 
 Lemma addv_diff_cap U V : (U :\: V + U :&: V)%VS = U.
 Proof.
-apply/vs2mxP; rewrite vs2mxD -genmx_adds !genmxE.
+apply/intern_vs2mxP; rewrite intern_vs2mxD -genmx_adds !genmxE.
 exact/eqmxP/addsmx_diff_cap_eq.
 Qed.
 
@@ -704,13 +768,13 @@ Proof. by rewrite -{2}(addv_diff_cap U V) -addvA (addv_idPr (capvSr U V)). Qed.
 
 (* Subspace dimension. *)
 Lemma dimv0 : \dim (0%VS : {vspace vT}) = 0%N.
-Proof. by rewrite /dimv vs2mx0 mxrank0. Qed.
+Proof. by rewrite /dimv intern_vs2mx0 mxrank0. Qed.
 
 Lemma dimv_eq0 U :  (\dim U == 0%N) = (U == 0%VS).
 Proof. by rewrite /dimv /= mxrank_eq0 {2}/eq_op /= linear0 genmx0. Qed.
 
 Lemma dimvf : \dim {:vT} = Vector.dim vT.
-Proof.  by rewrite /dimv vs2mxF mxrank1. Qed.
+Proof.  by rewrite /dimv intern_vs2mxF mxrank1. Qed.
 
 Lemma dim_vline v : \dim <[v]> = (v != 0).
 Proof. by rewrite /dimv mxrank_gen rank_rV (can2_eq v2rK r2vK) linear0. Qed.
@@ -743,13 +807,13 @@ Proof. by move=> dxUV; rewrite -dimv_sum_cap dxUV dimv0 addn0. Qed.
 Lemma dimv_add_leqif U V :
   \dim (U + V) <= \dim U + \dim V ?= iff (U :&: V <= 0)%VS.
 Proof.
-by rewrite /dimv /subV !mxrank_gen vs2mx0 genmxE; apply: mxrank_adds_leqif.
+by rewrite /dimv /subV !mxrank_gen intern_vs2mx0 genmxE; apply: mxrank_adds_leqif.
 Qed.
 
 Lemma diffv_eq0 U V : (U :\: V == 0)%VS = (U <= V)%VS.
 Proof.
 rewrite -dimv_eq0 -(eqn_add2l (\dim (U :&: V))) addn0 dimv_cap_compl eq_sym.
-by rewrite (dimv_leqif_eq (capvSl _ _)) (sameP capv_idPl eqP).
+by rewrite (dimv_leqif_eq (capvSl _ _)) (sameP (@capv_idPl K vT _ _) eqP).
 Qed.
 
 Lemma dimv_leq_sum I r (P : pred I) (Us : I -> {vspace vT}) : 
@@ -759,61 +823,85 @@ elim/big_rec2: _ => [|i d vs _ le_vs_d]; first by rewrite dim_vline eqxx.
 by apply: (leq_trans (dimv_add_leqif _ _)); rewrite leq_add2l.
 Qed.
 
+End VectorTheory3.
+
 Section SumExpr.
+
+Monomorphic Variables (K : fieldType) (vT : vectType K).
+Implicit Types (a : K) (u v w : vT) (X Y : seq vT) (U V W : {vspace vT}).
+
+Local Notation subV := (@subsetv K vT) (only parsing).
+Local Notation addV := (@addv K vT) (only parsing).
+Local Notation capV := (@capv K vT) (only parsing).
+
+Hint Resolve subvv : core.
 
 (* The vector direct sum theory clones the interface types of the matrix     *)
 (* direct sum theory (see mxalgebra for the technical details), but          *)
 (* nevetheless reuses much of the matrix theory.                             *)
-Structure addv_expr := Sumv {
+Monomorphic Structure addv_expr := Sumv {
   addv_val :> wrapped {vspace vT};
   addv_dim : wrapped nat;
   _ : mxsum_spec (vs2mx (unwrap addv_val)) (unwrap addv_dim)
 }.
 
 (* Piggyback on mxalgebra theory. *)
-Definition vs2mx_sum_expr_subproof (S : addv_expr) :
+Monomorphic Definition vs2mx_sum_expr_subproof (S : addv_expr) :
   mxsum_spec (vs2mx (unwrap S)) (unwrap (addv_dim S)).
 Proof. by case: S. Qed.
-Canonical vs2mx_sum_expr S := ProperMxsumExpr (vs2mx_sum_expr_subproof S).
+Monomorphic Canonical vs2mx_sum_expr S := ProperMxsumExpr (vs2mx_sum_expr_subproof S).
 
-Canonical trivial_addv U := @Sumv (Wrap U) (Wrap (\dim U)) (TrivialMxsum _).
+Monomorphic Canonical trivial_addv U := @Sumv (Wrap U) (Wrap (\dim U)) (TrivialMxsum _).
 
-Structure proper_addv_expr := ProperSumvExpr {
+Monomorphic Structure proper_addv_expr := ProperSumvExpr {
   proper_addv_val :> {vspace vT};
   proper_addv_dim :> nat;
   _ : mxsum_spec (vs2mx proper_addv_val) proper_addv_dim
 }.
 
-Definition proper_addvP (S : proper_addv_expr) :=
+Monomorphic Definition proper_addvP (S : proper_addv_expr) :=
   let: ProperSumvExpr _ _ termS := S return mxsum_spec (vs2mx S) S in termS.
 
-Canonical proper_addv (S : proper_addv_expr) :=
+Monomorphic Canonical proper_addv (S : proper_addv_expr) :=
   @Sumv (wrap (S : {vspace vT})) (wrap (S : nat)) (proper_addvP S).
 
 Section Binary.
-Variables S1 S2 : addv_expr.
-Fact binary_addv_subproof :
+Monomorphic Variables S1 S2 : addv_expr.
+Monomorphic Fact binary_addv_subproof :
   mxsum_spec (vs2mx (unwrap S1 + unwrap S2))
              (unwrap (addv_dim S1) + unwrap (addv_dim S2)).
-Proof. by rewrite vs2mxD; apply: proper_mxsumP. Qed.
-Canonical binary_addv_expr := ProperSumvExpr binary_addv_subproof.
+Proof. by rewrite intern_vs2mxD; apply: proper_mxsumP. Qed.
+Monomorphic Canonical binary_addv_expr := ProperSumvExpr binary_addv_subproof.
 End Binary.
 
 Section Nary.
-Variables (I : Type) (r : seq I) (P : pred I) (S_ : I -> addv_expr).
-Fact nary_addv_subproof :
+Monomorphic Variables (I : Type) (r : seq I) (P : pred I) (S_ : I -> addv_expr).
+Monomorphic Fact nary_addv_subproof :
   mxsum_spec (vs2mx (\sum_(i <- r | P i) unwrap (S_ i)))
              (\sum_(i <- r | P i) unwrap (addv_dim (S_ i))).
-Proof. by rewrite vs2mx_sum; apply: proper_mxsumP. Qed.
-Canonical nary_addv_expr := ProperSumvExpr nary_addv_subproof.
+Proof. by rewrite intern_vs2mx_sum; apply: proper_mxsumP. Qed.
+Monomorphic Canonical nary_addv_expr := ProperSumvExpr nary_addv_subproof.
 End Nary.
 
-Definition directv_def S of phantom {vspace vT} (unwrap (addv_val S)) :=
+Monomorphic Definition directv_def S of phantom {vspace vT} (unwrap (addv_val S)) :=
   \dim (unwrap S) == unwrap (addv_dim S).
 
 End SumExpr.
 
+Section VectorTheory4.
+
+Variables (K : fieldType) (vT : vectType K).
+Implicit Types (a : K) (u v w : vT) (X Y : seq vT) (U V W : {vspace vT}).
+
+Local Notation subV := (@subsetv K vT) (only parsing).
+Local Notation addV := (@addv K vT) (only parsing).
+Local Notation capV := (@capv K vT) (only parsing).
+
+Hint Resolve subvv : core.
+
 Local Notation directv A := (directv_def (Phantom {vspace _} A%VS)).
+Local Notation addv_expr := (@addv_expr K vT).
+Local Notation proper_addv_expr := (@proper_addv_expr K vT).
 
 Lemma directvE (S : addv_expr) :
   directv (unwrap S) = (\dim (unwrap S) == unwrap (addv_dim S)).
@@ -822,7 +910,7 @@ Proof. by []. Qed.
 Lemma directvP {S : proper_addv_expr} : reflect (\dim S = S :> nat) (directv S).
 Proof. exact: eqnP. Qed.
 
-Lemma directv_trivial U : directv (unwrap (@trivial_addv U)).
+Lemma directv_trivial U : directv (unwrap (@trivial_addv K vT U)).
 Proof. exact: eqxx. Qed.
 
 Lemma dimv_sum_leqif (S : addv_expr) :
@@ -844,7 +932,7 @@ Lemma directv_addE (S1 S2 : addv_expr) :
     = [&& directv (unwrap S1), directv (unwrap S2)
         & unwrap S1 :&: unwrap S2 == 0]%VS.
 Proof.
-by rewrite /directv_def /dimv vs2mxD -mxdirectE mxdirect_addsE -vs2mxI -vs2mx0.
+by rewrite /directv_def /dimv intern_vs2mxD -mxdirectE mxdirect_addsE -intern_vs2mxI -intern_vs2mx0.
 Qed.
 
 Lemma directv_addP {U V} : reflect (U :&: V = 0)%VS (directv (U + V)).
@@ -873,8 +961,8 @@ Lemma directv_sumP {Us : I -> {vspace vT}} :
   reflect (forall i, P i -> Us i :&: (\sum_(j | P j && (j != i)) Us j) = 0)%VS
           (directv (\sum_(i | P i) Us i)).
 Proof.
-rewrite directvE /= /dimv vs2mx_sum -mxdirectE; apply: (equivP mxdirect_sumsP).
-by do [split=> dxU i /dxU; rewrite -vs2mx_sum -vs2mxI -vs2mx0] => [/val_inj|->].
+rewrite directvE /= /dimv intern_vs2mx_sum -mxdirectE; apply: (equivP mxdirect_sumsP).
+by do [split=> dxU i /dxU; rewrite -intern_vs2mx_sum -intern_vs2mxI -intern_vs2mx0] => [/val_inj|->].
 Qed.
 
 Lemma directv_sumE {Ss : I -> addv_expr} (xunwrap := unwrap) :
@@ -882,7 +970,7 @@ Lemma directv_sumE {Ss : I -> addv_expr} (xunwrap := unwrap) :
             & directv (\sum_(i | P i) xunwrap (Ss i))]
           (directv (\sum_(i | P i) unwrap (Ss i))).
 Proof.
-by rewrite !directvE /= /dimv 2!{1}vs2mx_sum -!mxdirectE; apply: mxdirect_sumsE.
+by rewrite !directvE /= /dimv 2!{1}intern_vs2mx_sum -!mxdirectE; apply: mxdirect_sumsE.
 Qed.
 
 Lemma directv_sum_independent {Us : I -> {vspace vT}} :
@@ -924,7 +1012,7 @@ End NaryDirect.
 (* Linear span generated by a list of vectors *)
 Lemma memv_span X v : v \in X -> v \in <<X>>%VS.
 Proof.
-by case/seq_tnthP=> i {v}->; rewrite unlock memvK genmxE (eq_row_sub i) // rowK.
+by case/seq_tnthP=> i {v}->; rewrite unlock intern_memvK genmxE (eq_row_sub i) // rowK.
 Qed.
 
 Lemma memv_span1 v : v \in <<[:: v]>>%VS.
@@ -937,8 +1025,8 @@ Lemma span_subvP {X U} : reflect {subset X <= U} (<<X>> <= U)%VS.
 Proof.
 rewrite /subV [@span _ _]unlock genmxE.
 apply: (iffP row_subP) => /= [sXU | sXU i].
-  by move=> _ /seq_tnthP[i ->]; have:= sXU i; rewrite rowK memvK.
-by rewrite rowK -memvK sXU ?mem_tnth.
+  by move=> _ /seq_tnthP[i ->]; have:= sXU i; rewrite rowK intern_memvK.
+by rewrite rowK -intern_memvK sXU ?mem_tnth.
 Qed.
 
 Lemma sub_span X Y : {subset X <= Y} -> (<<X>> <= <<Y>>)%VS.
@@ -968,23 +1056,11 @@ Proof. by rewrite !span_def big_cons. Qed.
 Lemma span_cat X Y : (<<X ++ Y>> = <<X>> + <<Y>>)%VS.
 Proof. by rewrite !span_def big_cat. Qed.
 
-(* Coordinates function; should perhaps be generalized to nat indices. *)
-
-Definition coord_expanded_def n (X : n.-tuple vT) i v :=
-  (v2r v *m pinvmx (b2mx X)) 0 i.
-Definition coord := locked_with span_key coord_expanded_def.
-Canonical coord_unlockable := [unlockable fun coord].
-
-Fact coord_is_scalar n (X : n.-tuple vT) i : scalar (coord X i).
-Proof. by move=> k u v; rewrite unlock linearP mulmxDl -scalemxAl !mxE. Qed.
-Canonical coord_addidive n Xn i := Additive (@coord_is_scalar n Xn i).
-Canonical coord_linear n Xn i := AddLinear (@coord_is_scalar n Xn i).
-
 Lemma coord_span n (X : n.-tuple vT) v :
   v \in span X -> v = \sum_i coord X i v *: X`_i.
 Proof.
-rewrite memvK span_b2mx genmxE => Xv.
-by rewrite unlock_with mul_b2mx mulmxKpV ?v2rK.
+rewrite intern_memvK intern_span_b2mx genmxE => Xv.
+by rewrite unlock_with intern_mul_b2mx mulmxKpV ?v2rK.
 Qed.
 
 Lemma coord0 i v : coord [tuple 0] i v = 0.
@@ -1013,7 +1089,9 @@ have leXi i (v := tnth (in_tuple X) i): true -> \dim <[v]> <= 1 ?= iff (v != 0).
   by rewrite -seq1_free -span_seq1 => _; apply/leqif_eq/dim_span.
 have [_ /=] := leqif_trans (dimv_sum_leqif _) (leqif_sum leXi).
 rewrite sum1_card card_ord !directvE /= /free andbC span_def !(big_tnth _ _ X).
-by congr (_ = _ && _); rewrite -has_pred1 -all_predC -big_all big_tnth big_andE.
+have: [forall (i | true), tnth (in_tuple X) i != 0] = (0 \notin X).
+  by rewrite -has_pred1 -all_predC -big_all big_tnth big_andE.
+by move=>->.
 Qed.
 
 Lemma free_not0 v X : free X -> v \in X -> v != 0.
@@ -1023,17 +1101,17 @@ Lemma freeP n (X : n.-tuple vT) :
   reflect (forall k, \sum_(i < n) k i *: X`_i = 0 -> (forall i, k i = 0))
           (free X).
 Proof.
-rewrite free_b2mx; apply: (iffP idP) => [t_free k kt0 i | t_free].
+rewrite intern_free_b2mx; apply: (iffP idP) => [t_free k kt0 i | t_free].
   suffices /rowP/(_ i): \row_i k i = 0 by rewrite !mxE.
-  by apply/(row_free_inj t_free)/r2v_inj; rewrite mul0mx -lin_b2mx kt0 linear0.
+  by apply/(row_free_inj t_free)/r2v_inj; rewrite mul0mx -intern_lin_b2mx kt0 linear0.
 rewrite -kermx_eq0; apply/rowV0P=> rk /sub_kermxP kt0.
-by apply/rowP=> i; rewrite mxE {}t_free // mul_b2mx kt0 linear0.
+by apply/rowP=> i; rewrite mxE {}t_free // intern_mul_b2mx kt0 linear0.
 Qed.
 
 Lemma coord_free n (X : n.-tuple vT) (i j : 'I_n) :  
   free X -> coord X j (X`_i) = (i == j)%:R.
 Proof.
-rewrite unlock free_b2mx => /row_freeP[Ct CtK]; rewrite -row_b2mx.
+rewrite unlock intern_free_b2mx => /row_freeP[Ct CtK]; rewrite -intern_row_b2mx.
 by rewrite -row_mul -[pinvmx _]mulmx1 -CtK 2!mulmxA mulmxKpV // CtK !mxE.
 Qed.
 
@@ -1100,7 +1178,8 @@ pose k x := oapp (fun i => coord (in_tuple X) i v) 0 (insub (index x X)).
 exists k => [|k1 {def_v}def_v _ /(nthP 0)[i ltiX <-]].
   rewrite /sumX (big_nth 0) big_mkord def_v; apply: eq_bigr => i _.
   by rewrite /k index_uniq ?free_uniq // valK.
-rewrite /k /= index_uniq ?free_uniq // insubT //= def_v.
+rewrite /k /= index_uniq ?free_uniq //.
+rewrite (insubT (fun x => x < size X) ltiX) //= def_v.
 by rewrite /sumX (big_nth 0) big_mkord coord_sum_free.
 Qed.
 
@@ -1114,7 +1193,7 @@ have lin_f: linear f.
 exists (Linear lin_f) => freeX eq_szX.
 apply/esym/(@eq_from_nth _ 0); rewrite ?size_map eq_szX // => i ltiX.
 rewrite (nth_map 0) //= /f (bigD1 (Ordinal ltiX)) //=.
-rewrite big1 => [|j /negbTE neqji]; rewrite (coord_free (Ordinal _)) //.
+rewrite big1 => [|j /negbTE neqji]; rewrite (coord_free (Ordinal ltiX)) //.
   by rewrite eqxx scale1r addr0.
 by rewrite eq_sym neqji scale0r.
 Qed.
@@ -1175,7 +1254,7 @@ Qed.
 
 Lemma vbasisP U : basis_of U (vbasis U).
 Proof.
-rewrite /basis_of free_b2mx span_b2mx (sameP eqP (vs2mxP _ _)) !genmxE.
+rewrite /basis_of intern_free_b2mx intern_span_b2mx (sameP eqP (intern_vs2mxP _ _)) !genmxE.
 have ->: b2mx (vbasis U) = row_base (vs2mx U).
   by apply/row_matrixP=> i; rewrite unlock rowK tnth_mktuple r2vK.
 by rewrite row_base_free !eq_row_base submx_refl.
@@ -1218,7 +1297,7 @@ Qed.
 
 End BigSumBasis.
 
-End VectorTheory.
+End VectorTheory4.
 
 Hint Resolve subvv : core.
 Arguments subvP {K vT U V}.
@@ -1249,21 +1328,21 @@ Notation directv S := (directv_def (Phantom _ S%VS)).
 (* Linear functions over a vectType *)
 Section LfunDefs.
 
-Variable R : ringType.
+Monomorphic Variable R : ringType.
 Implicit Types aT vT rT : vectType R.
 
-Fact lfun_key : unit. Proof. by []. Qed.
-Definition fun_of_lfun_def aT rT (f : 'Hom(aT, rT)) :=
+Monomorphic Fact lfun_key : unit. Proof. by []. Qed.
+Monomorphic Definition fun_of_lfun_def aT rT (f : 'Hom(aT, rT)) :=
   r2v \o mulmxr (f2mx f) \o v2r.
-Definition fun_of_lfun := locked_with lfun_key fun_of_lfun_def.
-Canonical fun_of_lfun_unlockable := [unlockable fun fun_of_lfun].
-Definition linfun_def aT rT (f : aT -> rT) :=
+Monomorphic Definition fun_of_lfun := locked_with lfun_key fun_of_lfun_def.
+Monomorphic Canonical fun_of_lfun_unlockable := [unlockable fun fun_of_lfun].
+Monomorphic Definition linfun_def aT rT (f : aT -> rT) :=
   Vector.Hom (lin1_mx (v2r \o f \o r2v)).
-Definition linfun := locked_with lfun_key linfun_def.
-Canonical linfun_unlockable := [unlockable fun linfun].
+Monomorphic Definition linfun := locked_with lfun_key linfun_def.
+Monomorphic Canonical linfun_unlockable := [unlockable fun linfun].
 
-Definition id_lfun vT := @linfun vT vT idfun.
-Definition comp_lfun aT vT rT (f : 'Hom(vT, rT)) (g : 'Hom(aT, vT)) :=
+Monomorphic Definition id_lfun vT := @linfun vT vT idfun.
+Monomorphic Definition comp_lfun aT vT rT (f : 'Hom(vT, rT)) (g : 'Hom(aT, vT)) :=
   linfun (fun_of_lfun f \o fun_of_lfun g).
 
 End LfunDefs.
@@ -1274,17 +1353,17 @@ Notation "f \o g" := (comp_lfun f g) : lfun_scope.
 
 Section LfunVspaceDefs.
 
-Variable K : fieldType.
+Monomorphic Variable K : fieldType.
 Implicit Types aT rT : vectType K.
 
-Definition inv_lfun aT rT (f : 'Hom(aT, rT)) := Vector.Hom (pinvmx (f2mx f)).
-Definition lker aT rT (f : 'Hom(aT, rT)) := mx2vs (kermx (f2mx f)).
-Fact lfun_img_key : unit. Proof. by []. Qed.
-Definition lfun_img_def aT rT f (U : {vspace aT}) : {vspace rT} :=
+Monomorphic Definition inv_lfun aT rT (f : 'Hom(aT, rT)) := Vector.Hom (pinvmx (f2mx f)).
+Monomorphic Definition lker aT rT (f : 'Hom(aT, rT)) := mx2vs (kermx (f2mx f)).
+Monomorphic Fact lfun_img_key : unit. Proof. by []. Qed.
+Monomorphic Definition lfun_img_def aT rT f (U : {vspace aT}) : {vspace rT} :=
   mx2vs (vs2mx U *m f2mx f).
-Definition lfun_img := locked_with lfun_img_key lfun_img_def.
-Canonical lfun_img_unlockable := [unlockable fun lfun_img].
-Definition lfun_preim aT rT (f : 'Hom(aT, rT)) W :=
+Monomorphic Definition lfun_img := locked_with lfun_img_key lfun_img_def.
+Monomorphic Canonical lfun_img_unlockable := [unlockable fun lfun_img].
+Monomorphic Definition lfun_preim aT rT (f : 'Hom(aT, rT)) W :=
   (lfun_img (inv_lfun f) (W :&: lfun_img f fullv) + lker f)%VS.
 
 End LfunVspaceDefs.
@@ -1297,57 +1376,57 @@ Notation limg f := (lfun_img f fullv).
 
 Section LfunZmodType.
 
-Variables (R : ringType) (aT rT : vectType R).
+Monomorphic Variables (R : ringType) (aT rT : vectType R).
 Implicit Types f g h : 'Hom(aT, rT).
 
-Definition lfun_eqMixin := Eval hnf in [eqMixin of 'Hom(aT, rT) by <:].
-Canonical lfun_eqType := EqType 'Hom(aT, rT) lfun_eqMixin.
-Definition lfun_choiceMixin := [choiceMixin of 'Hom(aT, rT) by <:].
-Canonical lfun_choiceType := ChoiceType 'Hom(aT, rT) lfun_choiceMixin.
+Monomorphic Definition lfun_eqMixin := Eval hnf in [eqMixin of 'Hom(aT, rT) by <:].
+Monomorphic Canonical lfun_eqType := EqType 'Hom(aT, rT) lfun_eqMixin.
+Monomorphic Definition lfun_choiceMixin := [choiceMixin of 'Hom(aT, rT) by <:].
+Monomorphic Canonical lfun_choiceType := ChoiceType 'Hom(aT, rT) lfun_choiceMixin.
 
-Fact lfun_is_linear f : linear f.
+Monomorphic Fact lfun_is_linear f : linear f.
 Proof. by rewrite unlock; apply: linearP. Qed.
-Canonical lfun_additive f := Additive (lfun_is_linear f).
-Canonical lfun_linear f := AddLinear (lfun_is_linear f).
+Monomorphic Canonical lfun_additive f := Additive (lfun_is_linear f).
+Monomorphic Canonical lfun_linear f := AddLinear (lfun_is_linear f).
 
-Lemma lfunE (ff : {linear aT -> rT}) : linfun ff =1 ff.
+Monomorphic Lemma lfunE (ff : {linear aT -> rT}) : linfun ff =1 ff.
 Proof. by move=> v; rewrite 2!unlock /= mul_rV_lin1 /= !v2rK. Qed.
 
-Lemma fun_of_lfunK : cancel (@fun_of_lfun R aT rT) linfun.
+Monomorphic Lemma fun_of_lfunK : cancel (@fun_of_lfun R aT rT) linfun.
 Proof.
 move=> f; apply/val_inj/row_matrixP=> i.
 by rewrite 2!unlock /= !rowE mul_rV_lin1 /= !r2vK.
 Qed.
 
-Lemma lfunP f g : f =1 g <-> f = g.
+Monomorphic Lemma lfunP f g : f =1 g <-> f = g.
 Proof.
 split=> [eq_fg | -> //]; rewrite -[f]fun_of_lfunK -[g]fun_of_lfunK unlock.
 by apply/val_inj/row_matrixP=> i; rewrite !rowE !mul_rV_lin1 /= eq_fg.
 Qed.
 
-Definition zero_lfun : 'Hom(aT, rT) := linfun \0.
-Definition add_lfun f g := linfun (f \+ g).
-Definition opp_lfun f := linfun (-%R \o f).
+Monomorphic Definition zero_lfun : 'Hom(aT, rT) := linfun \0.
+Monomorphic Definition add_lfun f g := linfun (f \+ g).
+Monomorphic Definition opp_lfun f := linfun (-%R \o f).
 
-Fact lfun_addA : associative add_lfun.
+Monomorphic Fact lfun_addA : associative add_lfun.
 Proof. by move=> f g h; apply/lfunP=> v; rewrite !lfunE /= !lfunE addrA. Qed.
 
-Fact lfun_addC : commutative add_lfun.
+Monomorphic Fact lfun_addC : commutative add_lfun.
 Proof. by move=> f g; apply/lfunP=> v; rewrite !lfunE /= addrC. Qed.
 
-Fact lfun_add0 : left_id zero_lfun add_lfun.
+Monomorphic Fact lfun_add0 : left_id zero_lfun add_lfun.
 Proof. by move=> f; apply/lfunP=> v; rewrite lfunE /= lfunE add0r. Qed.
 
-Lemma lfun_addN : left_inverse zero_lfun opp_lfun add_lfun.
+Monomorphic Lemma lfun_addN : left_inverse zero_lfun opp_lfun add_lfun.
 Proof. by move=> f; apply/lfunP=> v; rewrite !lfunE /= lfunE addNr. Qed.
 
-Definition lfun_zmodMixin := ZmodMixin lfun_addA lfun_addC lfun_add0 lfun_addN.
-Canonical lfun_zmodType := Eval hnf in ZmodType 'Hom(aT, rT) lfun_zmodMixin.
+Monomorphic Definition lfun_zmodMixin := ZmodMixin lfun_addA lfun_addC lfun_add0 lfun_addN.
+Monomorphic Canonical lfun_zmodType := Eval hnf in ZmodType 'Hom(aT, rT) lfun_zmodMixin.
 
-Lemma zero_lfunE x : (0 : 'Hom(aT, rT)) x = 0. Proof. exact: lfunE. Qed.
-Lemma add_lfunE f g x : (f + g) x = f x + g x. Proof. exact: lfunE. Qed.
-Lemma opp_lfunE f x : (- f) x = - f x. Proof. exact: lfunE. Qed.
-Lemma sum_lfunE I (r : seq I) (P : pred I) (fs : I -> 'Hom(aT, rT)) x :
+Monomorphic Lemma zero_lfunE x : (0 : 'Hom(aT, rT)) x = 0. Proof. exact: lfunE. Qed.
+Monomorphic Lemma add_lfunE f g x : (f + g) x = f x + g x. Proof. exact: lfunE. Qed.
+Monomorphic Lemma opp_lfunE f x : (- f) x = - f x. Proof. exact: lfunE. Qed.
+Monomorphic Lemma sum_lfunE I (r : seq I) (P : pred I) (fs : I -> 'Hom(aT, rT)) x :
   (\sum_(i <- r | P i) fs i) x = \sum_(i <- r | P i) fs i x.
 Proof. by elim/big_rec2: _ => [|i _ f _ <-]; rewrite lfunE. Qed.
 
@@ -1357,33 +1436,33 @@ Arguments fun_of_lfunK {R aT rT}.
 
 Section LfunVectType.
 
-Variables (R : comRingType) (aT rT : vectType R).
+Monomorphic Variables (R : comRingType) (aT rT : vectType R).
 Implicit Types f : 'Hom(aT, rT).
 
-Definition scale_lfun k f := linfun (k \*: f).
+Monomorphic Definition scale_lfun k f := linfun (k \*: f).
 Local Infix "*:l" := scale_lfun (at level 40).
 
-Fact lfun_scaleA k1 k2 f : k1 *:l (k2 *:l f) = (k1 * k2) *:l f.
+Monomorphic Fact lfun_scaleA k1 k2 f : k1 *:l (k2 *:l f) = (k1 * k2) *:l f.
 Proof. by apply/lfunP=> v; rewrite !lfunE /= lfunE scalerA. Qed.
 
-Fact lfun_scale1 f : 1 *:l f = f.
+Monomorphic Fact lfun_scale1 f : 1 *:l f = f.
 Proof. by apply/lfunP=> v; rewrite lfunE /= scale1r. Qed.
 
-Fact lfun_scaleDr k f1 f2 : k *:l (f1 + f2) = k *:l f1 + k *:l f2.
+Monomorphic Fact lfun_scaleDr k f1 f2 : k *:l (f1 + f2) = k *:l f1 + k *:l f2.
 Proof. by apply/lfunP=> v; rewrite !lfunE /= !lfunE scalerDr. Qed.
 
-Fact lfun_scaleDl f k1 k2 : (k1 + k2) *:l f = k1 *:l f + k2 *:l f.
+Monomorphic Fact lfun_scaleDl f k1 k2 : (k1 + k2) *:l f = k1 *:l f + k2 *:l f.
 Proof. by apply/lfunP=> v; rewrite !lfunE /= !lfunE scalerDl. Qed.
 
-Definition lfun_lmodMixin := 
+Monomorphic Definition lfun_lmodMixin := 
   LmodMixin lfun_scaleA lfun_scale1 lfun_scaleDr lfun_scaleDl.
-Canonical lfun_lmodType := Eval hnf in LmodType R 'Hom(aT, rT) lfun_lmodMixin.
+Monomorphic Canonical lfun_lmodType := Eval hnf in LmodType R 'Hom(aT, rT) lfun_lmodMixin.
 
-Lemma scale_lfunE k f x : (k *: f) x = k *: f x. Proof. exact: lfunE. Qed.
+Monomorphic Lemma scale_lfunE k f x : (k *: f) x = k *: f x. Proof. exact: lfunE. Qed.
 
 (* GG: exists (Vector.Hom \o vec_mx) fails in the proof below in 8.3,     *)
 (* probably because of incomplete type unification. Will it work in 8.4?  *)
-Fact lfun_vect_iso : Vector.axiom (Vector.dim aT * Vector.dim rT) 'Hom(aT, rT).
+Monomorphic Fact lfun_vect_iso : Vector.axiom (Vector.dim aT * Vector.dim rT) 'Hom(aT, rT).
 Proof.
 exists (mxvec \o f2mx) => [a f g|].
   rewrite /= -linearP /= -[A in _ = mxvec A]/(f2mx (Vector.Hom _)).
@@ -1393,8 +1472,8 @@ apply: Bijective (Vector.Hom \o vec_mx) _ _ => [[A]|A] /=; last exact: vec_mxK.
 by rewrite mxvecK.
 Qed.
 
-Definition lfun_vectMixin := VectMixin lfun_vect_iso.
-Canonical lfun_vectType := VectType R 'Hom(aT, rT) lfun_vectMixin.
+Monomorphic Definition lfun_vectMixin := VectMixin lfun_vect_iso.
+Monomorphic Canonical lfun_vectType := VectType R 'Hom(aT, rT) lfun_vectMixin.
 
 End LfunVectType.
 
@@ -1860,7 +1939,11 @@ Proof.
 rewrite /sumv_pi_for defV -!(big_filter r0 P).
 elim: (filter P r0) v => [|i r IHr] v /= => [_ | /andP[r'i /IHr{IHr}IHr]].
   by rewrite !big_nil memv0 => /eqP.
-rewrite !big_cons eqxx => /addv_pi1_pi2; congr (_ + _ = v).
+rewrite !big_cons eqxx => /addv_pi1_pi2.
+match goal with
+| [ |- _ + ?R = v -> _ + ?L = v] => have: L = R
+end; last first.
+  by move=>->.
 rewrite -[_ v]IHr ?memv_pi2 //; apply: eq_big_seq => j /=.
 by case: eqP => [<- /idPn | _]; rewrite ?lfunE.
 Qed.
@@ -1891,58 +1974,58 @@ End SumvPi.
 Section SubVector.
 
 (* Turn a {vspace V} into a vectType                                          *)
-Variable (K : fieldType) (vT : vectType K) (U : {vspace vT}).
+Monomorphic Variable (K : fieldType) (vT : vectType K) (U : {vspace vT}).
 
-Inductive subvs_of : predArgType := Subvs u & u \in U.
+Monomorphic Inductive subvs_of : predArgType := Subvs u & u \in U.
 
-Definition vsval w := let: Subvs u _ := w in u.
-Canonical subvs_subType := Eval hnf in [subType for vsval].
-Definition subvs_eqMixin := Eval hnf in [eqMixin of subvs_of by <:].
-Canonical subvs_eqType := Eval hnf in EqType subvs_of subvs_eqMixin.
-Definition subvs_choiceMixin := [choiceMixin of subvs_of by <:].
-Canonical subvs_choiceType := ChoiceType subvs_of subvs_choiceMixin.
-Definition subvs_zmodMixin := [zmodMixin of subvs_of by <:].
-Canonical subvs_zmodType := ZmodType subvs_of subvs_zmodMixin.
-Definition subvs_lmodMixin := [lmodMixin of subvs_of by <:].
-Canonical subvs_lmodType := LmodType K subvs_of subvs_lmodMixin.
+Monomorphic Definition vsval w := let: Subvs u _ := w in u.
+Monomorphic Canonical subvs_subType := Eval hnf in [subType for vsval].
+Monomorphic Definition subvs_eqMixin := Eval hnf in [eqMixin of subvs_of by <:].
+Monomorphic Canonical subvs_eqType := Eval hnf in EqType subvs_of subvs_eqMixin.
+Monomorphic Definition subvs_choiceMixin := [choiceMixin of subvs_of by <:].
+Monomorphic Canonical subvs_choiceType := ChoiceType subvs_of subvs_choiceMixin.
+Monomorphic Definition subvs_zmodMixin := [zmodMixin of subvs_of by <:].
+Monomorphic Canonical subvs_zmodType := ZmodType subvs_of subvs_zmodMixin.
+Monomorphic Definition subvs_lmodMixin := [lmodMixin of subvs_of by <:].
+Monomorphic Canonical subvs_lmodType := LmodType K subvs_of subvs_lmodMixin.
 
-Lemma subvsP w : vsval w \in U. Proof. exact: valP. Qed.
-Lemma subvs_inj : injective vsval. Proof. exact: val_inj. Qed.
-Lemma congr_subvs u v : u = v -> vsval u = vsval v. Proof. exact: congr1. Qed.
+Monomorphic Lemma subvsP w : vsval w \in U. Proof. exact: valP. Qed.
+Monomorphic Lemma subvs_inj : injective vsval. Proof. exact: val_inj. Qed.
+Monomorphic Lemma congr_subvs u v : u = v -> vsval u = vsval v. Proof. exact: congr1. Qed.
 
-Lemma vsval_is_linear : linear vsval. Proof. by []. Qed.
-Canonical vsval_additive := Additive vsval_is_linear.
-Canonical vsval_linear := AddLinear vsval_is_linear.
+Monomorphic Lemma vsval_is_linear : linear vsval. Proof. by []. Qed.
+Monomorphic Canonical vsval_additive := Additive vsval_is_linear.
+Monomorphic Canonical vsval_linear := AddLinear vsval_is_linear.
 
-Fact vsproj_key : unit. Proof. by []. Qed.
-Definition vsproj_def u := Subvs (memv_proj U u).
-Definition vsproj := locked_with vsproj_key vsproj_def.
-Canonical vsproj_unlockable := [unlockable fun vsproj].
+Monomorphic Fact vsproj_key : unit. Proof. by []. Qed.
+Monomorphic Definition vsproj_def u := Subvs (memv_proj U u).
+Monomorphic Definition vsproj := locked_with vsproj_key vsproj_def.
+Monomorphic Canonical vsproj_unlockable := [unlockable fun vsproj].
 
-Lemma vsprojK : {in U, cancel vsproj vsval}.
+Monomorphic Lemma vsprojK : {in U, cancel vsproj vsval}.
 Proof. by rewrite unlock; apply: projv_id. Qed.
-Lemma vsvalK : cancel vsval vsproj.
+Monomorphic Lemma vsvalK : cancel vsval vsproj.
 Proof. by move=> w; apply/val_inj/vsprojK/subvsP. Qed.
 
-Lemma vsproj_is_linear : linear vsproj.
+Monomorphic Lemma vsproj_is_linear : linear vsproj.
 Proof. by move=> k w1 w2; apply: val_inj; rewrite unlock /= linearP. Qed.
-Canonical vsproj_additive := Additive vsproj_is_linear.
-Canonical vsproj_linear := AddLinear vsproj_is_linear.
+Monomorphic Canonical vsproj_additive := Additive vsproj_is_linear.
+Monomorphic Canonical vsproj_linear := AddLinear vsproj_is_linear.
 
-Fact subvs_vect_iso : Vector.axiom (\dim U) subvs_of.
+Monomorphic Fact subvs_vect_iso : Vector.axiom (\dim U) subvs_of.
 Proof.
 exists (fun w => \row_i coord (vbasis U) i (vsval w)).
   by move=> k w1 w2; apply/rowP=> i; rewrite !mxE linearP.
 exists (fun rw : 'rV_(\dim U) => vsproj (\sum_i rw 0 i *: (vbasis U)`_i)).
-  move=> w /=; congr (vsproj _ = w): (vsvalK w).
+  move=> w /=; rewrite -{2}(vsvalK w); f_ap; symmetry.
   by rewrite {1}(coord_vbasis (subvsP w)); apply: eq_bigr => i _; rewrite mxE.
 move=> rw; apply/rowP=> i; rewrite mxE vsprojK.
   by rewrite coord_sum_free ?(basis_free (vbasisP U)).
 by apply: rpred_sum => j _; rewrite rpredZ ?vbasis_mem ?memt_nth.
 Qed.
 
-Definition subvs_vectMixin :=  VectMixin subvs_vect_iso.
-Canonical subvs_vectType := VectType K subvs_of subvs_vectMixin.
+Monomorphic Definition subvs_vectMixin :=  VectMixin subvs_vect_iso.
+Monomorphic Canonical subvs_vectType := VectType K subvs_of subvs_vectMixin.
 
 End SubVector.
 Prenex Implicits vsval vsproj vsvalK.
@@ -1968,24 +2051,24 @@ End MatrixVectType.
 (* A ring is a one-dimension vector space *)
 Section RegularVectType.
 
-Variable R : ringType.
+Monomorphic Variable R : ringType.
 
-Fact regular_vect_iso : Vector.axiom 1 R^o.
+Monomorphic Fact regular_vect_iso : Vector.axiom 1 R^o.
 Proof.
 exists (fun a => a%:M) => [a b c|]; first by rewrite rmorphD scale_scalar_mx.
 by exists (fun A : 'M_1 => A 0 0) => [a | A]; rewrite ?mxE // -mx11_scalar.
 Qed.
-Definition regular_vectMixin := VectMixin regular_vect_iso.
-Canonical regular_vectType := VectType R R^o regular_vectMixin.
+Monomorphic Definition regular_vectMixin := VectMixin regular_vect_iso.
+Monomorphic Canonical regular_vectType := VectType R R^o regular_vectMixin.
 
 End RegularVectType.
 
 (* External direct product of two vectTypes. *)
 Section ProdVector.
 
-Variables (R : ringType) (vT1 vT2 : vectType R).
+Monomorphic Variables (R : ringType) (vT1 vT2 : vectType R).
 
-Fact pair_vect_iso : Vector.axiom (Vector.dim vT1 + Vector.dim vT2) (vT1 * vT2).
+Monomorphic Fact pair_vect_iso : Vector.axiom (Vector.dim vT1 + Vector.dim vT2) (vT1 * vT2).
 Proof.
 pose p2r (u : vT1 * vT2) := row_mx (v2r u.1) (v2r u.2).
 pose r2p w := (r2v (lsubmx w) : vT1, r2v (rsubmx w) : vT2).
@@ -1994,18 +2077,18 @@ have p2rK : cancel p2r r2p by case=> u v; rewrite /r2p row_mxKl row_mxKr !v2rK.
 have r2p_lin: linear r2p by move=> a u v; congr (_ , _); rewrite /= !linearP.
 by exists p2r; [apply: (@can2_linear _ _ _ (Linear r2p_lin)) | exists r2p].
 Qed.
-Definition pair_vectMixin := VectMixin pair_vect_iso.
-Canonical pair_vectType := VectType R (vT1 * vT2) pair_vectMixin.
+Monomorphic Definition pair_vectMixin := VectMixin pair_vect_iso.
+Monomorphic Canonical pair_vectType := VectType R (vT1 * vT2) pair_vectMixin.
 
 End ProdVector.
 
 (* Function from a finType into a ring form a vectype. *)
 Section FunVectType.
 
-Variable (I : finType) (R : ringType) (vT : vectType R).
+Monomorphic Variable (I : finType) (R : ringType) (vT : vectType R).
 
 (* Type unification with exist is again a problem in this proof. *)
-Fact ffun_vect_iso : Vector.axiom (#|I| * Vector.dim vT) {ffun I -> vT}.
+Monomorphic Fact ffun_vect_iso : Vector.axiom (#|I| * Vector.dim vT) {ffun I -> vT}.
 Proof.
 pose fr (f : {ffun I -> vT}) := mxvec (\matrix_(i < #|I|) v2r (f (enum_val i))).
 exists fr => /= [k f g|].
@@ -2016,13 +2099,13 @@ exists (fun r => [ffun i => r2v (row (enum_rank i) (vec_mx r)) : vT]) => [g|r].
 by apply/(canLR vec_mxK)/matrixP=> i j; rewrite mxE ffunE r2vK enum_valK mxE.
 Qed.
 
-Definition ffun_vectMixin := VectMixin ffun_vect_iso.
-Canonical ffun_vectType := VectType R {ffun I -> vT} ffun_vectMixin.
+Monomorphic Definition ffun_vectMixin := VectMixin ffun_vect_iso.
+Monomorphic Canonical ffun_vectType := VectType R {ffun I -> vT} ffun_vectMixin.
 
 End FunVectType.
 
-Canonical exp_vectType (K : fieldType) (vT : vectType K) n :=
-  [vectType K of vT ^ n].
+Monomorphic Canonical exp_vectType (K : fieldType) (vT : vectType K) n :=
+  [vectType K of vT ** n].
 
 (* Solving a tuple of linear equations. *)
 Section Solver.

@@ -49,21 +49,21 @@ Unset Printing Implicit Defensive.
 Import GRing.Theory Num.Theory.
 Local Open Scope ring_scope.
 
-Definition divz (m d : int) :=
+Monomorphic Definition divz (m d : int) :=
   let: (K, n) := match m with Posz n => (Posz, n) | Negz n => (Negz, n) end in
   sgz d * K (n %/ `|d|)%N.
 
-Definition modz (m d : int) : int := m - divz m d * d.
+Monomorphic Definition modz (m d : int) : int := m - divz m d * d.
 
-Definition dvdz d m := (`|d| %| `|m|)%N.
+Monomorphic Definition dvdz d m := (`|d| %| `|m|)%N.
 
-Definition gcdz m n := (gcdn `|m| `|n|)%:Z.
+Monomorphic Definition gcdz m n := (gcdn `|m| `|n|)%:Z.
 
-Definition egcdz m n : int * int :=
+Monomorphic Definition egcdz m n : int * int :=
   if m == 0 then (0, (-1) ^+ (n < 0)%R) else
   let: (u, v) := egcdn `|m| `|n| in (sgz m * u, - (-1) ^+ (n < 0)%R * v%:Z).
 
-Definition coprimez m n := (gcdz m n == 1).
+Monomorphic Definition coprimez m n := (gcdz m n == 1).
 
 Infix "%/" := divz : int_scope.
 Infix "%%" := modz : int_scope.
@@ -308,8 +308,8 @@ Proof. by rewrite modzMmr -abszEsign. Qed.
 
 (** Divisibility **)
 
-Fact dvdz_key d : pred_key (dvdz d). Proof. by []. Qed.
-Canonical dvdz_keyed d := KeyedPred (dvdz_key d).
+Monomorphic Fact dvdz_key d : pred_key (dvdz d). Proof. by []. Qed.
+Monomorphic Canonical dvdz_keyed d := KeyedPred (dvdz_key d).
 
 Lemma dvdzE d m : (d %| m)%Z = (`|d| %| `|m|)%N. Proof. by []. Qed.
 Lemma dvdz0 d : (d %| 0)%Z. Proof. exact: dvdn0. Qed.
@@ -367,7 +367,7 @@ Proof. by move=> d_gt0 dv_d_m; rewrite eq_sym -eqz_div // eq_sym. Qed.
 Lemma divz_mulAC d m n : (d %| m)%Z -> (m %/ d)%Z * n = (m * n %/ d)%Z.
 Proof.
 have [-> | d_nz] := eqVneq d 0; first by rewrite !divz0 mul0r.
-by move/divzK=> {2} <-; rewrite mulrAC mulzK.
+by move/divzK=> {2} <-; rewrite (mulrAC _ d) mulzK.
 Qed.
 
 Lemma mulz_divA d m n : (d %| n)%Z -> m * (n %/ d)%Z = (m * n %/ d)%Z.
@@ -420,14 +420,14 @@ Proof. by rewrite dvdzE !abszX ltz_nat; apply: dvdn_Pexp2l. Qed.
 Lemma dvdz_exp2r m n k : (m %| n -> m ^+ k %| n ^+ k)%Z.
 Proof. by rewrite !dvdzE !abszX; apply: dvdn_exp2r. Qed.
 
-Fact dvdz_zmod_closed d : zmod_closed (dvdz d).
+Monomorphic Fact dvdz_zmod_closed d : zmod_closed (dvdz d).
 Proof.
 split=> [|_ _ /dvdzP[p ->] /dvdzP[q ->]]; first exact: dvdz0.
 by rewrite -mulrBl dvdz_mull.
 Qed.
-Canonical dvdz_addPred d := AddrPred (dvdz_zmod_closed d).
-Canonical dvdz_oppPred d := OpprPred (dvdz_zmod_closed d).
-Canonical dvdz_zmodPred d := ZmodPred (dvdz_zmod_closed d).
+Monomorphic Canonical dvdz_addPred d := AddrPred (dvdz_zmod_closed d).
+Monomorphic Canonical dvdz_oppPred d := OpprPred (dvdz_zmod_closed d).
+Monomorphic Canonical dvdz_zmodPred d := ZmodPred (dvdz_zmod_closed d).
   
 Lemma dvdz_exp k d m : (0 < k)%N -> (d %| m -> d %| m ^+ k)%Z.
 Proof. by case: k => // k _ d_dv_m; rewrite exprS dvdz_mulr. Qed.
@@ -557,7 +557,7 @@ Proof. by rewrite coprimezE abszN. Qed.
 Lemma coprimezN m n : coprimez m (- n) = coprimez m n.
 Proof. by rewrite coprimezE abszN. Qed.
 
-Variant egcdz_spec m n : int * int -> Type :=
+Monomorphic Variant egcdz_spec m n : int * int -> Type :=
   EgcdzSpec u v of u * m + v * n = gcdz m n & coprimez u v
      : egcdz_spec m n (u, v).
 
@@ -726,7 +726,7 @@ apply: (iffP idP) => [/map_poly_divzK | [q ->]].
 by apply/polyOverP=> i; rewrite coefZ dvdz_mulr.
 Qed.
 
-Definition zprimitive p := map_poly (divz^~ (zcontents p)) p.
+Monomorphic Definition zprimitive p := map_poly (divz^~ (zcontents p)) p.
 
 Lemma zpolyEprim p : p = zcontents p *: zprimitive p.
 Proof. by rewrite map_poly_divzK // -dvdz_contents. Qed.
@@ -888,6 +888,8 @@ Qed.
 
 End ZpolyScale.
 
+Axiom any : forall A, A.
+
 (* Integral spans. *)
 
 Lemma int_Smith_normal_form m n (M : 'M[int]_(m, n)) :
@@ -932,7 +934,7 @@ wlog [j a'Mij]: m n M i Da le_mn / {j | ~~ (a %| M i j)%Z}; last first.
     rewrite unitmxE det_ublock det1 (expand_det_col _ 0) big_ord_recl big_ord1.
     do 2!rewrite /cofactor [row' _ _]mx11_scalar !mxE det_scalar1 /=.
     rewrite mulr1 mul1r mulN1r opprK -[_ + _](mulzK _ nz_b) mulrDl.
-    by rewrite -!mulrA !divzK ?dvdz_gcdl ?dvdz_gcdr // Db divzz nz_b unitr1.
+    by rewrite -mulrA -(mulrA v _ b) !divzK ?dvdz_gcdl ?dvdz_gcdr // Db divzz nz_b unitr1.
   have{Db} Db: M1 i 0 = b.
     rewrite /M1 -(lshift0 n 1) [U]block_mxEh mul_mx_row row_mxEl.
     rewrite -[M](@hsubmxK _ _ 2) (@mul_row_col _ _ 2) mulmx0 addr0 !mxE /=.
@@ -956,7 +958,7 @@ without loss{Da a_dvM0} Da: M / forall j, M 0 j = a.
   have uU: U \in unitmx by rewrite unitmxE det_ublock !det1 mulr1.
   case/(_ (M *m U)) => [j | L uL [R uR [d dvD dM]]].
     rewrite -(lshift0 m 0) -[M](@submxK _ 1 _ 1) (@mulmx_block _ 1 m 1).
-    rewrite (@col_mxEu _ 1) !mulmx1 mulmx0 addr0 [ulsubmx _]mx11_scalar.
+    rewrite (@col_mxEu _ 1) !mulmx1 mulmx0 addr0 (mx11_scalar (ulsubmx _)).
     rewrite mul_scalar_mx !mxE !lshift0 Da.
     case: splitP => [j0 _ | j1 Dj]; rewrite ?ord1 !mxE // lshift0 rshift1.
     by rewrite mulrBr mulr1 mulrC divzK ?subrK.
@@ -998,8 +1000,8 @@ rewrite !mulmx_block !(mul0mx, mulmx0, addr0) !mulmx1 add0r mul1mx -Da -dM1.
 by rewrite addNKr submxK.
 Qed.
 
-Definition inIntSpan (V : zmodType) m (s : m.-tuple V) v :=
-  exists a : int ^ m, v = \sum_(i < m) s`_i *~ a i.
+Monomorphic Definition inIntSpan (V : zmodType) m (s : m.-tuple V) v :=
+  exists a : int ** m, v = \sum_(i < m) s`_i *~ a i.
 
 Lemma dec_Qint_span (vT : vectType rat) m (s : m.-tuple vT) v :
   decidable (inIntSpan s v).
@@ -1029,7 +1031,7 @@ have{K L D defK kerK} kerGu: map_mx intr (usubmx Gud) *m S = 0.
     rewrite -[K *m _](castmxK Ek Dm) map_mxM map_castmx.
     rewrite -(hsubmxK (castmx _ _)) map_row_mx -/Kl map_castmx /Em.
     set Kr := map_mx _ _; case: _ / (esym Dm) (map_mx _ _) => /= GudQ.
-    congr (row_mx _ _ *m _); apply/matrixP=> i j; rewrite !mxE defK mulmxK //=.
+    congr (row_mx _ _ *m _); apply/matrixP=> i j; rewrite !mxE defK mulmxK //.
     rewrite castmxE mxE big1 //= => j1 _; rewrite mxE /= eqn_leq andbC.
     by rewrite leqNgt (leq_trans (valP j1)) ?mulr0 ?leq_addr.
   have /row_full_inj: row_full Kl; last apply.
